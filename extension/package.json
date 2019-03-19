@@ -1,0 +1,18 @@
+{
+  "name": "extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "start": "gulp",
+    "reload": "gulp reload"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gulp": "^4.0.0",
+    "gulp-open": "^3.0.1",
+    "gulp-util": "^3.0.8"
+  },
+  "devDependencies": {}
+}
