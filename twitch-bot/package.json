@@ -5,11 +5,13 @@
   "main": "bot.js",
   "dependencies": {
     "fs": "0.0.1-security",
+    "nodemon": "^1.18.10",
+    "request": "^2.88.0",
     "tmi.js": "^1.4.2"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start-dev": "nodemon src/bot.js"
   },
   "author": "",
   "license": "ISC"

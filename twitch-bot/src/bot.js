@@ -1,7 +1,8 @@
 const tmi = require('tmi.js');
 const fs = require('fs');
+var request = require('request');
 
-const creds = JSON.parse(fs.readFileSync('./creds.json'));
+const creds = JSON.parse(fs.readFileSync(__dirname + '/creds.json'));
 const waifuID = '55853880';
 
 const opts = {
@@ -27,7 +28,7 @@ function onMessageHandler(target, context, msg, self) {
     }
 
     if (context['user-id'] == waifuID) {
-        console.log(msg);
+        console.log(`> ${msg}`);
         if (!inSync) {
             checkMessage(msg);
         }
@@ -42,7 +43,7 @@ function onConnectHandler(addr, port) {
 
 // Logic to handle inputs
 let inSync = false;
-let currentTier, player1, player2, bet1, bet2, winner;
+let currentTier, player1, player2, bet1, bet2, winner, fomrat;
 
 const openIdentifier = 'bets are open for ';
 const lockedIdentifier = 'bets are locked.';
@@ -66,6 +67,15 @@ function parseMessage(msg) {
         const tierRegex = /\([a-z] tier\)/g;
         let tierOutput = msgLower.match(tierRegex)[0].charAt(1).toUpperCase();
         currentTier = tierOutput;
+
+        // Get the format
+        if (msgLower.includes('matchmaking')) {
+            format = 'matchmaking';
+        } else if (msgLower.includes('tournament bracket')) {
+            format = 'tournament';
+        } else {
+            format = 'exhibition';
+        }
     } else if (msgLower.includes(lockedIdentifier)) {
         const dollarRegex = /\$(,?\d+)*/g;
         let dollarOutput = msgLower.match(dollarRegex).map(dollarAmnt => parseInt(dollarAmnt.slice(1).replace(/,/g, '')));
@@ -97,10 +107,17 @@ function sendMatch() {
             "bet": bet2
         },
         "tier": currentTier,
-        "winner": winner
+        "winner": winner,
+        "format": format
     }
 
-    console.log(data);
-    // send shit to put in DB
+    request({
+        url: "http://localhost:8080/add",
+        method: "POST",
+        json: true,
+        body: data
+    }, (err, res, body) => {
+        console.log(res);
+    });
 }
 
