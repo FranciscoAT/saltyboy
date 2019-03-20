@@ -2,7 +2,7 @@ import psycopg2
 import os
 import json
 import argparse
-from datetime import datetime
+import datetime
 
 
 def main():
@@ -104,7 +104,7 @@ def deleteTable(cursor, table_name):
 
 def dumpTables(cursor, full_path):
     # Make new directory
-    new_dir_name = str(datetime.now()).replace(' ', '_').replace(':', '-').split('.')[0]
+    new_dir_name = str(datetime.datetime.now()).replace(' ', '_').replace(':', '-').split('.')[0]
     dump_path = f"{full_path}/dumps/{new_dir_name}"
 
     if not os.path.exists(dump_path):
@@ -118,13 +118,25 @@ def dumpTables(cursor, full_path):
 
 def dump_table(cursor, dump_path, table_name):
     cursor.execute(f'SELECT * FROM {table_name}')
-    new_file = f"{dump_path}/{table_name}.txt"
+    new_file = f"{dump_path}/{table_name}.sql"
     print(f"Dumping table {table_name} to {new_file}")
 
     with open(new_file, 'w') as dump_file:
         for row in cursor:
-            print(row)
+            row = eval_row(row)
             dump_file.write(f"INSERT INTO {table_name} VALUES {str(row)};\n")
+
+
+def eval_row(row):
+    evaled_tuple = []
+    for tup_item in row:
+        if type(tup_item) is datetime.date or type(tup_item) is datetime.time:
+            evaled_tuple.append(str(tup_item))
+        else:
+            evaled_tuple.append(tup_item)
+    return tuple(evaled_tuple)
+
+
 
 
 def populate_tables(curr, conn, full_path, dump_path):
@@ -134,7 +146,7 @@ def populate_tables(curr, conn, full_path, dump_path):
         print(f"{full_dump_path} is not a directory!")
         return
 
-    files_expected = ["dates.txt", "fighters.txt", "matches.txt"]
+    files_expected = ["dates.sql", "fighters.sql", "matches.sql"]
     files_in_dump_path = os.listdir(full_dump_path)
 
     if (set(files_expected) != set(files_in_dump_path)):
@@ -153,8 +165,7 @@ def populate_table(curr, query_file_path, table_name):
     num_inputs = 0
     with open(query_file_path, 'r') as query_file:
         for row in query_file:
-
-            # curr.execute(row)
+            curr.execute(row)
             num_inputs += 1
     print(f"Pushed {num_inputs} row up to {table_name}.")
 
