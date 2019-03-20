@@ -43,7 +43,7 @@ function onConnectHandler(addr, port) {
 
 // Logic to handle inputs
 let inSync = false;
-let currentTier, player1, player2, bet1, bet2, winner, fomrat;
+let currentTier, player1, player2, bet1, bet2, winner, format;
 
 const openIdentifier = 'bets are open for ';
 const lockedIdentifier = 'bets are locked.';
@@ -57,18 +57,6 @@ function parseMessage(msg) {
     let msgLower = msg.toLowerCase();
 
     if (msgLower.includes(openIdentifier)) {
-        // Get the contestants
-        const vsRegex = /.* vs .*!/g;
-        let vsOutput = msgLower.replace(openIdentifier, '').match(vsRegex)[0].slice(0, -1).split(' vs ');
-        player1 = vsOutput[0];
-        player2 = vsOutput[1];
-
-        // Get the tier
-        const tierRegex = /\([a-z] tier\)/g;
-        let tierOutput = msgLower.match(tierRegex)[0].charAt(1).toUpperCase();
-        currentTier = tierOutput;
-
-        // Get the format
         if (msgLower.includes('matchmaking')) {
             format = 'matchmaking';
         } else if (msgLower.includes('tournament bracket')) {
@@ -76,6 +64,24 @@ function parseMessage(msg) {
         } else {
             format = 'exhibition';
         }
+    }
+
+    if (format == 'exhibition') {
+        console.log("Ignoring exhibition matches");
+        return;
+    }
+
+    if (msgLower.includes(openIdentifier)) {
+        // Get the contestants
+        const vsRegex = /.* vs .*!/g;
+        let vsOutput = msgLower.replace(openIdentifier, '').match(vsRegex)[0].slice(0, -1).split(' vs ');
+        player1 = vsOutput[0];
+        player2 = vsOutput[1];
+
+        // Get the tier
+        const tierRegex = /[a-z] tier\)/g;
+        let tierOutput = msgLower.match(tierRegex)[0].charAt(0).toUpperCase();
+        currentTier = tierOutput;
     } else if (msgLower.includes(lockedIdentifier)) {
         const dollarRegex = /\$(,?\d+)*/g;
         let dollarOutput = msgLower.match(dollarRegex).map(dollarAmnt => parseInt(dollarAmnt.slice(1).replace(/,/g, '')));
@@ -88,6 +94,7 @@ function parseMessage(msg) {
         sendMatch();
     }
 }
+
 
 function checkMessage(msg) {
     let msgLower = msg.toLowerCase();
