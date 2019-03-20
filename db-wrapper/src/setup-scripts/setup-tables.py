@@ -1,9 +1,17 @@
 import psycopg2
 import os
 import json
+import argparse
+from datetime import datetime
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--dump", help="Dump the databse to ./dumps", action="store_true")
+    parser.add_argument("-r", "--reset", help="Resets tables", action="store_true")
+    parser.add_argument("-p", "--populate", help="Poplates tables using specified dumps directory", nargs=1, type=str)
+    args = parser.parse_args()
+
     full_path = os.path.dirname(os.path.realpath(__file__))
     creds = json.load(open(f'{full_path}/../creds.json', 'r'))
 
@@ -18,8 +26,15 @@ def main():
 
     curr = conn.cursor()
 
-    tearDownTables(curr, conn)
-    setupTables(curr, conn)
+    if (args.dump):
+        dumpTables(curr, full_path)
+
+    if (args.reset):
+        tearDownTables(curr, conn)
+        setupTables(curr, conn)
+
+    if (args.populate):
+        populate_tables(curr, conn, full_path, args.populate[0])
 
     curr.close()
     conn.close()
@@ -59,7 +74,7 @@ def setupTables(cursor, conn):
             date DATE,
             day_of_week VARCHAR(255),
             month VARCHAR(255),
-            year INT            
+            year INT
         )
         """
 
@@ -67,6 +82,7 @@ def setupTables(cursor, conn):
     createTable(cursor, date_table, "dates")
     createTable(cursor, match_table, "matches")
     conn.commit()
+
 
 def createTable(cursor, table_query, table_name):
     print(f"Creating {table_name} table...")
@@ -84,6 +100,63 @@ def tearDownTables(cursor, conn):
 def deleteTable(cursor, table_name):
     print(f"Dropping Table {table_name}...")
     cursor.execute(f"DROP TABLE IF EXISTS {table_name} CASCADE")
+
+
+def dumpTables(cursor, full_path):
+    # Make new directory
+    new_dir_name = str(datetime.now()).replace(' ', '_').replace(':', '-').split('.')[0]
+    dump_path = f"{full_path}/dumps/{new_dir_name}"
+
+    if not os.path.exists(dump_path):
+        os.makedirs(dump_path)
+
+    tables_to_dump = ["matches", "dates", "fighters"]
+
+    for table_name in tables_to_dump:
+        dump_table(cursor, dump_path, table_name)
+
+
+def dump_table(cursor, dump_path, table_name):
+    cursor.execute(f'SELECT * FROM {table_name}')
+    new_file = f"{dump_path}/{table_name}.txt"
+    print(f"Dumping table {table_name} to {new_file}")
+
+    with open(new_file, 'w') as dump_file:
+        for row in cursor:
+            print(row)
+            dump_file.write(f"INSERT INTO {table_name} VALUES {str(row)};\n")
+
+
+def populate_tables(curr, conn, full_path, dump_path):
+    full_dump_path = f"{full_path}/{dump_path}"
+
+    if not os.path.isdir(full_dump_path):
+        print(f"{full_dump_path} is not a directory!")
+        return
+
+    files_expected = ["dates.txt", "fighters.txt", "matches.txt"]
+    files_in_dump_path = os.listdir(full_dump_path)
+
+    if (set(files_expected) != set(files_in_dump_path)):
+        print(f"Dump path does not contain exactly the following files: {files_expected}")
+        return
+
+    for table_sql_file_name in files_expected:
+        populate_table(curr, f"{full_dump_path}/{table_sql_file_name}", table_sql_file_name[:-4])
+
+    conn.commit()
+
+
+def populate_table(curr, query_file_path, table_name):
+    print(f"Populating table {table_name} using {query_file_path}")
+
+    num_inputs = 0
+    with open(query_file_path, 'r') as query_file:
+        for row in query_file:
+
+            # curr.execute(row)
+            num_inputs += 1
+    print(f"Pushed {num_inputs} row up to {table_name}.")
 
 
 if __name__ == '__main__':

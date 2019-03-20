@@ -2,3 +2,5 @@
 **/creds.json
 **/logs/*
 **/venv
+.vscode
+**/dumps
