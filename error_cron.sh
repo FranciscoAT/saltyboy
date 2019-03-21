@@ -11,7 +11,7 @@ kill_process() {
 
 
 send_alert () {
-    echo "RIP" | mail -s "Saltybot is down!" "${alertemail}"
+    curl -X POST ${discordwebhook} --data content="@everyone Saltybot is down!"
 }
 
 kill_children () {
