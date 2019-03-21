@@ -12,7 +12,7 @@ send_to_env () {
 run_environment () {
     send_to_env "cd ${1}"
     send_to_env "npm install"
-    send_to_env "npm run start-dev &> ${LOGSFILE}.log"
+    send_to_env "npm run start-prod &> ${LOGSFILE}.log"
 }
 
 tmux new-session -s ${SESSION} -d
