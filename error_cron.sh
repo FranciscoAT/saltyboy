@@ -5,7 +5,7 @@ PIDTWITCH=$(ps -ef | grep "[s]h -c node src/bot.js" | awk '{print $2}')
 WEBHOOK=${1}
 
 echo "-----------------"
-echo date
+date
 
 kill_process() {
     if [ ! -z ${1} ]; then
