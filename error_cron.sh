@@ -1,5 +1,9 @@
 #!/bin/bash
 
+PIDWRAPPER=$(ps -ef | grep "[s]h -c node src/index.js" | awk '{print $2}')
+PIDTWITCH=$(ps -ef | grep "[s]h -c node src/bot.js" | awk '{print $2}')
+WEBHOOK=${1}
+
 kill_process() {
     if [ ! -z ${1} ]; then
         echo "Killing process ${1}"
@@ -11,7 +15,7 @@ kill_process() {
 
 
 send_alert () {
-    curl -X POST ${discordwebhook} --data content="@everyone Saltybot is down!"
+    curl -X POST ${WEBHOOK} --data content="@everyone Saltybot is down!"
 }
 
 kill_children () {
@@ -24,9 +28,6 @@ kill_children () {
     echo "Killing Twitch Bot child process if exists"
     kill_process CPIDTWITCH
 }
-
-PIDWRAPPER=$(ps -ef | grep "[s]h -c node src/index.js" | awk '{print $2}')
-PIDTWITCH=$(ps -ef | grep "[s]h -c node src/bot.js" | awk '{print $2}')
 
 if [ -z ${PIDWRAPPER} && -z ${PIDTWITCH} ]; then
     echo "Both things are down assume down for a reason ignore."
