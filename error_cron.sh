@@ -4,6 +4,9 @@ PIDWRAPPER=$(ps -ef | grep "[s]h -c node src/index.js" | awk '{print $2}')
 PIDTWITCH=$(ps -ef | grep "[s]h -c node src/bot.js" | awk '{print $2}')
 WEBHOOK=${1}
 
+echo "-----------------"
+echo date
+
 kill_process() {
     if [ ! -z ${1} ]; then
         echo "Killing process ${1}"
