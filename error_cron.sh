@@ -2,6 +2,8 @@
 
 PIDWRAPPER=$(ps -ef | grep "[s]h -c node src/index.js" | awk '{print $2}')
 PIDTWITCH=$(ps -ef | grep "[s]h -c node src/bot.js" | awk '{print $2}')
+PIDTMUX=$(ps -ef | grep "[t]mux new-session -s saltybot -d" | awk '{print $2}')
+SESSION="saltybot"
 WEBHOOK=${1}
 
 echo "-----------------"
@@ -32,7 +34,7 @@ kill_children () {
     kill_process ${CPIDTWITCH}
 }
 
-if [ -z ${PIDWRAPPER} ] && [ -z ${PIDTWITCH} ]; then
+if [ -z ${PIDWRAPPER} ] && [ -z ${PIDTWITCH} ] && [ -z ${PIDTMUX} ]; then
     echo "Both things are down assume down for a reason ignore."
     echo "Killing children for safety."
     kill_children
@@ -40,16 +42,18 @@ if [ -z ${PIDWRAPPER} ] && [ -z ${PIDTWITCH} ]; then
 fi
 
 if [ -z ${PIDWRAPPER} ]; then
-    echo "DB Wrapper Server is down, killing twitch bot and children."
+    echo "DB Wrapper Server is down, killing twitch bot and children, and TMUX Session"
     kill_process ${PIDWRAPPER}
     sleep 5
     kill_children
+    tmux kill-session -t ${SESSION}
     send_alert
 elif [ -z ${PIDTWITCH} ]; then
-    ehco "Twitch Bot is down, killing DB Wrapper and children"
+    ehco "Twitch Bot is down, killing DB Wrapper and children, and TMUX Session"
     kill_process ${PIDTWITCH}
     sleep 5
     kill_children
+    tmux kill-session -t ${SESSION}
     send_alert
 else
     echo "Services are running fine"
