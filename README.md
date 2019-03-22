@@ -47,6 +47,8 @@ Goals for `twitch-bot`:
 
 ## Cron Shenangians
 
+I should probably move this off cron to a kubernetes instance
+
 ---
 
 ## Goals for the Future
