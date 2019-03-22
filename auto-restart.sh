@@ -4,6 +4,7 @@ PIDWRAPPER=$(ps -ef | grep "[s]h -c node src/index.js" | awk '{print $2}')
 PIDTWITCH=$(ps -ef | grep "[s]h -c node src/bot.js" | awk '{print $2}')
 CURRDIR=$(dirname "$(readlink -f "$0")")
 WEBHOOK=${1}
+SESSION="saltybot"
 
 echo "-----------------"
 date
@@ -40,6 +41,9 @@ send_alert () {
 kill_process ${PIDWRAPPER}
 kill_process ${PIDTWITCH}
 kill_children
+
+echo "Killing tmux session"
+tmux kill-session -t ${SESSION}
 
 echo "Re running with logs"
 send_alert
