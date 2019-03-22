@@ -45,6 +45,10 @@ Goals for `twitch-bot`:
 
 ---
 
+## Cron Shenangians
+
+---
+
 ## Goals for the Future
 
 The first step right now will be to understand who has the best chance of winning so obtaining as much data as possible is the priority. However there are 3 formats in SaltyBets: matchmaking, tournaments, and exhibitions. 
