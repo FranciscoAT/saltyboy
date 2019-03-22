@@ -56,3 +56,4 @@ However later I would like to implement a higher form of this on Tournament matc
 Exhibitions are a crapshot. Since team names always change etc... I might have them added for fun but are low on the priority list.
 
 Potential longshot future goals would be move from a mathematical prediction method to a machine learning method. This could either warrent a new repo using the same data or simply a different query point on the `db-wrapper`.
+
