@@ -5,6 +5,25 @@ var request = require('request');
 const creds = JSON.parse(fs.readFileSync(__dirname + '/creds.json'));
 const waifuID = '55853880';
 
+const args = (() => {
+    var numArgs = process.argv.length;
+
+    if (numArgs > 2) {
+        return process.argv.slice(2);
+    } else {
+        return [];
+    }
+})();
+
+let prodt;
+if (args.includes('--prod')) {
+    prodt = true;
+} else {
+    prodt = false;
+}
+
+const production = prodt;
+
 const opts = {
     identity: {
         username: creds.username,
@@ -28,7 +47,9 @@ function onMessageHandler(target, context, msg, self) {
     }
 
     if (context['user-id'] == waifuID) {
-        console.log(`> ${msg}`);
+        if (!production) {
+            console.log(`> ${msg}`);
+        }
         if (!inSync) {
             checkMessage(msg);
         }
