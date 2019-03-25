@@ -4,3 +4,4 @@
 **/venv
 .vscode
 **/dumps
+**/package-lock.json
