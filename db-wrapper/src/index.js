@@ -21,8 +21,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.post('/add', (req, res) => {
-    console.log(req.body);
-
     let player1 = req.body.player1;
     let player2 = req.body.player2;
     let tier = req.body.tier;

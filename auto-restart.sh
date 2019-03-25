@@ -2,6 +2,7 @@
 
 PIDWRAPPER=$(ps -ef | grep "[s]h -c node src/index.js" | awk '{print $2}')
 PIDTWITCH=$(ps -ef | grep "[s]h -c node src/bot.js" | awk '{print $2}')
+PIDTMUX=$(ps -ef | grep "[t]mux new-session -s saltybot -d" | awk '{print $2}')
 CURRDIR=$(dirname "$(readlink -f "$0")")
 WEBHOOK=${1}
 SESSION="saltybot"

@@ -124,7 +124,7 @@ function sendMatch() {
         json: true,
         body: data
     }, (err, res, body) => {
-        console.log(res);
+        console.log("New match successfully added");
     });
 }
 
