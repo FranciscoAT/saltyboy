@@ -50,3 +50,5 @@ echo "Re running with logs"
 send_alert
 
 ${CURRDIR}/run-with-logs.sh
+
+${CURRDIR}/purge-logs.sh
