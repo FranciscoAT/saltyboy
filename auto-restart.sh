@@ -36,7 +36,7 @@ kill_children () {
 }
 
 send_alert () {
-    curl -X POST ${WEBHOOK} --data content="Restarting Saltybot"
+    curl -X POST ${WEBHOOK} --data content="Restarting Saltybot" --silent
 }
 
 kill_process ${PIDWRAPPER}

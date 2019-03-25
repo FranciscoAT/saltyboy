@@ -20,7 +20,7 @@ kill_process() {
 
 
 send_alert () {
-    curl -X POST ${WEBHOOK} --data content="@everyone Saltybot is down!"
+    curl -X POST ${WEBHOOK} --data content="@everyone Saltybot is down!" --silent
 }
 
 kill_children () {
