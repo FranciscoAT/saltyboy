@@ -3,6 +3,7 @@ import os
 import json
 import argparse
 import datetime
+import sys
 
 
 def main():
@@ -124,19 +125,24 @@ def dump_table(cursor, dump_path, table_name):
     with open(new_file, 'w') as dump_file:
         for row in cursor:
             row = eval_row(row)
-            dump_file.write(f"INSERT INTO {table_name} VALUES {str(row)};\n")
+            strRow = str(row)
+
+            if table_name == 'fighters' and '"' in strRow:
+                tempRow = strRow.split(', ')
+                tempRow[1] = tempRow[1].replace("'", "''").replace('"', "'")
+                strRow = ', '.join(tempRow)
+
+            dump_file.write(f"INSERT INTO {table_name} VALUES {strRow};\n")
 
 
 def eval_row(row):
     evaled_tuple = []
     for tup_item in row:
-        if type(tup_item) is datetime.date or type(tup_item) is datetime.time:
+        if isinstance(tup_item, datetime.date) or isinstance(tup_item, datetime.time):
             evaled_tuple.append(str(tup_item))
         else:
             evaled_tuple.append(tup_item)
     return tuple(evaled_tuple)
-
-
 
 
 def populate_tables(curr, conn, full_path, dump_path):
@@ -154,20 +160,28 @@ def populate_tables(curr, conn, full_path, dump_path):
         return
 
     for table_sql_file_name in files_expected:
-        populate_table(curr, f"{full_dump_path}/{table_sql_file_name}", table_sql_file_name[:-4])
-
-    conn.commit()
+        populate_table(curr, f"{full_dump_path}/{table_sql_file_name}", table_sql_file_name[:-4], conn)
 
 
-def populate_table(curr, query_file_path, table_name):
+def populate_table(curr, query_file_path, table_name, conn):
     print(f"Populating table {table_name} using {query_file_path}")
 
+    num_rows = sum(1 for line in open(query_file_path, 'r'))
     num_inputs = 0
     with open(query_file_path, 'r') as query_file:
         for row in query_file:
             curr.execute(row)
             num_inputs += 1
-    print(f"Pushed {num_inputs} row up to {table_name}.")
+
+            if num_inputs % 100 == 0:
+                if num_inputs != 100:
+                    sys.stdout.write("\033[K")
+                print(f"Pushed {num_inputs}/{num_rows} rows up to {table_name}...", end='\r')
+                conn.commit()
+
+    sys.stdout.write("\033[K")
+    conn.commit()
+    print(f"Pushed {num_inputs}/{num_rows} rows up to {table_name}. Done.")
 
 
 if __name__ == '__main__':
