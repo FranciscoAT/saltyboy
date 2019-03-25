@@ -62,7 +62,7 @@ app.post('/add', (req, res) => {
             return addMatch(fighterID1, fighterID2, player1.bet, player2.bet, winnerID, format, dateID)
         })
         .then((row) => {
-            console.log(row);
+            console.log("Added new match id: ", row.id);
         })
         .catch((err) => {
             console.log("Something went wrong", err);
