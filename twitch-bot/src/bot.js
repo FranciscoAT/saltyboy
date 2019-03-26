@@ -140,7 +140,7 @@ function sendMatch() {
     }
 
     request({
-        url: "http://localhost:8080/add",
+        url: "http://localhost:8080/insert",
         method: "POST",
         json: true,
         body: data
