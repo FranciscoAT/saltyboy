@@ -4,6 +4,7 @@ import json
 import argparse
 import datetime
 import sys
+from time import sleep
 
 
 def main():
@@ -161,6 +162,8 @@ def populate_tables(curr, conn, full_path, dump_path):
 
     for table_sql_file_name in files_expected:
         populate_table(curr, f"{full_dump_path}/{table_sql_file_name}", table_sql_file_name[:-4], conn)
+        sleep(0.5)
+        update_table_seq(curr, table_sql_file_name[:-4], conn)
 
 
 def populate_table(curr, query_file_path, table_name, conn):
@@ -182,6 +185,14 @@ def populate_table(curr, query_file_path, table_name, conn):
     sys.stdout.write("\033[K")
     conn.commit()
     print(f"Pushed {num_inputs}/{num_rows} rows up to {table_name}. Done.")
+
+
+def update_table_seq(curr, table_name, conn):
+    print(f"Updating the sequence table for table {table_name}")
+
+    query = f"SELECT setval('{table_name}_id_seq', max(id)) FROM {table_name}"
+    curr.execute(query)
+    conn.commit()
 
 
 if __name__ == '__main__':
