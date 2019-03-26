@@ -1,10 +1,11 @@
-import psycopg2
-import os
-import json
 import argparse
 import datetime
+import json
+import os
 import sys
 from time import sleep
+
+import psycopg2
 
 
 def main():

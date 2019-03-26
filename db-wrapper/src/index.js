@@ -84,8 +84,8 @@ function addFighter(fighterName, tier) {
             })
             .catch((err) => {
                 rej(err);
-            })
-    })
+            });
+    });
 }
 
 function selectFighterByName(fighterName) {
@@ -113,12 +113,12 @@ function addMatch(fighterID1, fighterID2, bet1, bet2, winnerID, format, dateID) 
 
     return new Promise((res, rej) => {
         pool.query(query)
-        .then((queryResponse) => {
-            res(queryResponse.rows[0])
-        })
-        .catch((err) => {
-            rej(err);
-        });
+            .then((queryResponse) => {
+                res(queryResponse.rows[0])
+            })
+            .catch((err) => {
+                rej(err);
+            });
     });
 }
 
