@@ -39,22 +39,15 @@ if [ -z ${PIDWRAPPER} ] && [ -z ${PIDTWITCH} ] && [ -z ${PIDTMUX} ]; then
     echo "Killing children for safety."
     kill_children
     exit 0
+elif [ ! -z ${PIDWRAPPER} ] && [ ! -z ${PIDTWITCH} ] && [ ! -z ${PIDTMUX} ]; then
+    echo "Services are running fine."
+else
+    echo "Something is wrong shutting everything down."
+    kill_process ${PIDWRAPPER}
+    kill_process ${PIDTWITCH}
+    tmux kill-session -t ${SESSION}
+    sleep 5
+    kill_children
+    send_alert    
 fi
 
-if [ -z ${PIDWRAPPER} ]; then
-    echo "DB Wrapper Server is down, killing twitch bot and children, and TMUX Session"
-    kill_process ${PIDWRAPPER}
-    sleep 5
-    kill_children
-    tmux kill-session -t ${SESSION}
-    send_alert
-elif [ -z ${PIDTWITCH} ]; then
-    ehco "Twitch Bot is down, killing DB Wrapper and children, and TMUX Session"
-    kill_process ${PIDTWITCH}
-    sleep 5
-    kill_children
-    tmux kill-session -t ${SESSION}
-    send_alert
-else
-    echo "Services are running fine"
-fi
