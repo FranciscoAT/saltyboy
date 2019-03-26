@@ -10,7 +10,7 @@ const port = 8080;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use('/add', insertRouter);
+app.use('/insert', insertRouter);
 
 app.listen(port, (err) => {
     if (err) {
