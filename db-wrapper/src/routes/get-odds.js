@@ -67,15 +67,13 @@ function checkCorrectParams(params) {
 }
 
 function calculateWinner(fighter1, fighter2) {
-    console.log(fighter1, fighter2);
-
     let fighter1prob, fighter2prob, winner;
 
     if ((fighter1.id == -1) && (fighter2.id != -1)) {
         fighter2prob = fighter2.wins / fighter2.matchCount;
-        fighter1prob = 1 - (fighter2prob);
+        fighter1prob = 1 - fighter2prob;
     } else if ((fighter1.id != -1) && (fighter2.id == -1)) {
-        fighter1prob = fighter1.wins / fighter1.wins;
+        fighter1prob = fighter1.wins / fighter1.matchCount;
         fighter2prob = 1 - fighter1prob;
     } else if ((fighter1.id == -1) && (fighter2.id == -1)) {
         fighter1prob = 0.5;
@@ -85,17 +83,21 @@ function calculateWinner(fighter1, fighter2) {
         fighter1prob = fighter1.winsAgainst / totalFightsAgainst;
         fighter2prob = 1 - fighter1prob;
     } else {
-        fighter1prob = fighter1.wins / (fighter1.matchCount + fighter2.matchCount);
+        let percentWin1 = fighter1.wins / fighter1.matchCount;
+        let percentWin2 = fighter2.wins / fighter2.matchCount;
+
+        fighter1prob = percentWin1 / (percentWin1 + percentWin2);
         fighter2prob = 1 - fighter1prob;
-        console.log(fighter1prob, fighter2prob);
-    }
+    }   
 
     winner = (fighter1prob == fighter2prob ? "tie" : (fighter1prob > fighter2prob ? fighter1.name : fighter2.name));
 
     return {
         fighter1prob: fighter1prob.toFixed(2),
         fighter2prob: fighter2prob.toFixed(2),
-        winner: winner
+        winner: winner,
+        fighter1: fighter1,
+        fighter2: fighter2
     };
 }
 
