@@ -5,8 +5,14 @@
     "manifest_version": 2,
     "permissions": [
         "*://www.saltybet.com/*",
-        "storage"
+        "storage",
+        "*://localhost/*"
     ],
+    "background": {
+        "scripts": [
+            "background_scripts/background.js"
+        ]
+    },
     "content_scripts": [
         {
             "matches": [
@@ -17,5 +23,6 @@
                 "content_scripts/content.js"
             ]
         }
-    ]
+    ],
+    "popup": "popup/popup.html"
 }

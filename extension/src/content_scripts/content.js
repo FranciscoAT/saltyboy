@@ -1,80 +1,53 @@
 $(document).ready(() => {
     let $player1 = $('#player1');
     let $player2 = $('#player2');
-    let $betStatus = $('#betstatus');
-    let $matchStyle = $('#footer-alert');
-    let $betAmounts = $('#odds');
-    let $odds = $('#lastbet');
-
-    let betStatus;
-    let tierSet = false;
-    let currentTier = null;
+    let currentStatus = null;
 
 
-    function init() {
-        updateStatus();
-    }
-
-
-    function getBetStatus() {
-        let statusText = ($betStatus.html()).toLowerCase();
-        if (statusText.includes('open')) {
-            return 'open';
-        } else if (statusText.includes('wins')) {
-            return 'win';
+    function getFighters() {
+        let retval = false;
+        if (($player1.attr('disabled') != 'disabled') && (currentStatus != 'betsopen')) {
+            currentStatus = 'betsopen';
+            let fighter1Name = $player1.val();
+            let fighter2Name = $player2.val();
+            retval = [fighter1Name, fighter2Name];
+        } else if (($player1.attr('disabled') == 'disabled') && currentStatus != 'betsclosed') {
+            currentStatus = 'betsclosed';
         }
-        return 'closed';
+        return retval;
     }
 
-    function updateStatus() {
-        let newStatus = getBetStatus();
-
-        if (newStatus != betStatus) {
-            betStatus = newStatus;
-            return true;
-        }
-
-        return false;
-    }
-
-    function sendMatchResults() {
-        let betAmounts = ($betAmounts.text()).match(/\$\d*(,\d*)*/g);
-        let odds = ($odds.text()).replace(' ', '').split(':');
-        let winnerName = $betStatus.split(' wins!')[0];
-
-        let data = {
-            "player1": {
-                "name": $player1.val(),
-                "amount": betAmounts[0],
-                "odds": odds[0]
-            },
-            "player2": {
-                "name": $player2.val(),
-                "amount": betAmounts[1],
-                "odds": odds[1]
-            },
-            "winner": winnerName
+    function sendFighters(currentFighters) {
+        console.log("sending fighter request with fighters", currentFighters);
+        const msgContent = {
+            action: 'newfight',
+            value: currentFighters
         };
 
-        console.log(data);
+        return new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage(msgContent, (response) => {
+                if (response == false) {
+                    reject("Something went wrong with message.");
+                } else {
+                    resolve(response);
+                }
+            });
+        });
     }
 
 
-    function setCurrentTier() {
-        // let $waifuMessages = $('div[data-user="waifu4u"] .message span[data-a-target="chat-message-text"]');
-        let $waifuBody = $('#chat-frame-stream').contents().find('body');
-        let $waifuRoot = $waifuBody.find('#root');
+    setInterval(() => {
+        let currentFighters = getFighters();
 
-        console.log($waifuBody);
-    }
+        if (currentFighters != false) {
+            sendFighters(currentFighters)
+                .then((response) => {
+                    console.log(response);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
 
-    init();
-
-    // setInterval(() => {
-    //     let updated = updateStatus();
-
-    //     if (updated && betStatus == 'win') {
-    //         sendMatchResults();
-    //     }
-    // }, 500);
+    }, 500);
 });
