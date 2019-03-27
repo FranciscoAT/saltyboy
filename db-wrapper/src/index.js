@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use('/insert', insertRouter);
-app.use('/oods', oddsRouter);
+app.use('/odds', oddsRouter);
 
 
 app.listen(port, (err) => {

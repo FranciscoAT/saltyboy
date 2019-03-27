@@ -89,6 +89,103 @@ function getFightersByName(fighterName) {
 }
 
 
+function getFighterWins(fighterName) {
+    let fighterID;
+    return new Promise((resolve, reject) => {
+        getFightersByName(fighterName)
+            .then((response) => {
+                if (response.length == 0) {
+                    // Fighter doesn't exist yet return impossible winrate
+                    return resolve(
+                        {
+                            id: -1,
+                            winCount: -1
+                        }
+                    );
+                }
+
+                fighterID = response[0].id;
+
+                const query = {
+                    text: "SELECT count(*) FROM matches WHERE winner = $1",
+                    values: [fighterID]
+                };
+
+                return executeQuery(query);
+            })
+            .then((response) => {
+                resolve(
+                    {
+                        id: fighterID,
+                        winCount: parseInt(response.rows[0].count)
+                    }
+                );
+            })
+            .catch((error) => {
+                reject(error);
+            });
+    });
+}
+
+
+function getFighterFightCount(fighterName) {
+    let fighterID;
+
+    return new Promise((resolve, reject) => {
+        getFightersByName(fighterName)
+            .then((response) => {
+                if (response.length == 0) {
+                    // Fighter doesn't exist yet return impossible match count
+                    return resolve(
+                        {
+                            id: -1,
+                            fightCount: -1
+                        }
+                    );
+                }
+
+                fighterID = response[0].id;
+
+                const query = {
+                    text: "SELECT COUNT(*) FROM (SELECT fighter_1 fighter_id from matches UNION ALL SELECT fighter_2 fighter_id from matches) AS full_list where fighter_id = $1",
+                    values: [fighterID]
+                };
+
+                return executeQuery(query);
+            })
+            .then((response) => {
+                resolve(
+                    {
+                        id: fighterID,
+                        fightCount: parseInt(response.rows[0].count)
+                    }
+                );
+            })
+            .catch((error) => {
+                reject(error);
+            });
+    });
+}
+
+
+function getWinsAgainst(fighter1ID, fighter2ID) {
+    return new Promise((resolve, reject) => {
+        query = {
+            text: "SELECT count(*) FROM matches WHERE winner = $1 AND (fighter_1 = $2 OR fighter_2 = $2)",
+            values: [fighter1ID, fighter2ID]
+        };
+
+        executeQuery(query)
+            .then((response) => {
+                resolve(parseInt(response.rows[0].count));
+            })
+            .catch((error) => {
+                reject(error);
+            });
+    });
+}
+
+
 // ------ Insertion Functions ------
 
 /**
@@ -169,13 +266,13 @@ function insertMatch(fighter1, fighter2, winnerID, format, dateID) {
 
     return new Promise((resolve, reject) => {
         executeQuery(query)
-        .then((response) => {
-            console.log("Inserted new match with id: ", response.rows[0].id);
-            resolve(response.rows[0]);
-        })
-        .catch((error) => {
-            reject(error);
-        });
+            .then((response) => {
+                console.log("Inserted new match with id: ", response.rows[0].id);
+                resolve(response.rows[0]);
+            })
+            .catch((error) => {
+                reject(error);
+            });
     });
 }
 
@@ -185,5 +282,8 @@ function insertMatch(fighter1, fighter2, winnerID, format, dateID) {
 module.exports = {
     insertCurrentDate: insertCurrentDate,
     insertFighter: insertFighter,
-    insertMatch: insertMatch
+    insertMatch: insertMatch,
+    getFighterWins: getFighterWins,
+    getFighterFightCount: getFighterFightCount,
+    getWinsAgainst: getWinsAgainst
 };

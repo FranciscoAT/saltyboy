@@ -12,7 +12,8 @@
   "devDependencies": {},
   "scripts": {
     "start-dev": "nodemon src/bot.js",
-    "start-prod": "node src/bot.js --prod"
+    "start-prod": "node src/bot.js --prod",
+    "clean-logs": "rm logs/*"
   },
   "author": "",
   "license": "ISC"
