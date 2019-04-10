@@ -5,6 +5,7 @@ chrome.runtime.onMessage.addListener((msg, sender, res) => {
         console.log("Recieved fighters: ", msg.value);
         updateFight(msg.value)
         .then((newData) => {
+            console.log("Returning value", newData);
             res(newData);
         })
         .catch((error) => {
@@ -13,6 +14,7 @@ chrome.runtime.onMessage.addListener((msg, sender, res) => {
     } else if (msg.action = 'getData') {
         res(currentFightData);
     }
+    return true;
 });
 
 function updateFight(fighters) {

@@ -86,7 +86,12 @@ function calculateWinner(fighter1, fighter2) {
         let percentWin1 = fighter1.wins / fighter1.matchCount;
         let percentWin2 = fighter2.wins / fighter2.matchCount;
 
-        fighter1prob = percentWin1 / (percentWin1 + percentWin2);
+        if (percentWin1 == 0 && percentWin2 == 0) {
+            fighter1prob = fighter1.matchCount / (fighter2.matchCount + fighter1.matchCount);
+        } else {
+            fighter1prob = percentWin1 / (percentWin1 + percentWin2);
+        }
+
         fighter2prob = 1 - fighter1prob;
     }   
 

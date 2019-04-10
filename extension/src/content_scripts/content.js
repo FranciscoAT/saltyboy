@@ -42,7 +42,7 @@ $(document).ready(() => {
         if (currentFighters != false) {
             sendFighters(currentFighters)
                 .then((response) => {
-                    console.log(response);
+                    console.log(JSON.parse(response));
                 })
                 .catch((error) => {
                     console.log(error);
