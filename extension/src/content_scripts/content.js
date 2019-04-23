@@ -4,12 +4,16 @@ $(document).ready(() => {
     let currentStatus = null;
 
 
+    /**
+     * Gets the curent fighters names when bets are open else false
+     * @returns {flase || array} retval Returns array of fighter names or false
+     */
     function getFighters() {
         let retval = false;
         if (($player1.attr('disabled') != 'disabled') && (currentStatus != 'betsopen')) {
             currentStatus = 'betsopen';
-            let fighter1Name = $player1.val();
-            let fighter2Name = $player2.val();
+            let fighter1Name = $player1.val().toLowerCase();
+            let fighter2Name = $player2.val().toLowerCase();
             retval = [fighter1Name, fighter2Name];
         } else if (($player1.attr('disabled') == 'disabled') && currentStatus != 'betsclosed') {
             currentStatus = 'betsclosed';
