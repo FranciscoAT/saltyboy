@@ -7,3 +7,4 @@
 **/dumps
 **/package-lock.json
 **/*.log
+.prettierrc.json

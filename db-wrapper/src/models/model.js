@@ -240,7 +240,6 @@ function insertFighter(fighterName, tier) {
  */
 function insertCurrentDate() {
   const dateItems = getCurrentDate();
-
   const query = {
     text:
       "INSERT INTO dates(time, date, day_of_week, month, year) VALUES(CURRENT_TIME, CURRENT_DATE, $1, $2, $3) RETURNING *",

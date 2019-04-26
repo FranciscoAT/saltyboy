@@ -1,17 +1,20 @@
+/*eslint-env browser*/
+
 let currentFightData;
 
+// Message Handling with content.js
 chrome.runtime.onMessage.addListener((msg, sender, res) => {
-    if (msg.action = 'newfight') {
+    if (msg.action === "newfight") {
         console.log("Recieved fighters: ", msg.value);
         updateFight(msg.value)
-        .then((newData) => {
-            console.log("Returning value", newData);
-            res(newData);
-        })
-        .catch((error) => {
-            res(error);
-        });
-    } else if (msg.action = 'getData') {
+            .then(newData => {
+                console.log("Returning value", newData);
+                res(newData);
+            })
+            .catch(error => {
+                res(error);
+            });
+    } else if (msg.action === "getData") {
         res(currentFightData);
     }
     return true;
@@ -21,7 +24,9 @@ function updateFight(fighters) {
     const fighter1 = fighters[0];
     const fighter2 = fighters[1];
 
-    const url = encodeURI(`http://localhost:8080/odds?fighter1=${fighter1}&fighter2=${fighter2}`);
+    const url = encodeURI(
+        `http://localhost:8080/odds?fighter1=${fighter1}&fighter2=${fighter2}`
+    );
 
     return new Promise((resolve, reject) => {
         console.log("sending request to: ", url);
@@ -35,11 +40,12 @@ function updateFight(fighters) {
             }
             console.log("potential 404", request);
             return reject(request);
-        }
+        };
+
         request.onerror = () => {
             console.log("bad response", request);
             reject(request);
-        }
+        };
 
         request.send();
     });
