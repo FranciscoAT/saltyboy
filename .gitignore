@@ -1,8 +1,1 @@
-**/node_modules
-**/creds.json
-**/logs/*
-**/venv
-.vscode
-**/dumps
-**/package-lock.json
-**/*.log
+.venv
