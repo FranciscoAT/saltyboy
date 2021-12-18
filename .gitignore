@@ -6,8 +6,8 @@
 .vim
 
 # SQLLite3 DBs
-bot/db/*
-!bot/db/.gitkeep
+db/*
+!db/.gitkeep
 
 # Python
 __pycache__
