@@ -1,2 +1,9 @@
-.venv
+# Environment variables
 .env
+
+# Development
+.venv
+.vim
+
+# Python
+__pycache__

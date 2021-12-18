@@ -1,60 +1,13 @@
 from datetime import datetime, timedelta
 import logging
 import os
-from typing import Optional
 
-from src.irc import TwitchBot, WaifuMessage
+from src.irc import TwitchBot
+from src.objects import Match
 
 logger = logging.getLogger(__name__)
 
 FAIL_HOURS = 6
-
-
-class Match:
-    def __init__(self, open_bet: WaifuMessage) -> None:
-        logger.info(
-            "New match. %s vs %s. Tier: %s.",
-            open_bet.fighter_a,
-            open_bet.fighter_b,
-            open_bet.tier,
-        )
-        self.status = "open"
-        self.tier = open_bet.tier
-        self.fighter_a: Optional[str] = None
-        self.fighter_b: Optional[str] = None
-        self.fighter_a_streak: Optional[int] = None
-        self.fighter_b_streak: Optional[int] = None
-        self.fighter_a_bet: Optional[int] = None
-        self.fighter_b_bet: Optional[int] = None
-        self.winner: Optional[str] = None
-        self.colour: Optional[str] = None
-
-    def update(self, waifu_message: WaifuMessage) -> bool:
-        if waifu_message.message_type == "win" and self.status == "open":
-            logger.warning("Somehow missed the locked bet step.")
-            return False
-
-        if waifu_message.message_type == "locked":
-            logger.info(
-                "Bets locked. %s ($%s). %s ($%s)",
-                waifu_message.fighter_a,
-                waifu_message.fighter_a_bet,
-                waifu_message.fighter_b,
-                waifu_message.fighter_b_bet,
-            )
-            self.fighter_a = waifu_message.fighter_a
-            self.fighter_b = waifu_message.fighter_b
-            self.fighter_a_bet = waifu_message.fighter_a_bet
-            self.fighter_b_bet = waifu_message.fighter_b_bet
-            self.fighter_a_streak = waifu_message.fighter_a_streak
-            self.fighter_b_streak = waifu_message.fighter_b_streak
-            self.status = "locked"
-            return False
-
-        self.winner = waifu_message.winner
-        self.colour = waifu_message.colour
-        logger.info("Winner: %s", waifu_message.winner)
-        return True
 
 
 def run() -> None:
@@ -67,12 +20,30 @@ def run() -> None:
     current_match = None
     for message in irc_bot.listen():
         if message.message_type == "open":
+            logger.info(
+                "New match. %s vs %s. Tier: %s.",
+                message.fighter_a,
+                message.fighter_b,
+                message.tier,
+            )
             current_match = Match(message)
         elif current_match:
-            write_to_db = current_match.update(message)
-            if write_to_db:
-                last_write = datetime.utcnow()
-        elif datetime.utcnow() - last_write > timedelta(hours=FAIL_HOURS):
+            successful_update = current_match.update(message)
+            if successful_update:
+                if message.message_type == "locked":
+                    logger.info(
+                        "Bets locked. %s ($%s). %s ($%s)",
+                        message.fighter_a,
+                        message.fighter_a_bet,
+                        message.fighter_b,
+                        message.fighter_b_bet,
+                    )
+                else:
+                    # TODO: write to DB
+                    last_write = datetime.utcnow()
+                    logger.info("Winner: %s", message.winner)
+        if datetime.utcnow() - last_write > timedelta(hours=FAIL_HOURS):
+            # TODO: This might not be the right place to quit
             logger.critical(
                 "Something is wrong. No new matches written for over %s hours",
                 FAIL_HOURS,
