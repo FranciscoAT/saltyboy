@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WaifuMessage:
-    message_type: str # One of: open,locked,win
-
-    match_format: str = "matchmaking" # Hardcoded for now
+    message_type: str  # One of: open,locked,win
 
     # Used in open bet / locked bet
     fighter_red: Optional[str] = None
@@ -20,6 +18,7 @@ class WaifuMessage:
 
     # Used in open bet
     tier: Optional[str] = None
+    match_format: Optional[str] = None
 
     # Used in locked bet
     bet_red: Optional[int] = None
@@ -34,11 +33,9 @@ class WaifuMessage:
 
 class TwitchBot:
 
+    OPEN_BET_RE = re.compile(r"Bets are OPEN for (.+) vs (.+)!\s+\((.) Tier\)\s+.*")
     LOCKED_BET_RE = re.compile(
         r"Bets are locked. (.+) \((-?[0-9]+)\) - \$(([0-9]{1,3},)*[0-9]{1,3}), (.+) \((-?[0-9]+)\) - \$(([0-9]{1,3},)*[0-9]{1,3})"
-    )
-    OPEN_BET_RE = re.compile(
-        r"Bets are OPEN for (.+) vs (.+)!\s+\((.) Tier\)\s+\(matchmaking\).*"
     )
     WINNER_RE = re.compile(r"(.+) wins! Payouts to Team (Red|Blue)\..*")
 
@@ -96,11 +93,20 @@ class TwitchBot:
         logger.debug(message)
         waifu_message = None
         if match := cls.OPEN_BET_RE.match(message):
+            match_format = None
+            if "(matchmaking)" in message:
+                match_format = "matchmaking"
+            elif "tournament bracket" in message:
+                match_format = "tournament"
+            else:
+                match_format = "exhibition"
+
             waifu_message = WaifuMessage(
                 message_type="open",
                 fighter_red=match.group(1),
                 fighter_blue=match.group(2),
                 tier=match.group(3),
+                match_format=match_format,
             )
         elif match := cls.LOCKED_BET_RE.match(message):
             waifu_message = WaifuMessage(

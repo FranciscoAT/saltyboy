@@ -10,10 +10,21 @@ logger = logging.getLogger(__name__)
 
 
 class Database:
+    _ACCEPTED_FORMATS = ["tournament", "matchmaking"]
+
     def __init__(self, database_uri: str) -> None:
         self.conn = sqlite3.connect(database_uri)
+        self.conn.row_factory = Row
 
     def new_match(self, match: Match) -> None:
+        if match.match_format not in self._ACCEPTED_FORMATS:
+            logger.info(
+                "Ignoring match since its match_format %s is not in %s",
+                match.match_format,
+                self._ACCEPTED_FORMATS,
+            )
+            return
+
         fighter_red = self._full_get_fighter(
             match.fighter_red, match.tier, match.streak_red
         )
@@ -164,7 +175,7 @@ class Database:
             select_stmt += " name = :name"
             query_obj["name"] = name
 
-        cursor.execute(select_stmt, {"name": name})
+        cursor.execute(select_stmt, query_obj)
         fighter = cursor.fetchone()
         cursor.close()
         return fighter

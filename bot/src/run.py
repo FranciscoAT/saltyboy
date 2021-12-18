@@ -15,8 +15,8 @@ def run() -> None:
     username = _get_environment_variable("USERNAME")
     oauth_token = _get_environment_variable("OAUTH_TOKEN")
 
+    salty_db = Database(_get_environment_variable("DATABASE_PATH"))
     irc_bot = TwitchBot(username, oauth_token)
-    salty_db = Database(_get_environment_variable("DATABASE_URI"))
 
     last_write = datetime.utcnow()
     current_match = None
