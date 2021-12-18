@@ -10,21 +10,22 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WaifuMessage:
-    # One of: open,locked,win
-    message_type: str
+    message_type: str # One of: open,locked,win
+
+    match_format: str = "matchmaking" # Hardcoded for now
 
     # Used in open bet / locked bet
-    fighter_a: Optional[str] = None
-    fighter_b: Optional[str] = None
+    fighter_red: Optional[str] = None
+    fighter_blue: Optional[str] = None
 
     # Used in open bet
     tier: Optional[str] = None
 
     # Used in locked bet
-    fighter_a_bet: Optional[int] = None
-    fighter_b_bet: Optional[int] = None
-    fighter_a_streak: Optional[int] = None
-    fighter_b_streak: Optional[int] = None
+    bet_red: Optional[int] = None
+    bet_blue: Optional[int] = None
+    streak_red: Optional[int] = None
+    streak_blue: Optional[int] = None
 
     # Used for win bet
     winner: Optional[str] = None
@@ -97,19 +98,19 @@ class TwitchBot:
         if match := cls.OPEN_BET_RE.match(message):
             waifu_message = WaifuMessage(
                 message_type="open",
-                fighter_a=match.group(1),
-                fighter_b=match.group(2),
+                fighter_red=match.group(1),
+                fighter_blue=match.group(2),
                 tier=match.group(3),
             )
         elif match := cls.LOCKED_BET_RE.match(message):
             waifu_message = WaifuMessage(
                 message_type="locked",
-                fighter_a=match.group(1),
-                fighter_a_streak=int(match.group(2)),
-                fighter_a_bet=int(match.group(3).replace(",", "")),
-                fighter_b=match.group(5),
-                fighter_b_streak=int(match.group(6)),
-                fighter_b_bet=int(match.group(7).replace(",", "")),
+                fighter_red=match.group(1),
+                streak_red=int(match.group(2)),
+                bet_red=int(match.group(3).replace(",", "")),
+                fighter_blue=match.group(5),
+                streak_blue=int(match.group(6)),
+                bet_blue=int(match.group(7).replace(",", "")),
             )
         elif match := cls.WINNER_RE.match(message):
             waifu_message = WaifuMessage(

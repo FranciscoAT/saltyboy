@@ -5,5 +5,9 @@
 .venv
 .vim
 
+# SQLLite3 DBs
+bot/db/*
+!bot/db/.gitkeep
+
 # Python
 __pycache__
