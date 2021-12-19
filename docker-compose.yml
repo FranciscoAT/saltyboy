@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  bot:
+    build: bot
+    container_name: saltybot
+    volumes:
+      - ./db:/opt/db
+      - ./logs/bot:/opt/logs

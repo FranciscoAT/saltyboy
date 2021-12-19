@@ -23,13 +23,18 @@ def run() -> None:
     for message in irc_bot.listen():
         if message.message_type == "open":
             logger.info(
-                "New match. %s vs %s. Tier: %s.",
+                    "New match. %s vs %s. Tier: %s. Format: %s",
                 message.fighter_red,
                 message.fighter_blue,
                 message.tier,
+                message.match_format
             )
             current_match = Match(tier=message.tier, match_format=message.match_format)  # type: ignore
         elif current_match:
+            if current_match.status == "open" and message.message_type == "win":
+                logger.warning("Somehow missed the locked bet step. %s", current_match)
+                current_match = None
+                continue
             successful_update = current_match.update(message)
             if successful_update:
                 if message.message_type == "locked":
@@ -51,6 +56,7 @@ def run() -> None:
                             current_match,
                             exc_info=True,
                         )
+                    current_match = None
 
         if datetime.utcnow() - last_write > timedelta(hours=FAIL_HOURS):
             # TODO: This might not be the right place to quit

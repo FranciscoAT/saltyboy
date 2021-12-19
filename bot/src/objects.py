@@ -23,10 +23,6 @@ class Match:
     colour: Optional[str] = None
 
     def update(self, waifu_message: WaifuMessage) -> bool:
-        if waifu_message.message_type == "win" and self.status == "open":
-            logger.warning("Somehow missed the locked bet step.")
-            return False
-
         if waifu_message.message_type == "locked":
             self.fighter_red = waifu_message.fighter_red
             self.fighter_blue = waifu_message.fighter_blue
@@ -35,7 +31,14 @@ class Match:
             self.streak_red = waifu_message.streak_red
             self.streak_blue = waifu_message.streak_blue
             self.status = "locked"
-        else:
+        elif waifu_message.message_type == "win":
             self.winner = waifu_message.winner
             self.colour = waifu_message.colour
+        else:
+            logger.warn(
+                "Bad message state sent to Match. Message: %s, Match: %s",
+                waifu_message,
+                self,
+            )
+            return False
         return True

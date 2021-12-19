@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 import logging
 import re
 from socket import socket
@@ -52,6 +53,7 @@ class TwitchBot:
         # Authenticate
         logger.info("Authenticating as %s", username)
         authenticated = False
+        authenticated_start = datetime.utcnow()
         while not authenticated:
             for message in self._receive():
                 logger.info(message)
@@ -59,11 +61,14 @@ class TwitchBot:
                     logger.info("Authenticated successfully!")
                     authenticated = True
                     break
+                if datetime.utcnow() - authenticated_start > timedelta(seconds=5):
+                    raise TimeoutError("Took longer than 5 seconds to authenticate.")
 
         # Join channel
         logger.info("Joining channel saltybet...")
         self._send("JOIN #saltybet")
         joined = False
+        joined_start = datetime.utcnow()
         while not joined:
             for message in self._receive():
                 logger.info(message)
@@ -71,6 +76,9 @@ class TwitchBot:
                     logger.info("Joined successfully!")
                     joined = True
                     break
+                if datetime.utcnow() - joined_start > timedelta(seconds=5):
+                    raise TimeoutError("Took longer than 5 seconds to join saltybet channel.")
+
 
     def listen(self) -> Iterator[WaifuMessage]:
         while True:

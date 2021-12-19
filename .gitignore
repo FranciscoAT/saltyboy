@@ -5,9 +5,13 @@
 .venv
 .vim
 
-# SQLLite3 DBs
+# DBs
 db/*
 !db/.gitkeep
+
+# Logging
+**/logs/*
+!**/logs/**/.gitkeep
 
 # Python
 __pycache__
