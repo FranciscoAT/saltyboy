@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 import logging
 from logging.handlers import TimedRotatingFileHandler
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -105,4 +106,11 @@ if __name__ == "__main__":
 
     load_dotenv()
 
-    app.run(debug=debug, host=host)
+    full_chain_pem = os.environ.get("FULL_CHAIN_PEM")
+    priv_key_pem = os.environ.get("PRIV_KEY_PEM")
+
+    if arguments.prod and full_chain_pem is not None and priv_key_pem is not None:
+        logging.info("Running in SSL context")
+        app.run(debug=debug, host=host, ssl_context=(full_chain_pem, priv_key_pem))
+    else:
+        app.run(debug=debug, host=host)
