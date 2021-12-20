@@ -85,11 +85,13 @@ NB: Unfortunately the DB is case sensitive. A TODO for down the road
 Endpoint: `GET /fighters`
 
 Query Parameters:
+
     - Expects one of:
         - `id=<int>` where `<int>` is the database id of the fighter
         - `name=<str>` where `<str>` is the name of the fighter
 
 Returns:
+
     - 200:
         ```
         {
@@ -118,6 +120,7 @@ Returns:
 Endpoint: `POST /analyze`
 
 JSON Payload:
+
     ```
     {
         "fighter_red": {
@@ -132,6 +135,7 @@ JSON Payload:
     - Each expects one of a `name` or `id`
 
 Returns:
+
     - 200:
         ```
         {
