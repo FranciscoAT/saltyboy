@@ -117,6 +117,7 @@ Returns:
 
 #### Analyze Match Between Fighters
 
+NB: The logic on the `confidence` is extremely naive at the moment.
 
 Endpoint: `POST /analyze`
 
