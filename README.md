@@ -1,65 +1,166 @@
-# Salty Boy
+# Saltyboy
 
-This is a program to collect data about [Salty Bet](http://saltybet.com) fights. Then to bet accordingly. Salty Bets is a betting site (using virtual currency, ie. no cash out) to bet on M.U.G.E.N bots. The goal of this bot is to:
+Simple betting tool bot for usage in [Saltybet](https://saltybet.com).
 
-1. Collect data about the fights and store them in a Data Mart
-1. Query a database wrapper who will make decisions on the probably outcome of the fight
-1. Advise on whether or not you should be and potentially how much you should bet (%-based)
+The project is split up into three parts:
 
----
+- [Bot](#bot) which is the software that will catalog fighters and matches.
+- [Web](#web) web service interface that will determine the best outcome for two given fighters.
+- [Extension](#extension) Chrome extension to be used on the Saltybet website that interfaces with the Web service
 
-## Components
 
-### Database Wrapper
+## Bot
 
-Currently `db-wrapper` is the wrapper for the database. As of now it will query the databse for storing incoming data sent to it by the bot that reads the chat and gets input data about the fights.
+Code found in `bot` is used for cataloging all the matches, and every fighter. The longer this runs the better data the tool will have to bet.
 
-Goals for `db-wrapper`:
+The bot will track all Tournament and Matchmaking matches and fighters. Exhibitions are currently ignored.
 
-- Clean up the implementation
-- Once data sufficient create a way to determine probably outcomes in a reasonable fashion
+### Running
 
-### Extension
+1. Under `db` create a new file called whatever you want. This will serve as the SQLLite3 DB file.
+1. Create a new `.env` file under `bot`, fill it with the following:
+    - `USERNAME=<username>`, replace `<username>` with your Twitch account username.
+    - `OAUTH_TOKEN=<oauth_token>`, replace `<oauth_token>` with your Twitch account OAuth Token.
+        - You can quickly get it from here https://twitchapps.com/tmi/. It should be of the format `"oauth:<some characters>"`.
+    - `DATABASE_PATH=<db_path>`, replace `<db_path>` with the relative path to the database. Generally this should be `../db/<db_name>` where `<db_name>` is what you named your SQLLite3 DB file in step 1.
+    - `DATABASE_URI=<db_uri>`, replace `<db_uri>` with same contents as `<db_path>` but prepend `sqlite:///` in-front of the relative path. Optionally you can use `sqlite:////` and specify an absolute path.
 
-Initially I was using this to feed in data from the fight to the database. However there were some drawbacks with this implementation.
 
-- Depends on someone actually opening up a window and running salty bets
-- There was a lot of information not displayed on the homepage of Salty Bets including:
-    - Tier of the fight
-    - Other potential fun data points (current stage, music playing, etc...)
+Now we are ready to start the service.
 
-In addition. I though of using this to be able to collect data from the Twitch chat `iframe` but since the `iframe` originates from a different URL it is impossible due to security concerns to open this up to scripts.
+- Start up the service as Docker container:
+    ```
+    $ docker-compose up --build -d bot
+    ```
+- Start up the service manually:
+    ```
+    $ cd bot
+    $ python3 -m venv .venv
+    $ source .venv/bin/activate
+    (.venv) $ pip install -r requirements.txt
+    (.venv) $ python main.py
+    ```
+    - Flags:
+        - `-d`/`--debug` flag to include DEBUG logs
+        - `-lp <path>`/`--log-path <path>` to also log information to disk
 
-Goals for `extension`:
+The bot will now begin tracking and cataloging fighters and matches.
 
-- Use it to implement automatic betting by querying the `db-wrapper` with the current fighters
-    - It is nice since there exists code in there right now where I can easily get the current fight format and who is fighting. So simple uncommenting followed by a POST request to the wrapper in the future is all that's needed
+## Web
 
-### Twitch-Bot
+Code found in the `web` is used for interfacing with the data stored in the SQLLite3 database.
 
-This is the final solution to my problems. This bot will read the saltybet twitch chat. Ignoring all other users except `waif4u` who is  abot that consistently writes out the status of the current fights. The bot pulls in data from this and sends completed information in the form of a POST request to the local server to add it into the database
+### Running
 
-Goals for `twitch-bot`:
+1. Ensure you've done everything under [running the bot](#bot-running)
+1. Create a new `.env` file under `bot`, fill it with the following:
+    - `DATABASE_PATH=<db_path>`, this should be the same as the environment variabled defined in the `bot` section
 
-- Clean up implementation (really ugly atm)
+We are ready to spin up the service:
 
----
+- Start up the service as a Docker container:
+    ```
+    $ docker-compose up --build -d web
+    ```
+- Start up the service manually:
+    ```
+    $ cd web
+    $ python3 -m venv .venv
+    $ source .venv/bin/activate
+    (.venv) $ pip install -r requirements.txt
+    (.venv) $ python main.py
+    ```
+    - Flags:
+        - `-d`/`--debug` flag to include DEBUG logs
+        - `-p`/`--prod` flag to set the app to run in production mode. This will cause it to run on `0.0.0.0` instead of `localhost` and turn off Flasks `debug` mode
+        - `-lp <path>`/`--log-path <path>` to also log information to disk
 
-## Cron Shenangians
 
-I should probably move this off cron to a kubernetes instance
+### Querying the Webapp
 
----
+NB: Unfortunately the DB is case sensitive. A TODO for down the road
 
-## Goals for the Future
+#### Get Fighter Information
 
-The first step right now will be to understand who has the best chance of winning so obtaining as much data as possible is the priority. However there are 3 formats in SaltyBets: matchmaking, tournaments, and exhibitions. 
+Endpoint: `GET /fighters`
 
-Matchmaking will be essentially what version 1.0 betting procedures will assume. This would be "given fighter X against fighter Y who has the highest probability of winning with what confidence?".
+Query Parameters:
+    - Expects one of:
+        - `id=<int>` where `<int>` is the database id of the fighter
+        - `name=<str>` where `<str>` is the name of the fighter
 
-However later I would like to implement a higher form of this on Tournament matchmaking. Since Tournament matchmaking has the same roster of 16 characters that fight in Bo1 matches. We can potentially infer some additional dimensions of how well a fighter will do in the tournament!
+Returns:
+    - 200:
+        ```
+        {
+            "fighter": {
+                "id": <int>,
+                "name": <str>,
+                "best_streak": <int>,
+                "tier": <str>,
+                "last_updated": <datetime>,
+                "creation_time": <datetime>,
+            },
+            "stats": {
+                "average_bet": <float>,
+                "win_rate": <float>,
+                "total_matches": <int>
+            }
+        }
+        ```
+    - 400: Bad Request
+    - 404: Fighter not found
 
-Exhibitions are a crapshot. Since team names always change etc... I might have them added for fun but are low on the priority list.
 
-Potential longshot future goals would be move from a mathematical prediction method to a machine learning method. This could either warrent a new repo using the same data or simply a different query point on the `db-wrapper`.
+#### Analyze Match Between Fighters
 
+
+Endpoint: `POST /analyze`
+
+JSON Payload:
+    ```
+    {
+        "fighter_red": {
+            "name": <str>,
+            "id": <int>
+        },
+        "fighter_blue": {
+            "name": <str>,
+            "id": <int>
+    }
+    ```
+    - Each expects one of a `name` or `id`
+
+Returns:
+    - 200:
+        ```
+        {
+            "red": {
+                "fighter": {
+                    "id": <int>,
+                    "name": <str>,
+                    "best_streak": <int>,
+                    "tier": <str>,
+                    "last_updated": <datetime>,
+                    "creation_time": <datetime>,
+                },
+                "stats": {
+                    "average_bet": <float>,
+                    "win_rate": <float>,
+                    "total_matches": <int>
+                },
+                "stats_vs": {
+                    "average_bet_vs": <float>,
+                    "win_rate_vs": <float>,
+                    "total_matches_vs": <int>
+                }
+            },
+            "blue": {
+                // Same contents as "red" but for "fighter_blue"
+            },
+            "suggested_bet": <"red" or "blue">,
+            "confidence": <float between 0.0 to 1.0>
+        }
+        ```
+    - 400: Bad Request
+    - 404: One of the fighters was not found

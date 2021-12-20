@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  bot:
+    build: bot
+    container_name: saltybot
+    volumes:
+      - ./db:/opt/db
+      - ./logs/bot:/opt/logs
+  web:
+    build: web
+    container_name: saltyweb
+    volumes:
+      - ./db:/opt/db
+      - ./logs/web:/opt/logs
+    ports:
+      - "5000:5000"
