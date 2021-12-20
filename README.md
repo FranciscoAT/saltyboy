@@ -86,15 +86,61 @@ Endpoint: `GET /fighters`
 
 Query Parameters:
 
-    - Expects one of:
-        - `id=<int>` where `<int>` is the database id of the fighter
-        - `name=<str>` where `<str>` is the name of the fighter
+Expects one of:
+
+- `id=<int>` where `<int>` is the database id of the fighter
+- `name=<str>` where `<str>` is the name of the fighter
 
 Returns:
 
-    - 200:
-        ```
-        {
+- 200:
+    ```
+    {
+        "fighter": {
+            "id": <int>,
+            "name": <str>,
+            "best_streak": <int>,
+            "tier": <str>,
+            "last_updated": <datetime>,
+            "creation_time": <datetime>,
+        },
+        "stats": {
+            "average_bet": <float>,
+            "win_rate": <float>,
+            "total_matches": <int>
+        }
+    }
+    ```
+- 400: Bad Request
+- 404: Fighter not found
+
+
+#### Analyze Match Between Fighters
+
+
+Endpoint: `POST /analyze`
+
+JSON Payload:
+
+```
+{
+    // Each expect one of `name` or `id` and not both
+    "fighter_red": {
+        "name": <str>,
+        "id": <int>
+    },
+    "fighter_blue": {
+        "name": <str>,
+        "id": <int>
+}
+```
+
+Returns:
+
+- 200:
+    ```
+    {
+        "red": {
             "fighter": {
                 "id": <int>,
                 "name": <str>,
@@ -107,64 +153,19 @@ Returns:
                 "average_bet": <float>,
                 "win_rate": <float>,
                 "total_matches": <int>
+            },
+            "stats_vs": {
+                "average_bet_vs": <float>,
+                "win_rate_vs": <float>,
+                "total_matches_vs": <int>
             }
-        }
-        ```
-    - 400: Bad Request
-    - 404: Fighter not found
-
-
-#### Analyze Match Between Fighters
-
-
-Endpoint: `POST /analyze`
-
-JSON Payload:
-
-    ```
-    {
-        "fighter_red": {
-            "name": <str>,
-            "id": <int>
         },
-        "fighter_blue": {
-            "name": <str>,
-            "id": <int>
+        "blue": {
+            // Same contents as "red" but for "fighter_blue"
+        },
+        "suggested_bet": <"red" or "blue">,
+        "confidence": <float between 0.0 to 1.0>
     }
     ```
-    - Each expects one of a `name` or `id`
-
-Returns:
-
-    - 200:
-        ```
-        {
-            "red": {
-                "fighter": {
-                    "id": <int>,
-                    "name": <str>,
-                    "best_streak": <int>,
-                    "tier": <str>,
-                    "last_updated": <datetime>,
-                    "creation_time": <datetime>,
-                },
-                "stats": {
-                    "average_bet": <float>,
-                    "win_rate": <float>,
-                    "total_matches": <int>
-                },
-                "stats_vs": {
-                    "average_bet_vs": <float>,
-                    "win_rate_vs": <float>,
-                    "total_matches_vs": <int>
-                }
-            },
-            "blue": {
-                // Same contents as "red" but for "fighter_blue"
-            },
-            "suggested_bet": <"red" or "blue">,
-            "confidence": <float between 0.0 to 1.0>
-        }
-        ```
-    - 400: Bad Request
-    - 404: One of the fighters was not found
+- 400: Bad Request
+- 404: One of the fighters was not found
