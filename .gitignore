@@ -4,6 +4,7 @@
 # Development
 .venv
 .vim
+dev-requirements.txt
 
 # DBs
 db/*

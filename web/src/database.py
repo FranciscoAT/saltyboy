@@ -1,0 +1,44 @@
+import os
+import sqlite3
+from sqlite3 import Row
+from typing import List, Optional
+
+
+class Database:
+    def __init__(self):
+        self.conn = sqlite3.connect(os.environ["DATABASE_PATH"])
+        self.conn.row_factory = Row
+
+    def get_fighter(
+        self, fighter_name: Optional[str], fighter_id: Optional[int]
+    ) -> Optional[Row]:
+        cursor = self.conn.cursor()
+        select_stmt = "SELECT * FROM fighter WHERE"
+        query_obj = {}
+        if fighter_id:
+            select_stmt += " id = :id"
+            query_obj["id"] = fighter_id
+        if fighter_name:
+            select_stmt += " name = :name"
+            query_obj["name"] = fighter_name
+
+        cursor.execute(select_stmt, query_obj)
+        fighter = cursor.fetchone()
+        cursor.close()
+        return fighter
+
+    def get_matches(self, fighter_id: int) -> List[Row]:
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            SELECT
+                *
+            FROM
+                match
+            WHERE
+                fighter_red = :id OR
+                fighter_blue = :id
+            """,
+            {"id": fighter_id},
+        )
+        return cursor.fetchall()

@@ -12,12 +12,12 @@ from src.run import run
 def main() -> None:
     arg_parser = ArgumentParser()
     arg_parser.add_argument(
-        "-d", "--debug", action="store_true", help="Run in debug mode"
+        "-d", "--debug", action="store_true", help="Enable debug logging"
     )
     arg_parser.add_argument(
         "-lp",
         "--log-path",
-        help="Sets a rotating file handler at the given path.",
+        help="Sets a rotating file handler at the given path",
     )
 
     arguments = arg_parser.parse_args()

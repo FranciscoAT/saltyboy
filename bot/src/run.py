@@ -29,7 +29,11 @@ def run() -> None:
                 message.tier,
                 message.match_format
             )
-            current_match = Match(tier=message.tier, match_format=message.match_format)  # type: ignore
+            if message.match_format == "exhibition":
+                logger.info("Ignoring exhibition matches.")
+                current_match = None
+            else:
+                current_match = Match(tier=message.tier, match_format=message.match_format)  # type: ignore
         elif current_match:
             if current_match.status == "open" and message.message_type == "win":
                 logger.warning("Somehow missed the locked bet step. %s", current_match)
