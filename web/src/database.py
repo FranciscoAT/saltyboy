@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from sqlite3 import Row
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 
 class Database:
@@ -42,3 +42,21 @@ class Database:
             {"id": fighter_id},
         )
         return cursor.fetchall()
+
+    def get_stats(self, table: str) -> List[Row]:
+        cursor = self.conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT
+                tier, COUNT(*) as {table}_count
+            FROM
+                {table}
+            GROUP BY
+                tier
+            ORDER BY
+                {table}_count DESC;
+            """
+        )
+        stats = cursor.fetchall()
+        cursor.close()
+        return stats
