@@ -26,9 +26,13 @@ class FighterInfo:
     fighter: Dict
     stats: FighterStats
 
+    matches: Optional[List[Dict]] = None
+
 
 @dataclass
-class FighterInfoVs(FighterInfo):
+class FighterInfoVs:
+    fighter: Dict
+    stats: FighterStats
     stats_vs: FighterStatsVs
 
 
@@ -43,9 +47,8 @@ class Analysis:
 def get_fighter(
     fighter_name: Optional[str] = None,
     fighter_id: Optional[int] = None,
-    db: Optional[Database] = None,
 ) -> Optional[Dict]:
-    db = db if db else Database()
+    db = Database()
     fighter = db.get_fighter(fighter_name, fighter_id)
     if not fighter:
         return None
@@ -100,7 +103,9 @@ def _determine_winner(
     return suggested_bet, confidence
 
 
-def _analyze_matches(matches: List[Row], fighter: Row) -> FighterInfo:
+def _analyze_matches(
+    matches: List[Row], fighter: Row
+) -> FighterInfo:
     num_wins = 0
     total_bet = 0
 
@@ -123,7 +128,7 @@ def _analyze_matches(matches: List[Row], fighter: Row) -> FighterInfo:
         win_rate=win_rate, average_bet=average_bet, total_matches=total_matches
     )
 
-    return FighterInfo(fighter=dict(fighter), stats=stats)
+    return FighterInfo(fighter=dict(fighter), stats=stats, matches=[dict(x) for x in matches])
 
 
 def _analyze_matches_vs(
