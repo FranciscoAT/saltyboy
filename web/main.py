@@ -114,7 +114,11 @@ if __name__ == "__main__":
         priv_key_pem = os.environ.get("PRIV_KEY_PEM")
         logging.info("Running in production")
         serve(
-            app, host="0.0.0.0", ssl_context=(full_chain_pem, priv_key_pem), port=5000
+            app,
+            host="0.0.0.0",
+            ssl_context=(full_chain_pem, priv_key_pem),
+            port=5000,
+            debug=False,
         )
     else:
         app.run(debug=True, host="localhost")
