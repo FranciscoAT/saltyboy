@@ -109,9 +109,15 @@ if __name__ == "__main__":
 
     if mode == "PROD":
         from waitress import serve
+        from paste.translogger import TransLogger
 
         logging.info("Running in production")
         app.debug = False
-        serve(app, host="0.0.0.0", port=5000, url_scheme="https", _quiet=True)
+        serve(
+            TransLogger(app, setup_console_handler=False),
+            host="0.0.0.0",
+            port=5000,
+            url_scheme="https",
+        )
     else:
         app.run(debug=True, host="localhost")
