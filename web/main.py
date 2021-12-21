@@ -110,12 +110,8 @@ if __name__ == "__main__":
     if mode == "PROD":
         from waitress import serve
 
-        full_chain_pem = os.environ.get("FULL_CHAIN_PEM")
-        priv_key_pem = os.environ.get("PRIV_KEY_PEM")
         logging.info("Running in production")
         app.debug = False
-        serve(
-            app, host="0.0.0.0", ssl_context=(full_chain_pem, priv_key_pem), port=5000
-        )
+        serve(app, host="0.0.0.0", port=5000, url_scheme="https", _quiet=True)
     else:
         app.run(debug=True, host="localhost")
