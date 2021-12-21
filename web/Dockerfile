@@ -11,4 +11,4 @@ RUN pip install -r requirements.txt
 
 RUN mkdir -p /opt/logs
 
-CMD python main.py --prod -lp /opt/logs
+CMD python main.py -lp /opt/logs

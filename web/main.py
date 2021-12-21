@@ -94,9 +94,6 @@ def _init_loggers(set_debug: bool, log_path: Optional[str] = None) -> None:
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument(
-        "-p", "--prod", action="store_true", help="Run in production mode"
-    )
-    arg_parser.add_argument(
         "-d", "--debug", action="store_true", help="Enable debug logging"
     )
     arg_parser.add_argument(
@@ -106,16 +103,18 @@ if __name__ == "__main__":
     arguments = arg_parser.parse_args()
     _init_loggers(arguments.debug, log_path=arguments.log_path)
 
-    host = "0.0.0.0" if arguments.prod else "localhost"
-    debug = not arguments.prod
-
     load_dotenv()
 
-    full_chain_pem = os.environ.get("FULL_CHAIN_PEM")
-    priv_key_pem = os.environ.get("PRIV_KEY_PEM")
+    mode = os.environ.get("DEPLOYMENT_MODE")
 
-    if arguments.prod and full_chain_pem is not None and priv_key_pem is not None:
-        logging.info("Running in SSL context")
-        app.run(debug=debug, host=host, ssl_context=(full_chain_pem, priv_key_pem))
+    if mode == "PROD":
+        from waitress import serve
+
+        full_chain_pem = os.environ.get("FULL_CHAIN_PEM")
+        priv_key_pem = os.environ.get("PRIV_KEY_PEM")
+        logging.info("Running in production")
+        serve(
+            app, host="0.0.0.0", ssl_context=(full_chain_pem, priv_key_pem), port=5000
+        )
     else:
-        app.run(debug=debug, host=host)
+        app.run(debug=True, host="localhost")
