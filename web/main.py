@@ -11,17 +11,22 @@ from flask.json import jsonify
 from marshmallow.exceptions import ValidationError
 from werkzeug.exceptions import BadRequest, NotFound
 
-from src.biz import analyze_match, get_fighter
+from src import biz
 from src.schemas import AnalyzeMatchSchema, GetFighterSchema
 
 
 app = Flask(__name__)
 
 
+@app.route("/stats", methods=["GET"])
+def get_db_stats_request():
+    return jsonify(biz.get_db_stats())
+
+
 @app.route("/fighters", methods=["GET"])
 def get_fighter_request():
     query_params = GetFighterSchema().load(request.args)
-    fighter = get_fighter(**query_params)
+    fighter = biz.get_fighter(**query_params)
 
     if not fighter:
         return NotFound("No fighter found.")
@@ -35,7 +40,7 @@ def analyze_match_request():
     if not isinstance(request_payload, dict):
         raise BadRequest("Expecting a JSON object payload.")
     payload = AnalyzeMatchSchema().load(request_payload)
-    result = analyze_match(**payload)
+    result = biz.analyze_match(**payload)
     return jsonify(result)
 
 

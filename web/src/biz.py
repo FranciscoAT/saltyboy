@@ -8,6 +8,18 @@ from src.database import Database
 
 
 @dataclass
+class DBStatsTable:
+    total: int
+    break_down: List[Dict]
+
+
+@dataclass
+class DBStats:
+    fighters: DBStatsTable
+    matches: DBStatsTable
+
+
+@dataclass
 class FighterStats:
     win_rate: float
     average_bet: float
@@ -26,9 +38,13 @@ class FighterInfo:
     fighter: Dict
     stats: FighterStats
 
+    matches: Optional[List[Dict]] = None
+
 
 @dataclass
-class FighterInfoVs(FighterInfo):
+class FighterInfoVs:
+    fighter: Dict
+    stats: FighterStats
     stats_vs: FighterStatsVs
 
 
@@ -43,9 +59,8 @@ class Analysis:
 def get_fighter(
     fighter_name: Optional[str] = None,
     fighter_id: Optional[int] = None,
-    db: Optional[Database] = None,
 ) -> Optional[Dict]:
-    db = db if db else Database()
+    db = Database()
     fighter = db.get_fighter(fighter_name, fighter_id)
     if not fighter:
         return None
@@ -76,6 +91,20 @@ def analyze_match(fighter_red: Dict, fighter_blue: Dict) -> Dict:
             confidence=confidence,
         )
     )
+
+
+def get_db_stats() -> Dict:
+    db = Database()
+
+    matches = [dict(x) for x in db.get_stats("match")]
+    total_matches = sum([x["match_count"] for x in matches])
+    match_stats = DBStatsTable(total=total_matches, break_down=matches)
+
+    fighters = [dict(x) for x in db.get_stats("fighter")]
+    total_fighters = sum([x["fighter_count"] for x in fighters])
+    fighter_stats = DBStatsTable(total=total_fighters, break_down=fighters)
+
+    return asdict(DBStats(fighters=fighter_stats, matches=match_stats))
 
 
 def _determine_winner(
@@ -123,7 +152,9 @@ def _analyze_matches(matches: List[Row], fighter: Row) -> FighterInfo:
         win_rate=win_rate, average_bet=average_bet, total_matches=total_matches
     )
 
-    return FighterInfo(fighter=dict(fighter), stats=stats)
+    return FighterInfo(
+        fighter=dict(fighter), stats=stats, matches=[dict(x) for x in matches]
+    )
 
 
 def _analyze_matches_vs(

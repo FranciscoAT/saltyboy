@@ -11,8 +11,7 @@ db/*
 !db/.gitkeep
 
 # Logging
-**/logs/*
-!**/logs/**/.gitkeep
+logs/**
 
 # Python
 __pycache__
