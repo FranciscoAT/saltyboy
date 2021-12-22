@@ -7,7 +7,9 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from flask import Flask, request
+from flask.helpers import send_file, send_from_directory, url_for
 from flask.json import jsonify
+from flask.templating import render_template
 from marshmallow.exceptions import ValidationError
 from werkzeug.exceptions import BadRequest, NotFound
 
@@ -16,6 +18,24 @@ from src.schemas import AnalyzeMatchSchema, GetFighterSchema
 
 
 app = Flask(__name__)
+
+
+@app.route("/", methods=["GET"])
+def get_index_request():
+    return send_file("public/index.html", mimetype="text/html")
+
+
+@app.route("/favicon.ico", methods=["GET"])
+def get_favicon_request():
+    return send_file("public/favicon.ico", mimetype="image/vdn.microsoft.icon")
+
+
+@app.route("/robots.txt", methods=["GET"])
+def get_robots_request():
+    return send_file("public/robots.txt", mimetype="text/plain")
+
+
+# --- API stuff ---
 
 
 @app.route("/stats", methods=["GET"])
@@ -88,7 +108,9 @@ def _init_loggers(set_debug: bool, log_path: Optional[str] = None) -> None:
         root_logger.info("Setting time rotating filehandler to path %s", log_path)
 
     if set_debug:
-        root_logger.info("Running in debug mode.")
+        root_logger.info("Log level set to DEBUG.")
+    else:
+        root_logger.info("Log level set to INFO.")
 
 
 if __name__ == "__main__":
@@ -120,4 +142,4 @@ if __name__ == "__main__":
             url_scheme="https",
         )
     else:
-        app.run(debug=True, host="localhost")
+        app.run(debug=True, host="localhost", port=5000)

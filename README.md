@@ -38,6 +38,7 @@ Now we are ready to start the service.
     $ python3 -m venv .venv
     $ source .venv/bin/activate
     (.venv) $ pip install -r requirements.txt
+    (.venv) $ alembic upgrade head
     (.venv) $ python main.py
     ```
     - Flags:
@@ -54,7 +55,8 @@ Code found in the `web` is used for interfacing with the data stored in the SQLL
 
 1. Ensure you've done everything under [running the bot](#bot-running)
 1. Create a new `.env` file under `bot`, fill it with the following:
-    - `DATABASE_PATH=<db_path>`, this should be the same as the environment variabled defined in the `bot` section
+    - `DATABASE_PATH=<db_path>`, this should be the same as the environment variable defined in the `bot` section
+    - `DEPLOYMENT_MODE=PROD`, if set to this it will deploy using HTTPS and UWSGI
 
 We are ready to spin up the service:
 
@@ -72,26 +74,61 @@ We are ready to spin up the service:
     ```
     - Flags:
         - `-d`/`--debug` flag to include DEBUG logs
-        - `-p`/`--prod` flag to set the app to run in production mode. This will cause it to run on `0.0.0.0` instead of `localhost` and turn off Flasks `debug` mode
         - `-lp <path>`/`--log-path <path>` to also log information to disk
 
 
 ### Querying the Webapp
 
-NB: Unfortunately the DB is case sensitive. A TODO for down the road
+__NB__: Unfortunately the DB is case sensitive. A TODO for down the road
+
+
+#### Querying DB Stats
+
+Returns some total stats about the number of matches and fighter cataloged. Along with a break down total based on the tiers.
+
+__Endpoint__: `GET /stats`
+
+__Returns__:
+
+- 200:
+    ```
+    {
+        "fighters": {
+            "break_down": [
+                {
+                    "tier": <string>, 
+                    "fighter_count": <int>
+                }
+            ],
+            "total": <int>
+        },
+        "matches": {
+            "break_down": [
+                {
+                    "tier": <string>,
+                    "match_count": <int>
+                }
+            ],
+            "total": <int>
+        }
+    }
+    ```
+
 
 #### Get Fighter Information
 
-Endpoint: `GET /fighters`
+Returns information specific to a given fighter. Includes all the fighters associated matches, their current rank, best win streak, along with some averaged stats.
 
-Query Parameters:
+__Endpoint__: `GET /fighters`
+
+__Query Parameters__:
 
 Expects one of:
 
 - `id=<int>` where `<int>` is the database id of the fighter
 - `name=<str>` where `<str>` is the name of the fighter
 
-Returns:
+__Returns__:
 
 - 200:
     ```
@@ -108,7 +145,23 @@ Returns:
             "average_bet": <float>,
             "win_rate": <float>,
             "total_matches": <int>
-        }
+        },
+        "matches": [
+            {
+                "bet_blue": <int>,
+                "bet_red": <int>,
+                "colour": <string>, // winning colour
+                "date": <datetime>,
+                "fighter_blue": <int>,
+                "fighter_red": <int>,
+                "id": <int>,
+                "match_format": <"tournament" or "matchmaking">,
+                "streak_blue": <int>,
+                "streak_red": <int>,
+                "tier": <string>,
+                "winner": <int>
+            }
+        ]
     }
     ```
 - 400: Bad Request
@@ -117,11 +170,13 @@ Returns:
 
 #### Analyze Match Between Fighters
 
-NB: The logic on the `confidence` is extremely naive at the moment.
+__NB__: The logic on the `confidence` is extremely naive at the moment, and I have considerations of moving the computation to the extension to off-load resource intensive operations to the client. tl;dr considering dropping this endpoint.
 
-Endpoint: `POST /analyze`
+Analyzes the winning probability between two given fighters, and includes some stats about the fighters and the matches they've had between each other.
 
-JSON Payload:
+__Endpoint__: `POST /analyze`
+
+__JSON Payload__:
 
 ```
 {
@@ -136,7 +191,7 @@ JSON Payload:
 }
 ```
 
-Returns:
+__Returns__:
 
 - 200:
     ```
@@ -170,3 +225,16 @@ Returns:
     ```
 - 400: Bad Request
 - 404: One of the fighters was not found
+
+
+## Extension
+
+TBD
+
+----
+
+## Acknowledgements
+
+- [Saltybet](https://saltybet.com) for their awesome service they provide!
+- [Twitch](https://twitch.com) for their great IRC chatrooms!
+- [favicon.ico](web/public/favicon.ico) was made by [Freepik](https://www.freepik.com) and can be found on [Flaticon](https://www.flaticon.com)
