@@ -51,6 +51,8 @@ The bot will now begin tracking and cataloging fighters and matches.
 
 Code found in the `web` is used for interfacing with the data stored in the SQLLite3 database.
 
+If you want to find the a live version of this service you can find it here along with some more information: https://salty-boy.com.
+
 ### Running
 
 1. Ensure you've done everything under [running the bot](#bot-running)
