@@ -83,7 +83,6 @@ We are ready to spin up the service:
 
 __NB__: Unfortunately the DB is case sensitive. A TODO for down the road
 
-
 #### Querying DB Stats
 
 Returns some total stats about the number of matches and fighter cataloged. Along with a break down total based on the tiers.
