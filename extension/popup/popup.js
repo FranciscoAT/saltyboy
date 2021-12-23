@@ -1,3 +1,4 @@
+let loggedIn = document.getElementById("logged-in");
 let fighterRedSpan = document.getElementById("fighter-red");
 let fighterBlueSpan = document.getElementById("fighter-blue");
 let formatSpan = document.getElementById("match-format");
@@ -24,6 +25,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
 
 function update(status) {
+    loggedIn.innerText = status["loggedIn"];
     fighterRedSpan.innerText = status["fighterRed"];
     fighterBlueSpan.innerText = status["fighterBlue"];
     formatSpan.innerText = status["format"];
