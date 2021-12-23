@@ -5,8 +5,8 @@ let statusSpan = document.getElementById("match-status");
 let lastUpdated = document.getElementById("last-updated");
 
 // Initialize data on load
-chrome.storage.local.get("status", (status) => {
-    update(status);
+chrome.storage.local.get(["status"], (result) => {
+    update(result.status);
 });
 
 

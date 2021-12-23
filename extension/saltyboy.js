@@ -19,6 +19,7 @@ function updateStatus() {
     let matchStatus = "unknown";
     let format = "unknown";
     let betConfirmed = false;
+
     if (odds.getInnerHTML() == "")  {
         fighterRed = document.getElementById("player1").value;
         fighterBlue = document.getElementById("player2").value;
@@ -91,6 +92,7 @@ function placeBets(fighterRedData, fighterBlueData) {
     }
 
     // TODO: better implementation of logic
+    console.log(fighterRedData, fighterBlueData);
     wager.value = "1";
     fighterRed.click();
 }
@@ -107,8 +109,5 @@ function checkStatusHealth(status) {
 function generateRequest(fighterName) {
     return `${SALTY_BOY_URL}/fighters?${encodeURIComponent(fighterName)}`
 }
-
-
-
 
 setInterval(run, 5000);
