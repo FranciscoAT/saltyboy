@@ -37,7 +37,9 @@ function updateStatus() {
         let footerAlertText = document.getElementById("footer-alert").innerText;
         if (footerAlertText.includes("more matches until the next tournament!")) {
             format = "matchmaking";
-        } 
+        } else if (footerAlertText == "Tournament mode start!" || footerAlertText.includes("characters are left in the bracket!")) {
+            format = "tournament";
+        }
     }
 
     let status = {
@@ -78,24 +80,49 @@ function getFighterData(status) {
 }
 
 function placeBets(matchData) {
-    let wager = document.getElementById("wager");
-    let fighterRed = document.getElementById("player1");
-    let fighterBlue = document.getElementById("player2");
+    let wagerInput = document.getElementById("wager");
+    let fighterRedBtn = document.getElementById("player1");
+    let fighterBlueBtn = document.getElementById("player2");
 
     // Last sanity check
-    if (fighterRed.value != matchData["fighter_red"] || fighterBlue.value != matchData["fighter_blue"]) {
+    if (fighterRedBtn.value != matchData["fighter_red"] || fighterBlueBtn.value != matchData["fighter_blue"]) {
         CURR_OUT_OF_DATE_ERR_COUNT += 1;
         if (CURR_OUT_OF_DATE_ERR_COUNT > 5) {
-            console.warn("Current Match from server is out of date", fighterRed.value, fighterBlue.value, matchData);
+            console.warn("Current Match from server is out of date", fighterRedBtn.value, fighterBlueBtn.value, matchData);
         }
         return;
     }
 
+    let balance = parseInt(document.getElementById("balance").innerText().replace(",", ""));
     CURR_OUT_OF_DATE_ERR_COUNT = 0;
 
+    let wagerAmount = null;
+    let betColour = null;
+
+    if (matchData["match_format"] == "exhibition") {
+        // We don't want to bet on exhibition matches
+        wagerAmount = 1;
+        betColour = "red";
+    } else if (matchData["fighter_red_info"] == null || matchData["fighter_blue_info"] == null) {
+        // We cannot accurately bet on matches we have no stats for
+        wagerAmount = 1;
+        betColour = "red";
+    } else {
+        // TODO: more logic needs to go here
+    }
+
+    if (matchData["match_format"] == "tournament") {
+        // Always bet max on tournament
+        wagerAmount = balance;
+    }
+
     // TODO: better implementation of logic
-    wager.value = "1";
-    fighterRed.click();
+    wagerInput.value = wagerAmount.toString();
+    if (betColour == "red") {
+        fighterRedBtn.click();
+    } else {
+        fighterBlueBtn.click();
+    }
 }
 
 function checkStatusHealth(status) {
