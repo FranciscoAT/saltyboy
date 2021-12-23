@@ -29,6 +29,7 @@ def run() -> None:
                 message.tier,
                 message.match_format
             )
+            salty_db.update_current(message.fighter_red, message.fighter_blue, message.tier, message.match_format)
             if message.match_format == "exhibition":
                 logger.info("Ignoring exhibition matches.")
                 current_match = None

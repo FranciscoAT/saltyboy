@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from sqlite3 import Row
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 
 class Database:
@@ -10,7 +10,7 @@ class Database:
         self.conn.row_factory = Row
 
     def get_fighter(
-        self, fighter_name: Optional[str], fighter_id: Optional[int]
+        self, fighter_name: Optional[str] = None, fighter_id: Optional[int] = None
     ) -> Optional[Row]:
         cursor = self.conn.cursor()
         select_stmt = "SELECT * FROM fighter WHERE"
@@ -42,6 +42,14 @@ class Database:
             {"id": fighter_id},
         )
         return cursor.fetchall()
+
+    def get_current_match(self) -> Optional[Row]:
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM current_match")
+        current_match = cursor.fetchall()
+        if not current_match:
+            return None
+        return current_match[0]
 
     def get_stats(self, table: str) -> List[Row]:
         cursor = self.conn.cursor()
