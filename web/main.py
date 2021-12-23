@@ -7,11 +7,11 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from flask import Flask, request
-from flask.helpers import send_file, send_from_directory, url_for
+from flask.helpers import send_file
 from flask.json import jsonify
-from flask.templating import render_template
 from marshmallow.exceptions import ValidationError
 from werkzeug.exceptions import BadRequest, NotFound
+from flask_cors import cross_origin
 
 from src import biz
 from src.schemas import AnalyzeMatchSchema, GetFighterSchema
@@ -44,6 +44,7 @@ def get_db_stats_request():
 
 
 @app.route("/fighters", methods=["GET"])
+@cross_origin("https://saltybet.com/")
 def get_fighter_request():
     query_params = GetFighterSchema().load(request.args)
     fighter = biz.get_fighter(**query_params)
