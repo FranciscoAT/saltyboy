@@ -7,6 +7,7 @@ from werkzeug.exceptions import BadRequest
 from src.database import Database
 
 
+# TODO: move dataclasses into new module
 @dataclass
 class DBStatsTable:
     total: int
@@ -56,12 +57,24 @@ class Analysis:
     confidence: float
 
 
+@dataclass
+class CurrentMatch:
+    fighter_red: str
+    fighter_blue: str
+    tier: str
+    format: str
+
+    fighter_red_info: Optional[Dict] = None
+    fighter_blue_info: Optional[Dict] = None
+
+
 def get_fighter(
     fighter_name: Optional[str] = None,
     fighter_id: Optional[int] = None,
+    db: Optional[Database] = None,
 ) -> Optional[Dict]:
-    db = Database()
-    fighter = db.get_fighter(fighter_name, fighter_id)
+    db = db if db else Database()
+    fighter = db.get_fighter(fighter_name=fighter_name, fighter_id=fighter_id)
     if not fighter:
         return None
     fighter_stats = db.get_matches(fighter["id"])
@@ -105,6 +118,34 @@ def get_db_stats() -> Dict:
     fighter_stats = DBStatsTable(total=total_fighters, break_down=fighters)
 
     return asdict(DBStats(fighters=fighter_stats, matches=match_stats))
+
+
+def get_current_match() -> Optional[Dict]:
+    db = Database()
+
+    current_match = db.get_current_match()
+    if not current_match:
+        return None
+
+    if current_match["match_format"] == "exhibition":
+        fighter_red_info = None
+        fighter_blue_info = None
+    else:
+        fighter_red_info = get_fighter(fighter_name=current_match["fighter_red"], db=db)
+        fighter_blue_info = get_fighter(
+            fighter_name=current_match["fighter_blue"], db=db
+        )
+
+    return asdict(
+        CurrentMatch(
+            fighter_red=current_match["fighter_red"],
+            fighter_blue=current_match["fighter_blue"],
+            tier=current_match["tier"],
+            format=current_match["match_format"],
+            fighter_red_info=fighter_red_info,
+            fighter_blue_info=fighter_blue_info,
+        )
+    )
 
 
 def _determine_winner(
@@ -214,7 +255,7 @@ def _analyze_matches_vs(
 def _get_fighter_throw_none(
     db: Database, fighter_name: Optional[str] = None, fighter_id: Optional[int] = None
 ) -> Row:
-    fighter = db.get_fighter(fighter_name, fighter_id)
+    fighter = db.get_fighter(fighter_name=fighter_name, fighter_id=fighter_id)
     if fighter is None:
         raise BadRequest(
             f"Fighter with either id: {fighter_id} or name: {fighter_name} was not found."

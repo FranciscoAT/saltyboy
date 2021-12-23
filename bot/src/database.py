@@ -96,6 +96,57 @@ class Database:
         self.conn.commit()
         cursor.close()
 
+    def update_current(
+        self,
+        fighter_red: Optional[str],
+        fighter_blue: Optional[str],
+        tier: Optional[str],
+        match_format: Optional[str],
+    ) -> None:
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM current_match")
+        if (
+            fighter_red != None
+            and fighter_blue != None
+            and tier != None
+            and match_format != None
+        ):
+            insert_obj = {
+                "fighter_red": fighter_red,
+                "fighter_blue": fighter_blue,
+                "tier": tier,
+                "match_format": match_format,
+            }
+            cursor.execute(
+                """
+                    INSERT INTO current_match
+                        (
+                            fighter_red,
+                            fighter_blue,
+                            tier,
+                            match_format
+                        )
+                    VALUES
+                        (
+                            :fighter_red,
+                            :fighter_blue,
+                            :tier,
+                            :match_format
+                        )
+                    """,
+                insert_obj,
+            )
+        else:
+            logging.warning(
+                "Missing values for updating current_match. %s, %s, %s, %s",
+                fighter_red,
+                fighter_blue,
+                tier,
+                match_format,
+            )
+        self.conn.commit()
+        cursor.close()
+
     def _full_get_fighter(
         self, name: Optional[str], tier: Optional[str], best_streak: Optional[int]
     ) -> Row:

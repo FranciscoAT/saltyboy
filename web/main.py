@@ -9,15 +9,16 @@ from dotenv import load_dotenv
 from flask import Flask, request
 from flask.helpers import send_file
 from flask.json import jsonify
+from flask_cors import CORS
 from marshmallow.exceptions import ValidationError
 from werkzeug.exceptions import BadRequest, NotFound
-from flask_cors import cross_origin
 
 from src import biz
 from src.schemas import AnalyzeMatchSchema, GetFighterSchema
 
 
 app = Flask(__name__)
+CORS(app, resources={"/current_match": {"origins": "https://saltybet.com"}})
 
 
 @app.route("/", methods=["GET"])
@@ -44,7 +45,6 @@ def get_db_stats_request():
 
 
 @app.route("/fighters", methods=["GET"])
-@cross_origin("https://saltybet.com/")
 def get_fighter_request():
     query_params = GetFighterSchema().load(request.args)
     fighter = biz.get_fighter(**query_params)
@@ -55,6 +55,15 @@ def get_fighter_request():
     return jsonify(fighter)
 
 
+@app.route("/current_match", methods=["GET"])
+def get_current_match_request():
+    current_match = biz.get_current_match()
+    if not current_match:
+        return "", 204
+    return jsonify(current_match)
+
+
+# TODO: remove this endpoint
 @app.route("/analyze", methods=["POST"])
 def analyze_match_request():
     request_payload = request.json
