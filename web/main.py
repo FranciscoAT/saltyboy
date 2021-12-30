@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from dataclasses import asdict
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import os
@@ -11,14 +12,19 @@ from flask.helpers import send_file
 from flask.json import jsonify
 from flask_cors import CORS
 from marshmallow.exceptions import ValidationError
-from werkzeug.exceptions import BadRequest, NotFound
+from werkzeug.exceptions import NotFound
 
-from src import biz
-from src.schemas import AnalyzeMatchSchema, GetFighterSchema
+from src.biz import fighter as fighter_biz
+from src.biz import database as database_biz
+from src.biz import match as match_biz
+from src.schemas.fighters import GetFighterSchema
 
 
 app = Flask(__name__)
 CORS(app, resources={"/current_match": {"origins": "https://saltybet.com"}})
+
+
+# --- Generic Web Stuff --
 
 
 @app.route("/", methods=["GET"])
@@ -41,37 +47,26 @@ def get_robots_request():
 
 @app.route("/stats", methods=["GET"])
 def get_db_stats_request():
-    return jsonify(biz.get_db_stats())
+    return jsonify(asdict(database_biz.get_db_stats()))
 
 
 @app.route("/fighters", methods=["GET"])
 def get_fighter_request():
     query_params = GetFighterSchema().load(request.args)
-    fighter = biz.get_fighter(**query_params)
+    fighter = fighter_biz.get_fighter(**query_params)
 
     if not fighter:
-        return NotFound("No fighter found.")
+        return NotFound("No fighter found")
 
-    return jsonify(fighter)
+    return jsonify(asdict(fighter))
 
 
 @app.route("/current_match", methods=["GET"])
 def get_current_match_request():
-    current_match = biz.get_current_match()
+    current_match = match_biz.get_current_match()
     if not current_match:
         return "", 204
-    return jsonify(current_match)
-
-
-# TODO: remove this endpoint
-@app.route("/analyze", methods=["POST"])
-def analyze_match_request():
-    request_payload = request.json
-    if not isinstance(request_payload, dict):
-        raise BadRequest("Expecting a JSON object payload.")
-    payload = AnalyzeMatchSchema().load(request_payload)
-    result = biz.analyze_match(**payload)
-    return jsonify(result)
+    return jsonify(asdict(current_match))
 
 
 @app.errorhandler(ValidationError)
@@ -115,7 +110,7 @@ def _init_loggers(set_debug: bool, log_path: Optional[str] = None) -> None:
         )
         timed_rotating_fh.setFormatter(log_formatter)
         root_logger.addHandler(timed_rotating_fh)
-        root_logger.info("Setting time rotating filehandler to path %s", log_path)
+        root_logger.info("Will log to a timed rotating file at: %s", log_path)
 
     if set_debug:
         root_logger.info("Log level set to DEBUG.")
@@ -143,7 +138,7 @@ if __name__ == "__main__":
         from waitress import serve
         from paste.translogger import TransLogger
 
-        logging.info("Running in production")
+        logging.info("Running in production mode")
         app.debug = False
         serve(
             TransLogger(app, setup_console_handler=False),
@@ -152,4 +147,5 @@ if __name__ == "__main__":
             url_scheme="https",
         )
     else:
+        logging.info("Running in development mode")
         app.run(debug=True, host="localhost", port=5000)

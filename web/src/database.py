@@ -61,8 +61,6 @@ class Database:
                 {table}
             GROUP BY
                 tier
-            ORDER BY
-                {table}_count DESC;
             """
         )
         stats = cursor.fetchall()
