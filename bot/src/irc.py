@@ -4,35 +4,18 @@ import logging
 import re
 from socket import socket
 import ssl
-from typing import Iterator, List, Optional
+from typing import Iterator, List, Optional, Union
+
+from src.objects.waifu import LockedBetMessage, OpenBetMessage, WinMessage
 
 logger = logging.getLogger(__name__)
 
-
-@dataclass
-class WaifuMessage:
-    message_type: str  # One of: open,locked,win
-
-    # Used in open bet / locked bet
-    fighter_red: Optional[str] = None
-    fighter_blue: Optional[str] = None
-
-    # Used in open bet
-    tier: Optional[str] = None
-    match_format: Optional[str] = None
-
-    # Used in locked bet
-    bet_red: Optional[int] = None
-    bet_blue: Optional[int] = None
-    streak_red: Optional[int] = None
-    streak_blue: Optional[int] = None
-
-    # Used for win bet
-    winner: Optional[str] = None
-    colour: Optional[str] = None
+ReturnMessages = Union[OpenBetMessage, LockedBetMessage, WinMessage]
 
 
 class TwitchBot:
+
+    MAX_AUTH_ATTEMPTS = 5
 
     OPEN_BET_RE = re.compile(r"Bets are OPEN for (.+) vs (.+)!\s+\((.) Tier\)\s+.*")
     LOCKED_BET_RE = re.compile(
@@ -41,28 +24,17 @@ class TwitchBot:
     WINNER_RE = re.compile(r"(.+) wins! Payouts to Team (Red|Blue)\..*")
 
     def __init__(self, username: str, oauth_token: str) -> None:
-        sock = socket()
-        sock.settimeout(360)  # About a minute longer than PING/PONG
 
-        self.ssl_sock = ssl.wrap_socket(sock)
-        self.ssl_sock.connect(("irc.chat.twitch.tv", 6697))
-
-        self._send(f"PASS {oauth_token}")
-        self._send(f"NICK {username}")
-
-        # Authenticate
-        logger.info("Authenticating as %s", username)
-        authenticated = False
-        authenticated_start = datetime.utcnow()
-        while not authenticated:
-            for message in self._receive():
-                logger.info(message)
-                if "welcome, glhf!" in message.lower():
-                    logger.info("Authenticated successfully!")
-                    authenticated = True
-                    break
-                if datetime.utcnow() - authenticated_start > timedelta(seconds=5):
-                    raise TimeoutError("Took longer than 5 seconds to authenticate.")
+        num_auth_attempts = 0
+        connected = False
+        while not connected:
+            try:
+                self._connect(oauth_token, username)
+                connected = True
+            except TimeoutError:
+                num_auth_attempts += 1
+                if num_auth_attempts > self.MAX_AUTH_ATTEMPTS:
+                    raise
 
         # Join channel
         logger.info("Joining channel saltybet...")
@@ -77,10 +49,11 @@ class TwitchBot:
                     joined = True
                     break
                 if datetime.utcnow() - joined_start > timedelta(seconds=5):
-                    raise TimeoutError("Took longer than 5 seconds to join saltybet channel.")
+                    raise TimeoutError(
+                        "Took longer than 5 seconds to join saltybet channel."
+                    )
 
-
-    def listen(self) -> Iterator[WaifuMessage]:
+    def listen(self) -> Iterator[ReturnMessages]:
         while True:
             for message in self._receive():
                 if "PING :tmi.twitch.tv" == message:
@@ -97,11 +70,10 @@ class TwitchBot:
                     logger.error("Something went wrong", exc_info=True)
 
     @classmethod
-    def _parse_message(cls, message: str) -> Optional[WaifuMessage]:
+    def _parse_message(cls, message: str) -> Optional[ReturnMessages]:
         logger.debug(message)
         waifu_message = None
         if match := cls.OPEN_BET_RE.match(message):
-            match_format = None
             if "(matchmaking)" in message:
                 match_format = "matchmaking"
             elif "tournament bracket" in message:
@@ -109,16 +81,14 @@ class TwitchBot:
             else:
                 match_format = "exhibition"
 
-            waifu_message = WaifuMessage(
-                message_type="open",
+            waifu_message = OpenBetMessage(
                 fighter_red=match.group(1),
                 fighter_blue=match.group(2),
                 tier=match.group(3),
                 match_format=match_format,
             )
         elif match := cls.LOCKED_BET_RE.match(message):
-            waifu_message = WaifuMessage(
-                message_type="locked",
+            waifu_message = LockedBetMessage(
                 fighter_red=match.group(1),
                 streak_red=int(match.group(2)),
                 bet_red=int(match.group(3).replace(",", "")),
@@ -127,9 +97,7 @@ class TwitchBot:
                 bet_blue=int(match.group(7).replace(",", "")),
             )
         elif match := cls.WINNER_RE.match(message):
-            waifu_message = WaifuMessage(
-                message_type="win", winner=match.group(1), colour=match.group(2)
-            )
+            waifu_message = WinMessage(winner=match.group(1), colour=match.group(2))
 
         return waifu_message
 
@@ -139,3 +107,26 @@ class TwitchBot:
     def _receive(self) -> List[str]:
         read_buffer = self.ssl_sock.recv(1024).decode()
         return read_buffer.split("\r\n")
+
+    def _connect(self, oauth_token: str, username: str) -> None:
+        sock = socket()
+        sock.settimeout(360)  # About a minute longer than PING/PONG
+
+        self.ssl_sock = ssl.wrap_socket(sock)
+        self.ssl_sock.connect(("irc.chat.twitch.tv", 6697))
+
+        self._send(f"PASS {oauth_token}")
+        self._send(f"NICK {username}")
+
+        logger.info("Authenticating as %s", username)
+        authenticated = False
+        authenticated_start = datetime.utcnow()
+        while not authenticated:
+            for message in self._receive():
+                logger.info(message)
+                if "welcome, glhf!" in message.lower():
+                    logger.info("Authenticated successfully!")
+                    authenticated = True
+                    break
+                if datetime.utcnow() - authenticated_start > timedelta(seconds=5):
+                    raise TimeoutError("Took longer than 5 seconds to authenticate.")

@@ -4,7 +4,7 @@ import sqlite3
 from sqlite3 import Row
 from typing import Optional
 
-from src.objects import Match
+from src.objects.match import Match
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +25,10 @@ class Database:
             )
             return
 
-        fighter_red = self._full_get_fighter(
+        fighter_red = self._get_and_update_fighter(
             match.fighter_red, match.tier, match.streak_red
         )
-        fighter_blue = self._full_get_fighter(
+        fighter_blue = self._get_and_update_fighter(
             match.fighter_blue, match.tier, match.streak_blue
         )
 
@@ -96,73 +96,60 @@ class Database:
         self.conn.commit()
         cursor.close()
 
-    def update_current(
+    def update_current_match(
         self,
-        fighter_red: Optional[str],
-        fighter_blue: Optional[str],
-        tier: Optional[str],
-        match_format: Optional[str],
+        fighter_red: str,
+        fighter_blue: str,
+        tier: str,
+        match_format: str,
     ) -> None:
         cursor = self.conn.cursor()
         cursor.execute("DELETE FROM current_match")
-        if (
-            fighter_red != None
-            and fighter_blue != None
-            and tier != None
-            and match_format != None
-        ):
-            insert_obj = {
-                "fighter_red": fighter_red,
-                "fighter_blue": fighter_blue,
-                "tier": tier,
-                "match_format": match_format,
-            }
-            cursor.execute(
-                """
-                    INSERT INTO current_match
-                        (
-                            fighter_red,
-                            fighter_blue,
-                            tier,
-                            match_format
-                        )
-                    VALUES
-                        (
-                            :fighter_red,
-                            :fighter_blue,
-                            :tier,
-                            :match_format
-                        )
-                    """,
-                insert_obj,
-            )
-        else:
-            logging.warning(
-                "Missing values for updating current_match. %s, %s, %s, %s",
-                fighter_red,
-                fighter_blue,
-                tier,
-                match_format,
-            )
+        insert_obj = {
+            "fighter_red": fighter_red,
+            "fighter_blue": fighter_blue,
+            "tier": tier,
+            "match_format": match_format,
+        }
+        cursor.execute(
+            """
+                INSERT INTO current_match
+                    (
+                        fighter_red,
+                        fighter_blue,
+                        tier,
+                        match_format
+                    )
+                VALUES
+                    (
+                        :fighter_red,
+                        :fighter_blue,
+                        :tier,
+                        :match_format
+                    )
+                """,
+            insert_obj,
+        )
         self.conn.commit()
         cursor.close()
 
-    def _full_get_fighter(
-        self, name: Optional[str], tier: Optional[str], best_streak: Optional[int]
+    def _get_and_update_fighter(
+        self, name: str, tier: str, best_streak: Optional[int]
     ) -> Row:
-        if not name or not tier or best_streak is None:
-            raise ValueError("Name, tier, or best_streak were empty or None.")
+        if not best_streak:
+            raise ValueError("Best Streak was never specified.")
 
         fighter = self._get_fighter(name=name)
         if not fighter:
-            fighter_id = self._create_fighter(name, tier, best_streak)
-            fighter = self._get_fighter(id=fighter_id)
-        elif fighter["best_streak"] < best_streak or fighter["tier"] != tier:
-            self._update_fighter(fighter["id"], tier, best_streak)
+            fighter = self._create_fighter(
+                name=name, tier=tier, best_streak=best_streak
+            )
+        else:
+            self._update_fighter(fighter, tier, best_streak)
 
-        return fighter  # type: ignore
+        return fighter
 
-    def _create_fighter(self, name: str, tier: str, best_streak: int) -> int:
+    def _create_fighter(self, name: str, tier: str, best_streak: int) -> Row:
         cursor = self.conn.cursor()
         now = datetime.utcnow()
         insert_obj = {
@@ -183,16 +170,27 @@ class Database:
         )
         fighter_id = cursor.lastrowid
         self.conn.commit()
+        cursor.execute("SELECT * FROM fighter WHERE id = :id", {"id": fighter_id})
+        fighter = cursor.fetchone()
         cursor.close()
-        return fighter_id
+        return fighter
 
-    def _update_fighter(self, id: int, tier: str, best_streak: int) -> None:
+    def _update_fighter(self, fighter: Row, tier: str, best_streak: int) -> None:
+        updated_tier = None if fighter["tier"] == tier else tier
+        updated_streak = None if fighter["best_streak"] > best_streak else best_streak
+
+        if updated_tier is None and updated_streak is None:
+            return
+
+        updated_tier = updated_tier or fighter["tier"]
+        updated_streak = updated_streak or fighter["best_streak"]
+
         cursor = self.conn.cursor()
         update_obj = {
-            "id": id,
-            "tier": tier,
-            "best_streak": best_streak,
+            "id": fighter["id"],
             "last_updated": datetime.utcnow(),
+            "best_streak": updated_streak,
+            "tier": updated_tier,
         }
         cursor.execute(
             """
@@ -214,7 +212,7 @@ class Database:
         self, id: Optional[int] = None, name: Optional[str] = None
     ) -> Optional[Row]:
         if id is None and not name:
-            raise ValueError("Missing arguments id or name.")
+            raise ValueError("Missing one required argument of id or name")
 
         cursor = self.conn.cursor()
         select_stmt = "SELECT * FROM fighter WHERE"

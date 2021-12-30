@@ -13,7 +13,7 @@ The project is split up into three parts:
 
 Code found in `bot` is used for cataloging all the matches, and every fighter. The longer this runs the better data the tool will have to bet.
 
-The bot will track all Tournament and Matchmaking matches and fighters. Exhibitions are currently ignored.
+The bot will track all Tournament and Matchmaking matches and fighters. Exhibition matches are ignored.
 
 ### Running
 
@@ -21,9 +21,9 @@ The bot will track all Tournament and Matchmaking matches and fighters. Exhibiti
 1. Create a new `.env` file under `bot`, fill it with the following:
     - `USERNAME=<username>`, replace `<username>` with your Twitch account username.
     - `OAUTH_TOKEN=<oauth_token>`, replace `<oauth_token>` with your Twitch account OAuth Token.
-        - You can quickly get it from here https://twitchapps.com/tmi/. It should be of the format `"oauth:<some characters>"`.
-    - `DATABASE_PATH=<db_path>`, replace `<db_path>` with the relative path to the database. Generally this should be `../db/<db_name>` where `<db_name>` is what you named your SQLLite3 DB file in step 1.
-    - `DATABASE_URI=<db_uri>`, replace `<db_uri>` with same contents as `<db_path>` but prepend `sqlite:///` in-front of the relative path. Optionally you can use `sqlite:////` and specify an absolute path.
+        - You can quickly get it from here https://twitchapps.com/tmi/. It should be of the format `"oauth:<str>"`.
+    - `DATABASE_PATH=<db_path>`, replace `<db_path>` with the path to the database file.
+    - `DATABASE_URI=<db_uri>`, replace `<db_uri>` with same contents as `<db_path>` but prepend `sqlite:///`.
 
 
 Now we are ready to start the service.
@@ -58,7 +58,7 @@ If you want to find the a live version of this service you can find it here alon
 1. Ensure you've done everything under [running the bot](#bot-running)
 1. Create a new `.env` file under `bot`, fill it with the following:
     - `DATABASE_PATH=<db_path>`, this should be the same as the environment variable defined in the `bot` section
-    - `DEPLOYMENT_MODE=PROD`, if set to this it will deploy using HTTPS and UWSGI
+    - `DEPLOYMENT_MODE=PROD`, if set to this it will deploy using HTTPS and UWSGI otherwise set it to whatever you want and it will run as a development server
 
 We are ready to spin up the service:
 

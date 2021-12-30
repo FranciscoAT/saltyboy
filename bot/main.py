@@ -9,30 +9,6 @@ from dotenv import load_dotenv
 from src.run import run
 
 
-def main() -> None:
-    arg_parser = ArgumentParser()
-    arg_parser.add_argument(
-        "-d", "--debug", action="store_true", help="Enable debug logging"
-    )
-    arg_parser.add_argument(
-        "-lp",
-        "--log-path",
-        help="Sets a rotating file handler at the given path",
-    )
-
-    arguments = arg_parser.parse_args()
-
-    _init_loggers(arguments.debug, log_path=arguments.log_path)
-
-    load_dotenv()
-    try:
-        run()
-    except Exception:
-        logger = logging.getLogger()
-        logger.error("Something went wrong.", exc_info=True)
-        raise
-
-
 def _init_loggers(set_debug: bool, log_path: Optional[str] = None) -> None:
     log_level = logging.INFO
     if set_debug:
@@ -67,11 +43,32 @@ def _init_loggers(set_debug: bool, log_path: Optional[str] = None) -> None:
         )
         timed_rotating_fh.setFormatter(log_formatter)
         root_logger.addHandler(timed_rotating_fh)
-        root_logger.info("Setting time rotating filehandler to path %s", log_path)
+        root_logger.info("Will log to a time rotating file at: %s", log_path)
 
     if set_debug:
-        root_logger.info("Running in debug mode.")
+        root_logger.info("Log level set to DEBUG.")
+    else:
+        root_logger.info("Log level set to INFO.")
 
 
 if __name__ == "__main__":
-    main()
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument(
+        "-d", "--debug", action="store_true", help="Enable debug logging"
+    )
+    arg_parser.add_argument(
+        "-lp",
+        "--log-path",
+        help="Sets a rotating file handler at the given path",
+    )
+
+    arguments = arg_parser.parse_args()
+
+    load_dotenv()
+    _init_loggers(arguments.debug, log_path=arguments.log_path)
+    try:
+        run()
+    except Exception:
+        logger = logging.getLogger()
+        logger.error("Something went wrong.", exc_info=True)
+        raise
