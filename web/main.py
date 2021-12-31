@@ -6,27 +6,28 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from apispec import APISpec
+from apispec_webframeworks.flask import FlaskPlugin
+from dataclasses_jsonschema.apispec import DataclassesPlugin
 from dotenv import load_dotenv
+from flasgger import Swagger
+from flasgger.utils import apispec_to_template
 from flask import Flask, request
 from flask.helpers import send_file
 from flask.json import jsonify
 from flask_cors import CORS
-from marshmallow.exceptions import ValidationError
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import BadRequest, NotFound
 
-from src.biz import fighter as fighter_biz
-from src.biz import database as database_biz
-from src.biz import match as match_biz
-from src.schemas.fighters import GetFighterSchema
+from src.biz import database as database_biz, fighter as fighter_biz, match as match_biz
+from src.schemas.database import DatabaseStatsSchema
+from src.schemas.fighters import FighterInfoSchema, GetFighterQuerySchema
+from src.schemas.match import CurrentMatchSchema
 
 
 app = Flask(__name__)
-CORS(app, resources={"/current_match": {"origins": "https://saltybet.com"}})
-
+CORS(app, origins=["https://saltybet.com", "https://salty-boy.com"])
 
 # --- Generic Web Stuff --
-
-
 @app.route("/", methods=["GET"])
 def get_index_request():
     return send_file("public/index.html", mimetype="text/html")
@@ -43,17 +44,66 @@ def get_robots_request():
 
 
 # --- API stuff ---
-
-
 @app.route("/stats", methods=["GET"])
 def get_db_stats_request():
+    """
+    Get information about the database records
+    Returns a breakdown of how many matches and fighters the database has cataloged.
+    Along with a breakdown of each based off of tier.
+    Tiers should be all one of: A, B, P, S, X.
+    ---
+    description: Get database stats
+    responses:
+      200:
+        description: Database stats
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatabaseStatsSchema'
+    """
     return jsonify(asdict(database_biz.get_db_stats()))
 
 
 @app.route("/fighters", methods=["GET"])
 def get_fighter_request():
-    query_params = GetFighterSchema().load(request.args)
-    fighter = fighter_biz.get_fighter(**query_params)
+    """
+    Get information about a fighter.
+    Requires either an `id` or a `name` as query parameters.
+    ---
+    description: Get a fighter
+    parameters:
+      - name: id
+        in: query
+        description: Fighter database ID
+        schema:
+          type: integer
+      - name: name
+        in: query
+        description: Fighter name, case sensitive
+        schema:
+          type: string
+    responses:
+      200:
+        description: Fighter info
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FighterInfoSchema'
+      400:
+        description: Bad Request
+      404:
+        description: Fighter not found
+    """
+    try:
+        query_params = GetFighterQuerySchema(
+            fighter_id=request.args.get("id"), fighter_name=request.args.get("name")
+        )
+    except ValueError as e:
+        raise BadRequest(str(e))
+
+    fighter = fighter_biz.get_fighter(
+        fighter_id=query_params.fighter_id, fighter_name=query_params.fighter_name
+    )
 
     if not fighter:
         return NotFound("No fighter found")
@@ -61,19 +111,57 @@ def get_fighter_request():
     return jsonify(asdict(fighter))
 
 
-@app.route("/current_match", methods=["GET"])
+@app.route("/current-match", methods=["GET"])
 def get_current_match_request():
+    """
+    Return information about current match
+    Current match information shown is updated regularly based off of the bot service.
+    Match info will never display fighter information for exhibition matches.
+    ---
+    responses:
+      200:
+        description: Current match information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurrentMatchSchema'
+      204:
+        description: No current match exists
+    """
     current_match = match_biz.get_current_match()
     if not current_match:
         return "", 204
     return jsonify(asdict(current_match))
 
 
-@app.errorhandler(ValidationError)
-def handle_validation_error(validation_error):
-    response = jsonify(validation_error.messages)
-    response.status_code = 400
-    return response
+# --- Flasgger ---
+app.config["SWAGGER"] = {
+    "title": "SaltyBoy",
+    "openapi": "3.0.0",
+    "termsOfService": "/",
+    "specs": [
+        {
+            "version": "0.0.1",
+            "title": "SaltyBoy API",
+            "endpoint": "saltyboy_spec",
+            "route": "/spec",
+        }
+    ],
+}
+spec = APISpec(
+    title="SaltyBoy API",
+    version="0.0.1",
+    openapi_version="3.0.2",
+    description="https://github.com/FranciscoAT/saltyboy",
+    plugins=[FlaskPlugin(), DataclassesPlugin()],
+)
+spec.components.schema("FighterInfoSchema", schema=FighterInfoSchema)
+spec.components.schema("CurrentMatchSchema", schema=CurrentMatchSchema)
+spec.components.schema("DatabaseStatsSchema", schema=DatabaseStatsSchema)
+
+template = apispec_to_template(app=app, spec=spec, paths=[get_fighter_request])
+
+swagger = Swagger(app, template=template)
 
 
 def _init_loggers(set_debug: bool, log_path: Optional[str] = None) -> None:
