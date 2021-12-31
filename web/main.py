@@ -24,6 +24,7 @@ from src.schemas.fighters import FighterInfoSchema, GetFighterQuerySchema
 from src.schemas.match import CurrentMatchSchema
 
 
+load_dotenv()
 app = Flask(__name__)
 CORS(app, origins=["https://saltybet.com", "https://salty-boy.com"])
 
@@ -145,8 +146,9 @@ app.config["SWAGGER"] = {
             "title": "SaltyBoy API",
             "endpoint": "saltyboy_spec",
             "route": "/spec",
-        }
+        },
     ],
+    "servers": [{"url": os.environ.get("SWAGGER_SERVER") or "http://localhost:5000"}],
 }
 spec = APISpec(
     title="SaltyBoy API",
@@ -217,8 +219,6 @@ if __name__ == "__main__":
 
     arguments = arg_parser.parse_args()
     _init_loggers(arguments.debug, log_path=arguments.log_path)
-
-    load_dotenv()
 
     mode = os.environ.get("DEPLOYMENT_MODE")
 

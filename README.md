@@ -61,6 +61,7 @@ If you want to find the a live version of this service you can find it here alon
 1. Create a new `.env` file under `bot`, fill it with the following:
     - `DATABASE_PATH=<db_path>`, this should be the same as the environment variable defined in the `bot` section
     - `DEPLOYMENT_MODE=PROD`, if set to this it will deploy using HTTPS and UWSGI otherwise set it to whatever you want and it will run as a development server
+    - `SWAGGER_SERVER=<url>` optional, value defaults to `http://localhost:5000`, but if you are deploying it somewhere update this value so that the Swagger docs uses the given URL
 
 We are ready to spin up the service:
 
