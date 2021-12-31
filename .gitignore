@@ -8,7 +8,6 @@ dev-requirements.txt
 
 # DBs
 db/*
-!db/.gitkeep
 
 # Logging
 logs/**
