@@ -1,6 +1,13 @@
+import naiveBet from './bet_modes/naive.js'
+
 const RUN_INTERVAL = 5000
 const SALTY_BOY_URL = 'https://www.salty-boy.com'
-const MAX_BET_PERCENTAGE = 0.05 // TODO: allow this to be configurable
+const BET_MODES = {
+    naive: naiveBet,
+}
+
+let MAX_BET_PERCENTAGE = 0.05 // TODO: allow this to be configurable
+let BET_MODE = 'naive'
 let LAST_STATUS = null
 let FETCHED_FIGHTER_DATA = false
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
@@ -48,7 +55,11 @@ function updateStatus() {
 }
 
 function getFighterData(status) {
-    if (status['matchStatus'] != 'betting' || status['betConfirmed'] == true) {
+    if (
+        status['matchStatus'] != 'betting' ||
+        status['betConfirmed'] == true ||
+        FETCHED_FIGHTER_DATA == true
+    ) {
         return
     }
 
@@ -91,11 +102,18 @@ function placeBets(matchData) {
     }
     CURR_OUT_OF_DATE_ERR_COUNT = 0
 
+    let betData = BET_MODES[BET_MODE](matchData)
+    if (matchData['match_format'] == 'tournament') {
+        // Always bet max in tourneys
+        betData['confidence'] = 1
+    }
+
     let balance = parseInt(
         document.getElementById('balance').innerText.replace(',', '')
     )
-    let betData = calculateBet(balance, matchData)
-    wagerInput.value = Math.round(betData['amount']).toString()
+    wagerInput.value = Math.round(
+        getWagerAmount(balance, betData['confidence'])
+    ).toString()
     if (betData['colour'] == 'red') {
         fighterRedBtn.click()
     } else {
@@ -103,84 +121,8 @@ function placeBets(matchData) {
     }
 }
 
-function calculateBet(balance, matchData) {
-    /*
-     * Calculates the bet. Currently this method is extremely naive and needs improvement.
-     *
-     * It will always bet $1 red if all else fails on every single match.
-     * If it is in tournament mode it will always bet 100% of balance.
-     * If the two fighters have fought before it will base calculations on the subset of those
-     * matches played together.
-     * Otherwise it will base it on their respective win rates.
-     */
-
-    let betData = {
-        amount: 1,
-        colour: 'red',
-    }
-
-    if (
-        matchData['fighter_red_info'] != null &&
-        matchData['fighter_blue_info'] != null
-    ) {
-        let fighterRedId = matchData['fighter_red_info']['id']
-        let fighterBlueId = matchData['fighter_blue_info']['id']
-
-        // First check to see if the two fighters have fought before
-        let redWinsVsBlue = 0
-        let redMatchesVsBlue = 0
-        for (const match of matchData['fighter_red_info']['matches']) {
-            if (
-                (match['fighter_red'] == fighterRedId &&
-                    match['fighter_blue'] == fighterBlueId) ||
-                (match['fighter_red'] == fighterBlueId &&
-                    match['fighter_blue'] == fighterRedId)
-            ) {
-                if (match['winner'] == fighterRedId) {
-                    redWinsVsBlue += 1
-                }
-                redMatchesVsBlue += 1
-            }
-        }
-
-        if (redMatchesVsBlue > 0) {
-            let redWinRateVsBlue = redWinsVsBlue / redMatchesVsBlue
-            if (redWinRateVsBlue < 0.5) {
-                betData['colour'] = 'blue'
-                betData['amount'] =
-                    (1 - redWinRateVsBlue) * balance * MAX_BET_PERCENTAGE
-            } else {
-                betData['amount'] =
-                    redWinRateVsBlue * balance * MAX_BET_PERCENTAGE
-            }
-        } else {
-            let redWinRate = matchData['fighter_red_info']['stats']['win_rate']
-            let blueWinRate =
-                matchData['fighter_blue_info']['stats']['win_rate']
-
-            if (redWinRate + blueWinRate == 0) {
-                betData['amount'] = 1
-            } else if (blueWinRate > redWinRate) {
-                betData['colour'] = 'blue'
-                betData['amount'] =
-                    (blueWinRate / (redWinRate + blueWinRate)) *
-                    balance *
-                    MAX_BET_PERCENTAGE
-            } else {
-                betData['amount'] =
-                    (redWinRate / (redWinRate + blueWinRate)) *
-                    balance *
-                    MAX_BET_PERCENTAGE
-            }
-        }
-    }
-
-    if (matchData['match_format'] == 'tournament') {
-        // Always bet max on tournament matches
-        betData['amount'] = balance
-    }
-
-    return betData
+function getWagerAmount(balance, confidence) {
+    return balance * confidence * MAX_BET_PERCENTAGE
 }
 
-setInterval(run, 5000)
+setInterval(run, RUN_INTERVAL)

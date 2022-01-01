@@ -88,7 +88,8 @@ Right now the bot is not yet deployed on the Chrome Web Store. So will have to b
 
 ### Setting up the Extension
 
-1. Install `npm` / `node`
+1. Install `npm` & `node`
+    - Consider looking into `nvm` for installing `node`
 1. Navigate to the `extension` folder
 1. Run `npm install`
 1. Run `npm run build`
@@ -99,7 +100,9 @@ Right now the bot is not yet deployed on the Chrome Web Store. So will have to b
 
 The Chrome Extension is now installed and working. Simply navigate to https://saltybet.com and login and it will begin betting for you.
 
-If you want to update the Bot. Just update the code on disk and click the "Update" button on the `chrome://extensions` page. Reminder you'll also have to reload the SaltyBet webpage if you had it open when reloading.
+If you want to update the Bot. Just update the code on disk and click the "Update" button on the `chrome://extensions` page. Reminder you'll also have to reload the SaltyBet webpage if you had it open when updating the extension.
+
+Should you want to make your own changes to the project. Simply edit the files in `extension/src` and re-run `npm run build`, you can also run `npm run dev` which will automatically update the `dist` directory are you update the files. Depending on your changes you may also need to update `manifest.json` and or `webpack.config.js`.
 
 ### Considerations
 
