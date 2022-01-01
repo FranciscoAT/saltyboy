@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 import logging
 import re
@@ -6,11 +5,18 @@ from socket import socket
 import ssl
 from typing import Iterator, List, Optional, Union
 
-from src.objects.waifu import LockedBetMessage, OpenBetMessage, WinMessage
+from src.objects.waifu import (
+    LockedBetMessage,
+    OpenBetExhibitionMessage,
+    OpenBetMessage,
+    WinMessage,
+)
 
 logger = logging.getLogger(__name__)
 
-ReturnMessages = Union[OpenBetMessage, LockedBetMessage, WinMessage]
+ReturnMessages = Union[
+    OpenBetMessage, LockedBetMessage, WinMessage, OpenBetExhibitionMessage
+]
 
 
 class TwitchBot:
@@ -18,6 +24,9 @@ class TwitchBot:
     MAX_AUTH_ATTEMPTS = 5
 
     OPEN_BET_RE = re.compile(r"Bets are OPEN for (.+) vs (.+)!\s+\((.) Tier\)\s+.*")
+    OPEN_BET_EXHIBITION_RE = re.compile(
+        r"Bets are OPEN for (.+) vs (.+)!\s+\(.+\)\s+\(exhibitions\)\s+.*"
+    )
     LOCKED_BET_RE = re.compile(
         r"Bets are locked. (.+) \((-?[0-9]+)\) - \$(([0-9]{1,3},)*[0-9]{1,3}), (.+) \((-?[0-9]+)\) - \$(([0-9]{1,3},)*[0-9]{1,3})"
     )
@@ -98,6 +107,10 @@ class TwitchBot:
             )
         elif match := cls.WINNER_RE.match(message):
             waifu_message = WinMessage(winner=match.group(1), colour=match.group(2))
+        elif match := cls.OPEN_BET_EXHIBITION_RE.match(message):
+            waifu_message = OpenBetExhibitionMessage(
+                fighter_red=match.group(1), fighter_blue=match.group(2)
+            )
 
         return waifu_message
 

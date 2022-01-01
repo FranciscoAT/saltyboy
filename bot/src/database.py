@@ -100,8 +100,8 @@ class Database:
         self,
         fighter_red: str,
         fighter_blue: str,
-        tier: str,
         match_format: str,
+        tier: Optional[str] = None,
     ) -> None:
         cursor = self.conn.cursor()
         cursor.execute("DELETE FROM current_match")

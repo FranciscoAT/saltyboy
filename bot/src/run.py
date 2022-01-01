@@ -1,11 +1,15 @@
-from datetime import datetime, timedelta
 import logging
 import os
 
 from src.database import Database
 from src.irc import TwitchBot
 from src.objects.match import Match
-from src.objects.waifu import LockedBetMessage, OpenBetMessage, WinMessage
+from src.objects.waifu import (
+    LockedBetMessage,
+    OpenBetExhibitionMessage,
+    OpenBetMessage,
+    WinMessage,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +40,18 @@ def run() -> None:
                 match_format=message.match_format,
             )
             current_match = Match(message)
+        elif isinstance(message, OpenBetExhibitionMessage):
+            logger.info(
+                "New match. %s VS. %s. Format: exhibition",
+                message.fighter_red,
+                message.fighter_blue,
+            )
+            salty_db.update_current_match(
+                fighter_red=message.fighter_red,
+                fighter_blue=message.fighter_blue,
+                match_format="exhibition",
+            )
+            current_match = None
         elif current_match:
             if isinstance(message, LockedBetMessage):
                 success = current_match.update_locked(message)

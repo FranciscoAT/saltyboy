@@ -10,6 +10,12 @@ class OpenBetMessage:
 
 
 @dataclass
+class OpenBetExhibitionMessage:
+    fighter_red: str
+    fighter_blue: str
+
+
+@dataclass
 class LockedBetMessage:
     fighter_red: str
     fighter_blue: str
