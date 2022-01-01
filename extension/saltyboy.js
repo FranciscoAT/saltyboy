@@ -1,5 +1,6 @@
 const RUN_INTERVAL = 5000
 const SALTY_BOY_URL = 'https://www.salty-boy.com'
+const MAX_BET_PERCENTAGE = 0.05 // TODO: allow this to be configurable
 let LAST_STATUS = null
 let FETCHED_FIGHTER_DATA = false
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
@@ -94,7 +95,7 @@ function placeBets(matchData) {
         document.getElementById('balance').innerText.replace(',', '')
     )
     let betData = calculateBet(balance, matchData)
-    wagerInput.value = betData['amount'].toString()
+    wagerInput.value = Math.round(betData['amount']).toString()
     if (betData['colour'] == 'red') {
         fighterRedBtn.click()
     } else {
@@ -113,9 +114,6 @@ function calculateBet(balance, matchData) {
      * Otherwise it will base it on their respective win rates.
      */
 
-    const MAX_BET_PERCENTAGE = 0.1 // TODO: allow this to be configurable
-
-    // Default to bet red with $1
     let betData = {
         amount: 1,
         colour: 'red',
@@ -156,10 +154,13 @@ function calculateBet(balance, matchData) {
                     redWinRateVsBlue * balance * MAX_BET_PERCENTAGE
             }
         } else {
-            let redWinRate = matchData['fighter_red_info']['win_rate']
-            let blueWinRate = matchData['fighter_blue_info']['win_rate']
+            let redWinRate = matchData['fighter_red_info']['stats']['win_rate']
+            let blueWinRate =
+                matchData['fighter_blue_info']['stats']['win_rate']
 
-            if (blueWinRate > redWinRate) {
+            if (redWinRate + blueWinRate == 0) {
+                betData['amount'] = 1
+            } else if (blueWinRate > redWinRate) {
                 betData['colour'] = 'blue'
                 betData['amount'] =
                     (blueWinRate / (redWinRate + blueWinRate)) *
@@ -176,7 +177,7 @@ function calculateBet(balance, matchData) {
 
     if (matchData['match_format'] == 'tournament') {
         // Always bet max on tournament matches
-        wagerAmount = balance
+        betData['amount'] = balance
     }
 
     return betData

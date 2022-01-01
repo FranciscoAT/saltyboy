@@ -84,12 +84,27 @@ We are ready to spin up the service:
 
 ## Extension
 
-TBD
+Right now the bot is not yet deployed on the Chrome Web Store. So will have to be set-up manually. 
+
+### Setting up the Extension
+
+1. Navigate to `chrome://extensions` in Google Chrome
+1. Click on "Load Unpacked"
+1. Find the `bot` directory on your computer and select it
+
+The Chrome Extension is now installed and working. Simply navigate to https://saltybet.com and login and it will begin betting for you.
+
+If you want to update the Bot. Just update the code on disk and click the "Update" button on the `chrome://extensions` page.
+
+### Considerations
+
+- The betting mechanism right now is absolutely terrible, it is recommended for now to keep the max bet amount at a low percentage or set a bet amount that you are most comfortable by setting them inside of the Salty Boy Extension icon. The defaults on installation are 5% or $1,000 respectively.
+- There are bugs and there are edge cases, if you spot any personally it would help a lot to log an issue on the repository.
 
 ----
 
 ## Acknowledgements
 
-- [Saltybet](https://saltybet.com) for their awesome service they provide!
-- [Twitch](https://twitch.com) for their great IRC chatrooms!
+- All the FOSS chads who provide their 3rd party libraries
+- [Saltybet](https://saltybet.com) into the salt mines!! 
 - [favicon.ico](web/public/favicon.ico) was made by [Freepik](https://www.freepik.com) and can be found on [Flaticon](https://www.flaticon.com)
