@@ -1,5 +1,5 @@
 {
-    "name": "SaltyBoy",
+    "name": "Salty Boy",
     "description": "Automatic betting extension for SaltyBet",
     "version": "1.0",
     "manifest_version": 3,
@@ -11,12 +11,12 @@
         "tabs"
     ],
     "action": {
-        "default_popup": "popup/popup.html"
+        "default_popup": "popup.html"
     },
     "content_scripts": [
         {
             "matches": ["https://www.saltybet.com/"],
-            "js": ["saltyboy.js"]
+            "js": ["content_script.js"]
         }
     ],
     "icons": {

@@ -5,6 +5,8 @@
 .venv
 .vim
 dev-requirements.txt
+node_modules/
+extension/dist/
 
 # DBs
 db/*

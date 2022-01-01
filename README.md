@@ -88,9 +88,14 @@ Right now the bot is not yet deployed on the Chrome Web Store. So will have to b
 
 ### Setting up the Extension
 
+1. Install `npm` / `node`
+1. Navigate to the `extension` folder
+1. Run `npm install`
+1. Run `npm run build`
+1. A `dist` folder should now be created
 1. Navigate to `chrome://extensions` in Google Chrome
 1. Click on "Load Unpacked"
-1. Find the `bot` directory on your computer and select it
+1. Find the `dist` directory on your computer and select it
 
 The Chrome Extension is now installed and working. Simply navigate to https://saltybet.com and login and it will begin betting for you.
 
@@ -105,6 +110,6 @@ If you want to update the Bot. Just update the code on disk and click the "Updat
 
 ## Acknowledgements
 
-- All the FOSS chads who provide their 3rd party libraries
+- All the FOSS chads who provide their 3rd party libraries to make this project possible
 - [Saltybet](https://saltybet.com) into the salt mines!! 
 - [favicon.ico](web/public/favicon.ico) was made by [Freepik](https://www.freepik.com) and can be found on [Flaticon](https://www.flaticon.com)
