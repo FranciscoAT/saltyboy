@@ -94,7 +94,7 @@ Right now the bot is not yet deployed on the Chrome Web Store. So will have to b
 
 The Chrome Extension is now installed and working. Simply navigate to https://saltybet.com and login and it will begin betting for you.
 
-If you want to update the Bot. Just update the code on disk and click the "Update" button on the `chrome://extensions` page.
+If you want to update the Bot. Just update the code on disk and click the "Update" button on the `chrome://extensions` page. Reminder you'll also have to reload the SaltyBet webpage if you had it open when reloading.
 
 ### Considerations
 
