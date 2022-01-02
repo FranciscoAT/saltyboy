@@ -1,5 +1,5 @@
 /**
- * Naive betting strategy.
+ * Naive betting Strategy
  *
  * Basis the bet on previous win-rates and average bets.
  * If either fighter has no info will return a null confidence.
