@@ -20,8 +20,8 @@ let enableBetting = document.getElementById('enable-betting')
 let allInTournaments = document.getElementById('all-in-tournaments')
 
 const BET_MODE_INFO = {
-    naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Never bets in exhibitions. For more info see: <a href="https://github.com/FranciscoAT/extension/src/content_scripts/bet_modes/naive.js">naive.js</a>.',
-    passive: 'Passive betting just bets $1 on Red. For more info see: <a href="https://github.com/FranciscoAT/extension/src/content_scripts/bet_modes/passive.js">passive.js</a>.'
+    naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Never bets in exhibitions. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">naive.js</a>.',
+    passive: 'Passive betting just bets $1 on Red. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/passive.js">passive.js</a>.'
 }
 
 function updateStatus(matchStatus) {
