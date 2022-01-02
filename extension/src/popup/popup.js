@@ -4,6 +4,7 @@ import {
     getStorageMatchStatus,
 } from '../utils/storage'
 
+
 // Debug Info
 let debugInfoToggle = document.getElementById('debug-info-title')
 let loggedIn = document.getElementById('logged-in')
@@ -23,9 +24,9 @@ const BET_MODE_INFO = {
 }
 
 function updateStatus(matchStatus) {
-    loggedIn.innerText = matchStatus['loggedIn']
-    betConfirmed.innerText = matchStatus['betConfirmed']
-    statusSpan.innerText = matchStatus['matchStatus']
+    loggedIn.innerText = matchStatus.loggedIn
+    betConfirmed.innerText = matchStatus.betConfirmed
+    statusSpan.innerText = matchStatus.currentStatus
     lastUpdated.innerText = new Date().toString()
 }
 
@@ -40,6 +41,8 @@ function toggleDebug() {
         debugInfoDiv.style.display = 'none'
         showHideSymbol.innerText = '+'
     }
+
+    resize()
 }
 
 function updateBetModeInfo(selectedMode) {
@@ -51,6 +54,8 @@ function updateBetModeInfo(selectedMode) {
     } else {
         betModeInfoPTag.innerHTML = betModeInfo
     }
+
+    resize()
 }
 
 function updateBetSettings() {
@@ -62,6 +67,11 @@ function updateBetSettings() {
         enableBetting.checked
     )
     updateBetModeInfo(betMode.value)
+}
+
+function resize() {
+    let wrapper = document.getElementById("wrapper")
+    document.body.parentNode.style.height = `${wrapper.clientHeight}px`;
 }
 
 // Sync bet settings on popup load
@@ -97,3 +107,5 @@ enableBetting.addEventListener('change', updateBetSettings)
 allInTournaments.addEventListener('change', updateBetSettings)
 
 debugInfoToggle.addEventListener('click', toggleDebug)
+
+resize()

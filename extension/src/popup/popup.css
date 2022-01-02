@@ -1,9 +1,12 @@
 html {
-    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
 }
 
 body {
     width: 300px;
+    padding: 0;
+    margin: 0;
 }
 
 h1 {
@@ -14,6 +17,10 @@ form div {
     display: block;
     margin-top: 5px;
     margin-bottom: 5px;
+}
+
+.wrapper {
+    padding: 5px;
 }
 
 .tooltip {
