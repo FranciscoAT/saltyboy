@@ -4,7 +4,7 @@
   "description": "Project used to bundle JS for Chrome Extension",
   "private": true,
   "scripts": {
-    "build": "npx webpack --config webpack.config.js",
+    "build": "rm saltyboy.zip && npx webpack --config webpack.config.js && zip -r saltyboy.zip dist/",
     "dev": "npx webpack watch --config webpack.config.js --env dev"
   },
   "keywords": [],

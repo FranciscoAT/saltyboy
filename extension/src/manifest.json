@@ -1,7 +1,7 @@
 {
     "name": "Salty Boy",
-    "description": "Automatic betting extension for SaltyBet",
-    "version": "1.0",
+    "description": "Automatic betting extension for Salty Bet",
+    "version": "1.0.0",
     "manifest_version": 3,
     "background": {
         "service_worker": "background.js"
