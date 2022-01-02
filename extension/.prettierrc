@@ -1,6 +1,15 @@
 {
-  "trailingComma": "es5",
-  "tabWidth": 4,
-  "semi": false,
-  "singleQuote": true
+    "trailingComma": "es5",
+    "tabWidth": 4,
+    "semi": false,
+    "useTabs": false,
+    "singleQuote": true,
+    "overrides": [
+        {
+            "files": ["*.html"],
+            "options": {
+                "printWidth": 150
+            }
+        }
+    ]
 }

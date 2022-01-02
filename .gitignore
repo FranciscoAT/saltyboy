@@ -5,12 +5,9 @@
 .venv
 .vim
 dev-requirements.txt
-
-# DBs
+node_modules/
+extension/dist/
+extension/saltyboy.zip
 db/*
-
-# Logging
 logs/**
-
-# Python
 __pycache__

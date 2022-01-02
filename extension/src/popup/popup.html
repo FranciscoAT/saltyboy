@@ -1,0 +1,76 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="popup.css">
+    </head>
+    <body>
+        <div class="wrapper" id="wrapper">
+            <h1>Salty Boy</h1>
+            <div>
+                <div>
+                    <h3>Betting Settings</h3>
+                    <form>
+                        <div>
+                            <label for="enableBetting">Enable Betting:</label>
+                            <input id="enable-betting" name="enableBetting" type="checkbox">
+                        </div>
+                        <div>
+                            <label for="betMode">Betting Mode:</label>
+                            <select id="bet-mode" name="betMode">
+                                <option value="naive">Naive</option>
+                                <option value="passive">Passive</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="maxBetPercentage">Max Bet (%):</label>
+                            <input type="number" id="max-bet-percentage" name="maxBetPercentage" min="0" max="100">
+                            <div class="tooltip" title="Max Percentage of your total balance that will be bet. If set to 0, it will be disabled and use Max Bet Amount instead if set, else will use 100% of your balance.">?</div>
+                        </div>
+                        <div>
+                            <label for="maxBetAmount">Max Bet Amount:</label>
+                            <input type="number" class="max-bet-amount" id="max-bet-amount" name="maxBetAmount" min="0">
+                            <div class="tooltip" title="Max amount that will be bet at most the set amount. If set to 0 will use Max Bet % instead if set, else will use 100% of your balance.">?</div>
+                        </div>
+                        <div>
+                            <label for="allInTournaments">All In on Tournaments:</label>
+                            <input type="checkbox" id="all-in-tournaments">
+                            <div class="tooltip" title="Whether or not to go all in on tournaments on all bets">?</div>
+                    </form>
+                </div>
+                <hr/>
+                <h4>Bet Mode Information</h4>
+                <p id="bet-mode-info"></p>
+                <hr/>
+                <div>
+                    <div id="debug-info-title" class="debug-info-title">
+                        <h5>Debug Information </h5><h5 id="show-hide-symbol">+</h5>
+                    </div>
+                    <div class="debug-info" id="debug-info">
+                        <p>Logged In: <span id="logged-in"></span></p>
+                        <p>Bet Confirmed: <span id="bet-confirmed"></span></p>
+                        <p>Match Status: <span id="match-status"></span></p>
+                        <p>Info Last Updated: <span id="last-updated"></span></p>
+                    </div>
+                </div>
+                <hr/>
+                <div class="links-wrapper">
+                    <div class="links">
+                        <div>
+                            <a href="https://github.com/FranciscoAT/saltyboy">
+                                <img src="icons/github.png">GitHub
+                            </a>
+                        </div>
+                        <div class="separator"></div>
+                        <div>
+                            <a href="https://salty-boy.com">
+                                <img src="icons/icon48.png">Salty Boy
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <footer>
+        <script src="popup.js"></script>
+    </footer>
+</html>
