@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "npx webpack --config webpack.config.js",
-    "dev": "npx webpack watch --config webpack.config.js"
+    "dev": "npx webpack watch --config webpack.config.js --env dev"
   },
   "keywords": [],
   "author": "Francisco Trindade",

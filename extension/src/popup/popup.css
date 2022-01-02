@@ -1,0 +1,96 @@
+html {
+    box-sizing: border-box;
+}
+
+body {
+    width: 300px;
+}
+
+h1 {
+    text-align: center;
+}
+
+form div {
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.tooltip {
+    display: inline-block;
+    text-align: center;
+    background-color: #b8b2a8;
+    padding: 1px;
+    border-radius: 1em;
+    width: 1em;
+    height: 1em;
+    color: #222526;
+}
+
+.tooltip:hover {
+    cursor: default;
+}
+
+.debug-info-title, .debug-info-title h5 {
+    display: inline;
+    user-select: none;
+}
+
+.debug-info-title:hover {
+    cursor: pointer;
+}
+
+.debug-info {
+    display: none;
+    font-size: 0.8em;
+}
+
+.debug-info p {
+    margin: 5px;
+}
+
+.max-bet-amount {
+    width: 140px;
+}
+
+.links-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.links {
+    font-size: 16px;
+    display: flex;
+    height: 32px;
+    align-items: center;
+}
+
+.links img {
+    max-height: 32px;
+    max-width: 32px;
+}
+
+.links a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.links a img {
+    margin-right: 5px;
+}
+
+.links > div {
+    display: inline-block;
+}
+
+.separator {
+    width: 1px;
+    display: inline-block;
+    top: 5%;
+    height: 90%;
+    margin-left: 15px;
+    margin-right: 15px;
+    background-color: grey;
+}

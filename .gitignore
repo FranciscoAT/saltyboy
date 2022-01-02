@@ -7,12 +7,7 @@
 dev-requirements.txt
 node_modules/
 extension/dist/
-
-# DBs
+extension/saltyboy.zip
 db/*
-
-# Logging
 logs/**
-
-# Python
 __pycache__

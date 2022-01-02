@@ -39,7 +39,10 @@ def run() -> None:
                 tier=message.tier,
                 match_format=message.match_format,
             )
-            current_match = Match(message)
+            if message.match_format != "exhibition":
+                current_match = Match(message)
+            else:
+                current_match = None
         elif isinstance(message, OpenBetExhibitionMessage):
             logger.info(
                 "New match. %s VS. %s. Format: exhibition",

@@ -6,6 +6,7 @@ from src.schemas.fighters import FighterInfoSchema
 
 @dataclass
 class CurrentMatchSchema(JsonSchemaMixin):
+    """Information pertaining to the current ongoing match"""
     fighter_blue: str
     fighter_red: str
     match_format: str

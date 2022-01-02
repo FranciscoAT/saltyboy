@@ -1,3 +1,8 @@
+import {
+    setStorageMatchStatus,
+    setStorageBetSettings,
+    getStorageBetSettings,
+} from '../utils/storage.js'
 import naiveBet from './bet_modes/naive.js'
 
 const RUN_INTERVAL = 5000
@@ -6,24 +11,33 @@ const BET_MODES = {
     naive: naiveBet,
 }
 
-let MAX_BET_PERCENTAGE = 0.05 // TODO: allow this to be configurable
+// Bet Settings, values listed are defaults on init
+let MAX_BET_PERCENTAGE = 5
+let MAX_BET_AMOUNT = 0
 let BET_MODE = 'naive'
+let ALL_IN_TOURNAMENTS = true
+let ENABLE_BETTING = true
+
+// Extension State Values
 let LAST_STATUS = null
 let FETCHED_FIGHTER_DATA = false
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
 
 function run() {
-    let status = updateStatus()
-    if (status['loggedIn'] == false) {
+    if (ENABLE_BETTING == false) {
         return
     }
-    getFighterData(status)
+    let matchStatus = updateStatus()
+    if (matchStatus['loggedIn'] == false) {
+        return
+    }
+    getFighterData(matchStatus)
 }
 
 function updateStatus() {
     let loggedIn = document.getElementsByClassName('nav-text').length == 0
     let odds = document.getElementById('odds')
-    let matchStatus = 'unknown'
+    let currentStatus = 'unknown'
     let betConfirmed = false
 
     if (loggedIn) {
@@ -31,33 +45,33 @@ function updateStatus() {
             odds.getInnerHTML() == '' ||
             document.getElementById('betconfirm') != null
         ) {
-            matchStatus = 'betting'
+            currentStatus = 'betting'
             betConfirmed = document.getElementById('betconfirm') != null
         } else {
-            matchStatus = 'ongoing'
+            currentStatus = 'ongoing'
         }
     }
 
-    let status = {
-        matchStatus: matchStatus,
+    setStorageMatchStatus(currentStatus, betConfirmed, loggedIn)
+
+    let matchStatus = {
+        currentStatus: currentStatus,
         betConfirmed: betConfirmed,
         loggedIn: loggedIn,
     }
 
-    chrome.storage.local.set({ status: status }, () => {})
-
-    if (LAST_STATUS != status) {
-        LAST_STATUS = status
+    if (LAST_STATUS != matchStatus) {
+        LAST_STATUS = matchStatus
         FETCHED_FIGHTER_DATA = false
     }
 
-    return status
+    return matchStatus
 }
 
-function getFighterData(status) {
+function getFighterData(matchStatus) {
     if (
-        status['matchStatus'] != 'betting' ||
-        status['betConfirmed'] == true ||
+        matchStatus['currentStatus'] != 'betting' ||
+        matchStatus['betConfirmed'] == true ||
         FETCHED_FIGHTER_DATA == true
     ) {
         return
@@ -103,16 +117,15 @@ function placeBets(matchData) {
     CURR_OUT_OF_DATE_ERR_COUNT = 0
 
     let betData = BET_MODES[BET_MODE](matchData)
-    if (matchData['match_format'] == 'tournament') {
-        // Always bet max in tourneys
-        betData['confidence'] = 1
-    }
-
     let balance = parseInt(
         document.getElementById('balance').innerText.replace(',', '')
     )
     wagerInput.value = Math.round(
-        getWagerAmount(balance, betData['confidence'])
+        getWagerAmount(
+            balance,
+            betData['confidence'],
+            matchData['match_format']
+        )
     ).toString()
     if (betData['colour'] == 'red') {
         fighterRedBtn.click()
@@ -121,8 +134,124 @@ function placeBets(matchData) {
     }
 }
 
-function getWagerAmount(balance, confidence) {
-    return balance * confidence * MAX_BET_PERCENTAGE
+function getWagerAmount(balance, confidence, match_format) {
+    if (match_format == 'tournament' && ALL_IN_TOURNAMENTS == true) {
+        return balance
+    }
+
+    if (confidence == null) {
+        return 1
+    }
+
+    let percentageBet = 0
+    let amountBet = 0
+    let wagerAmount = balance * confidence
+
+    if (MAX_BET_PERCENTAGE != 0) {
+        percentageBet = balance * confidence * (MAX_BET_PERCENTAGE / 100)
+    }
+
+    if (MAX_BET_AMOUNT != 0) {
+        if (MAX_BET_AMOUNT > balance) {
+            amountBet = balance * confidence
+        } else {
+            amountBet = MAX_BET_AMOUNT * confidence
+        }
+    }
+
+    if (percentageBet != 0 && amountBet != 0) {
+        wagerAmount = Math.min(percentageBet, amountBet)
+    } else if (percentageBet != 0) {
+        wagerAmount = percentageBet
+    } else if (amountBet != 0) {
+        wagerAmount = amountBet
+    }
+
+    return wagerAmount
 }
+
+function updateBetSettings(betSettings) {
+    // Update Bet Mode
+    let betMode = betSettings.betMode
+    if (betMode in BET_MODES) {
+        BET_MODE = betMode
+    } else {
+        console.error(`Invalid bet mode ${betMode} detected.`)
+    }
+
+    // Update Max Bet Percentage
+    MAX_BET_PERCENTAGE = betSettings.maxBetPercentage
+
+    // Update Max Bet Amount
+    MAX_BET_AMOUNT = betSettings.maxBetAmount
+
+    // Update Tournament all in
+    ALL_IN_TOURNAMENTS = betSettings.allInTournaments
+
+    // Enable Betting
+    ENABLE_BETTING = betSettings.enableBetting
+}
+
+getStorageBetSettings()
+    .then((betSettings) => {
+        let updateDefaults = false
+        if (betSettings == null) {
+            betSettings = {
+                betMode: BET_MODE,
+                maxBetPercentage: MAX_BET_PERCENTAGE,
+                maxBetAmount: MAX_BET_AMOUNT,
+                allInTournaments: ALL_IN_TOURNAMENTS,
+                enableBetting: ENABLE_BETTING,
+            }
+        } else {
+            if (betSettings.betMode == null) {
+                updateDefaults = true
+                betSettings.betMode = BET_MODE
+            }
+            if (betSettings.maxBetAmount == null) {
+                updateDefaults = true
+                betSettings.maxBetAmount = MAX_BET_AMOUNT
+            }
+            if (betSettings.maxBetPercentage == null) {
+                updateDefaults = true
+                betSettings.maxBetPercentage = MAX_BET_PERCENTAGE
+            }
+            if (betSettings.allInTournaments == null) {
+                updateDefaults = true
+                betSettings.allInTournaments = ALL_IN_TOURNAMENTS
+            }
+
+            if (betSettings.enableBetting == null) {
+                updateDefaults = true
+                betSettings.enableBetting = true
+            }
+        }
+
+        if (updateDefaults == true) {
+            setStorageBetSettings(
+                betSettings.betMode,
+                betSettings.maxBetPercentage,
+                betSettings.maxBetAmount,
+                betSettings.allInTournaments,
+                betSettings.enableBetting
+            )
+        }
+        updateBetSettings(betSettings)
+    })
+    .catch((err) => {
+        console.error(
+            `Failed to properly update bet settings into extension storage. ${err}`
+        )
+    })
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace != 'local') {
+        return
+    }
+
+    if ('betSettings' in changes) {
+        updateBetSettings(changes.betSettings.newValue)
+    }
+})
 
 setInterval(run, RUN_INTERVAL)

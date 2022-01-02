@@ -14,7 +14,7 @@
  * confidence of 0.5 betting with the one with the higher average bet.
  */
 
-function calculateBet(matchData) {
+function naiveBet(matchData) {
     let betData = {
         colour: 'red',
         confidence: null,
@@ -93,4 +93,4 @@ function calculateBet(matchData) {
     return betData
 }
 
-export { calculateBet as default }
+export { naiveBet as default }
