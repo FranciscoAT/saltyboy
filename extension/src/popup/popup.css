@@ -9,10 +9,6 @@ body {
     margin: 0;
 }
 
-h1 {
-    text-align: center;
-}
-
 form div {
     display: block;
     margin-top: 5px;
@@ -21,6 +17,20 @@ form div {
 
 .wrapper {
     padding: 5px;
+}
+
+.title {
+    width: 100%;
+}
+
+.title > * {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.title p {
+    font-size: 0.9em;
 }
 
 .tooltip {
@@ -67,15 +77,15 @@ form div {
 }
 
 .links {
-    font-size: 16px;
+    font-size: 12px;
     display: flex;
-    height: 32px;
+    height: 24px;
     align-items: center;
 }
 
 .links img {
-    max-height: 32px;
-    max-width: 32px;
+    max-height: 24px;
+    max-width: 24px;
 }
 
 .links a {

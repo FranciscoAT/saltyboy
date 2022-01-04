@@ -28,7 +28,8 @@ function setStorageBetSettings(
     maxBetPercentage,
     maxBetAmount,
     allInTournaments,
-    enableBetting
+    enableBetting,
+    dollarExhibitions
 ) {
     return new Promise((res) => {
         chrome.storage.local.set(
@@ -39,6 +40,7 @@ function setStorageBetSettings(
                     maxBetAmount: maxBetAmount,
                     allInTournaments: allInTournaments,
                     enableBetting: enableBetting,
+                    dollarExhibitions: dollarExhibitions,
                 },
             },
             () => {

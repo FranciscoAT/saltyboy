@@ -18,9 +18,13 @@ let maxBetAmount = document.getElementById('max-bet-amount')
 let betMode = document.getElementById('bet-mode')
 let enableBetting = document.getElementById('enable-betting')
 let allInTournaments = document.getElementById('all-in-tournaments')
+let dollarExhibitions = document.getElementById('dollar-exhibitions')
+
+// Other
+let version = document.getElementById("version")
 
 const BET_MODE_INFO = {
-    naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Never bets in exhibitions. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">naive.js</a>.',
+    naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Always bets $1 on red in exhibitions. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">naive.js</a>.',
     passive: 'Passive betting just bets $1 on Red. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/passive.js">passive.js</a>.'
 }
 
@@ -65,14 +69,15 @@ function updateBetSettings() {
         maxBetPercentage.value,
         maxBetAmount.value,
         allInTournaments.checked,
-        enableBetting.checked
+        enableBetting.checked,
+        dollarExhibitions.checked
     )
     updateBetModeInfo(betMode.value)
 }
 
 function resize() {
     let wrapper = document.getElementById("wrapper")
-    document.body.parentNode.style.height = `${wrapper.clientHeight}px`;
+    document.body.parentNode.style.height = `${wrapper.clientHeight}px`
 }
 
 // Sync bet settings on popup load
@@ -82,7 +87,8 @@ getStorageBetSettings().then((betSettings) => {
     enableBetting.checked = betSettings.enableBetting
     betMode.value = betSettings.betMode
     allInTournaments.checked = betSettings.allInTournaments
-    updateBetModeInfo(betMode.value)
+    dollarExhibitions.checked = betSettings.dollarExhibitions
+    updateBetModeInfo(betSettings.betMode)
 })
 
 // Sync match status on popup load
@@ -106,7 +112,10 @@ maxBetPercentage.addEventListener('change', updateBetSettings)
 maxBetAmount.addEventListener('change', updateBetSettings)
 enableBetting.addEventListener('change', updateBetSettings)
 allInTournaments.addEventListener('change', updateBetSettings)
+dollarExhibitions.addEventListener('change', updateBetSettings)
 
 debugInfoToggle.addEventListener('click', toggleDebug)
+
+version.innerText = chrome.runtime.getManifest().version
 
 resize()

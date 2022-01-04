@@ -4,7 +4,11 @@
     </head>
     <body>
         <div class="wrapper" id="wrapper">
-            <h1>Salty Boy</h1>
+            <div class="title">
+                <h1>Salty Boy</h1>
+                <p>v<span id="version"></span></p>
+            </div>
+            <hr>
             <div>
                 <div>
                     <h3>Betting Settings</h3>
@@ -34,10 +38,16 @@
                             <label for="allInTournaments">All In on Tournaments:</label>
                             <input type="checkbox" id="all-in-tournaments">
                             <div class="tooltip" title="Whether or not to go all in on tournaments on all bets">?</div>
+                        </div>
+                        <div>
+                            <label for="dollarExhibitions">Bet $1 on Exhibitions:</label>
+                            <input type="checkbox" id="dollar-exhibitions">
+                            <div class="tooltip" title="Only ever bet $1 on Exhibition matches">?</div>
+                        </div>
                     </form>
                 </div>
                 <hr/>
-                <h4>Bet Mode Information</h4>
+                <h4>Selected Bet Mode</h4>
                 <p id="bet-mode-info"></p>
                 <hr/>
                 <div>
