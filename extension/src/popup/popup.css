@@ -48,21 +48,21 @@ form div {
     cursor: default;
 }
 
-.debug-info-title, .debug-info-title h5 {
+.collapsible-title, .collapsible-title > * {
     display: inline;
-    user-select: none;
+    user-select: none
 }
 
-.debug-info-title:hover {
-    cursor: pointer;
+.collapsible-title:hover {
+    cursor: pointer
 }
 
-.debug-info {
+.debug-info-content {
     display: none;
     font-size: 0.8em;
 }
 
-.debug-info p {
+.debug-info-content p {
     margin: 5px;
 }
 

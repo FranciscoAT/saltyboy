@@ -6,7 +6,7 @@ import {
 
 
 // Debug Info
-let debugInfoToggle = document.getElementById('debug-info-title')
+let debugInfoTitle = document.getElementById('debug-info-title')
 let loggedIn = document.getElementById('logged-in')
 let statusSpan = document.getElementById('match-status')
 let lastUpdated = document.getElementById('last-updated')
@@ -19,6 +19,7 @@ let betMode = document.getElementById('bet-mode')
 let enableBetting = document.getElementById('enable-betting')
 let allInTournaments = document.getElementById('all-in-tournaments')
 let dollarExhibitions = document.getElementById('dollar-exhibitions')
+let betModeTitle = document.getElementById("bet-mode-title")
 
 // Other
 let version = document.getElementById("version")
@@ -35,15 +36,15 @@ function updateStatus(matchStatus) {
     lastUpdated.innerText = new Date().toString()
 }
 
-function toggleDebug() {
-    let debugInfoDiv = document.getElementById('debug-info')
-    let showHideSymbol = document.getElementById('show-hide-symbol')
+function toggleSection(identifier) {
+    let contentWrapper = document.getElementById(`${identifier}-content`)
+    let showHideSymbol = document.getElementById(`${identifier}-symbol`)
 
     if (showHideSymbol.innerText == '+') {
-        debugInfoDiv.style.display = 'block'
+        contentWrapper.style.display = 'block'
         showHideSymbol.innerText = '-'
     } else {
-        debugInfoDiv.style.display = 'none'
+        contentWrapper.style.display = 'none'
         showHideSymbol.innerText = '+'
     }
 
@@ -114,7 +115,13 @@ enableBetting.addEventListener('change', updateBetSettings)
 allInTournaments.addEventListener('change', updateBetSettings)
 dollarExhibitions.addEventListener('change', updateBetSettings)
 
-debugInfoToggle.addEventListener('click', toggleDebug)
+debugInfoTitle.addEventListener('click', () => {
+    toggleSection("debug-info")
+})
+betModeTitle.addEventListener("click", () => {
+    toggleSection("bet-mode")
+})
+
 
 version.innerText = chrome.runtime.getManifest().version
 

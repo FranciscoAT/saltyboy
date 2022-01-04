@@ -47,14 +47,18 @@
                     </form>
                 </div>
                 <hr/>
-                <h4>Selected Bet Mode</h4>
-                <p id="bet-mode-info"></p>
+                <div id="bet-mode-title" class="collapsible-title">
+                    <h4>Selected Bet Mode </h4><h4 id="bet-mode-symbol">-</h5>
+                </div>
+                <div id="bet-mode-content">
+                    <p id="bet-mode-info"></p>
+                </div>
                 <hr/>
                 <div>
-                    <div id="debug-info-title" class="debug-info-title">
-                        <h5>Debug Information </h5><h5 id="show-hide-symbol">+</h5>
+                    <div id="debug-info-title" class="collapsible-title">
+                        <h5>Debug Information </h5><h5 id="debug-info-symbol">+</h5>
                     </div>
-                    <div class="debug-info" id="debug-info">
+                    <div class="debug-info-content" id="debug-info-content">
                         <p>Logged In: <span id="logged-in"></span></p>
                         <p>Bet Confirmed: <span id="bet-confirmed"></span></p>
                         <p>Match Status: <span id="match-status"></span></p>
