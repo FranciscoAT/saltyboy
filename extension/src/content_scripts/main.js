@@ -2,15 +2,18 @@ import {
     setStorageMatchStatus,
     setStorageBetSettings,
     getStorageBetSettings,
+    setStorageCurrentBetData,
 } from '../utils/storage.js'
 import naiveBet from './bet_modes/naive.js'
 import passiveBet from './bet_modes/passive.js'
+import rngBet from './bet_modes/rng.js'
 
 const RUN_INTERVAL = 5000
 const SALTY_BOY_URL = 'https://www.salty-boy.com'
 const BET_MODES = {
     naive: naiveBet,
     passive: passiveBet,
+    rng: rngBet,
 }
 
 // Bet Settings, values listed are defaults on init
@@ -19,6 +22,7 @@ let MAX_BET_AMOUNT = 0
 let BET_MODE = 'naive'
 let ALL_IN_TOURNAMENTS = true
 let ENABLE_BETTING = true
+let DOLLAR_EXHIBITIONS = true
 
 // Extension State Values
 let LAST_STATUS = null
@@ -30,7 +34,7 @@ function run() {
         return
     }
     let matchStatus = updateStatus()
-    if (matchStatus['loggedIn'] == false) {
+    if (matchStatus.loggedIn == false) {
         return
     }
     getFighterData(matchStatus)
@@ -72,8 +76,8 @@ function updateStatus() {
 
 function getFighterData(matchStatus) {
     if (
-        matchStatus['currentStatus'] != 'betting' ||
-        matchStatus['betConfirmed'] == true ||
+        matchStatus.currentStatus != 'betting' ||
+        matchStatus.betConfirmed == true ||
         FETCHED_FIGHTER_DATA == true
     ) {
         return
@@ -102,8 +106,8 @@ function placeBets(matchData) {
 
     // Last sanity check
     if (
-        fighterRedBtn.value != matchData['fighter_red'] ||
-        fighterBlueBtn.value != matchData['fighter_blue']
+        fighterRedBtn.value != matchData.fighter_red ||
+        fighterBlueBtn.value != matchData.fighter_blue
     ) {
         CURR_OUT_OF_DATE_ERR_COUNT += 1
         if (CURR_OUT_OF_DATE_ERR_COUNT > 5) {
@@ -122,14 +126,13 @@ function placeBets(matchData) {
     let balance = parseInt(
         document.getElementById('balance').innerText.replace(',', '')
     )
-    wagerInput.value = Math.round(
-        getWagerAmount(
-            balance,
-            betData['confidence'],
-            matchData['match_format']
-        )
+    setStorageCurrentBetData(betData.confidence, betData.colour)
+    wagerInput.value = getWagerAmount(
+        balance,
+        betData.confidence,
+        matchData.match_format
     ).toString()
-    if (betData['colour'] == 'red') {
+    if (betData.colour == 'red') {
         fighterRedBtn.click()
     } else {
         fighterBlueBtn.click()
@@ -139,6 +142,10 @@ function placeBets(matchData) {
 function getWagerAmount(balance, confidence, match_format) {
     if (match_format == 'tournament' && ALL_IN_TOURNAMENTS == true) {
         return balance
+    }
+
+    if (match_format == 'exhibition' && DOLLAR_EXHIBITIONS == true) {
+        return 1
     }
 
     if (confidence == null) {
@@ -169,7 +176,7 @@ function getWagerAmount(balance, confidence, match_format) {
         wagerAmount = amountBet
     }
 
-    return wagerAmount
+    return Math.round(wagerAmount)
 }
 
 function updateBetSettings(betSettings) {
@@ -192,6 +199,9 @@ function updateBetSettings(betSettings) {
 
     // Enable Betting
     ENABLE_BETTING = betSettings.enableBetting
+
+    // Only $1 Exhibition Matches
+    DOLLAR_EXHIBITIONS = betSettings.dollarExhibitions
 }
 
 getStorageBetSettings()
@@ -204,6 +214,7 @@ getStorageBetSettings()
                 maxBetAmount: MAX_BET_AMOUNT,
                 allInTournaments: ALL_IN_TOURNAMENTS,
                 enableBetting: ENABLE_BETTING,
+                dollarExhibitions: DOLLAR_EXHIBITIONS,
             }
         } else {
             if (betSettings.betMode == null) {
@@ -225,7 +236,12 @@ getStorageBetSettings()
 
             if (betSettings.enableBetting == null) {
                 updateDefaults = true
-                betSettings.enableBetting = true
+                betSettings.enableBetting = ENABLE_BETTING
+            }
+
+            if (betSettings.dollarExhibitions == null) {
+                updateDefaults = true
+                betSettings.dollarExhibitions = DOLLAR_EXHIBITIONS
             }
         }
 
@@ -235,7 +251,8 @@ getStorageBetSettings()
                 betSettings.maxBetPercentage,
                 betSettings.maxBetAmount,
                 betSettings.allInTournaments,
-                betSettings.enableBetting
+                betSettings.enableBetting,
+                betSettings.dollarExhibitions
             )
         }
         updateBetSettings(betSettings)

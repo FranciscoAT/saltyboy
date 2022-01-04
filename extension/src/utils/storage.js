@@ -28,7 +28,8 @@ function setStorageBetSettings(
     maxBetPercentage,
     maxBetAmount,
     allInTournaments,
-    enableBetting
+    enableBetting,
+    dollarExhibitions
 ) {
     return new Promise((res) => {
         chrome.storage.local.set(
@@ -39,6 +40,7 @@ function setStorageBetSettings(
                     maxBetAmount: maxBetAmount,
                     allInTournaments: allInTournaments,
                     enableBetting: enableBetting,
+                    dollarExhibitions: dollarExhibitions,
                 },
             },
             () => {
@@ -56,9 +58,35 @@ function getStorageBetSettings() {
     })
 }
 
+function getStorageCurrentBetData() {
+    return new Promise((res) => {
+        chrome.storage.local.get(['currentBetData'], (result) => {
+            res(result.currentBetData)
+        })
+    })
+}
+
+function setStorageCurrentBetData(confidence, inFavourOf) {
+    return new Promise((res) => {
+        chrome.storage.local.set(
+            {
+                currentBetData: {
+                    confidence: confidence,
+                    inFavourOf: inFavourOf
+                },
+            },
+            () => {
+                res()
+            }
+        )
+    })
+}
+
 export {
     setStorageMatchStatus,
     getStorageMatchStatus,
     setStorageBetSettings,
     getStorageBetSettings,
+    setStorageCurrentBetData,
+    getStorageCurrentBetData
 }

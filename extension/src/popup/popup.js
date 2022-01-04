@@ -2,11 +2,11 @@ import {
     getStorageBetSettings,
     setStorageBetSettings,
     getStorageMatchStatus,
+    getStorageCurrentBetData,
 } from '../utils/storage'
 
-
 // Debug Info
-let debugInfoToggle = document.getElementById('debug-info-title')
+let debugInfoTitle = document.getElementById('debug-info-title')
 let loggedIn = document.getElementById('logged-in')
 let statusSpan = document.getElementById('match-status')
 let lastUpdated = document.getElementById('last-updated')
@@ -18,10 +18,21 @@ let maxBetAmount = document.getElementById('max-bet-amount')
 let betMode = document.getElementById('bet-mode')
 let enableBetting = document.getElementById('enable-betting')
 let allInTournaments = document.getElementById('all-in-tournaments')
+let dollarExhibitions = document.getElementById('dollar-exhibitions')
+let betModeTitle = document.getElementById('bet-mode-title')
+
+// Other
+let version = document.getElementById('version')
+
+// Current Bet Data
+let currentBetConfidence = document.getElementById('bet-confidence')
+let currentBetColour = document.getElementById("bet-colour")
 
 const BET_MODE_INFO = {
-    naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Never bets in exhibitions. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">naive.js</a>.',
-    passive: 'Passive betting just bets $1 on Red. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/passive.js">passive.js</a>.'
+    naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Always bets $1 on red in exhibitions. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">Source</a>)',
+    passive:
+        'Passive betting just bets $1 on Red. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/passive.js">Source</a>)',
+    rng: 'Flips a coin to determine if betting for Red or Blue. Then goes all in. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/rng.js">Source</a>)'
 }
 
 function updateStatus(matchStatus) {
@@ -31,15 +42,15 @@ function updateStatus(matchStatus) {
     lastUpdated.innerText = new Date().toString()
 }
 
-function toggleDebug() {
-    let debugInfoDiv = document.getElementById('debug-info')
-    let showHideSymbol = document.getElementById('show-hide-symbol')
+function toggleSection(identifier) {
+    let contentWrapper = document.getElementById(`${identifier}-content`)
+    let showHideSymbol = document.getElementById(`${identifier}-symbol`)
 
     if (showHideSymbol.innerText == '+') {
-        debugInfoDiv.style.display = 'block'
+        contentWrapper.style.display = 'block'
         showHideSymbol.innerText = '-'
     } else {
-        debugInfoDiv.style.display = 'none'
+        contentWrapper.style.display = 'none'
         showHideSymbol.innerText = '+'
     }
 
@@ -65,14 +76,38 @@ function updateBetSettings() {
         maxBetPercentage.value,
         maxBetAmount.value,
         allInTournaments.checked,
-        enableBetting.checked
+        enableBetting.checked,
+        dollarExhibitions.checked
     )
     updateBetModeInfo(betMode.value)
 }
 
+function updateCurrentBetData(currentBetData) {
+    if (currentBetData != null) {
+        if (currentBetData.confidence == null) {
+            currentBetConfidence.innerText = "Unable to determine"
+        } else {
+            currentBetConfidence.innerText = `${Math.round(currentBetData.confidence * 100)}%`
+        }
+        currentBetColour.innerText = currentBetData.inFavourOf
+        if (currentBetData.inFavourOf == "red") {
+            currentBetColour.classList.add("bet-colour-red")
+            currentBetColour.classList.remove("bet-colour-blue")
+        } else {
+            currentBetColour.classList.add("bet-colour-blue")
+            currentBetColour.classList.remove("bet-colour-red")
+        }
+    } else {
+        currentBetConfidence.innerText = "No current bet"
+        currentBetColour.innerText = "No current bet"
+        currentBetColour.classList.remove("bet-colour-red")
+        currentBetColour.classList.remove("bet-colour-blue")
+    }
+}
+
 function resize() {
-    let wrapper = document.getElementById("wrapper")
-    document.body.parentNode.style.height = `${wrapper.clientHeight}px`;
+    let wrapper = document.getElementById('wrapper')
+    document.body.parentNode.style.height = `${wrapper.clientHeight}px`
 }
 
 // Sync bet settings on popup load
@@ -82,12 +117,17 @@ getStorageBetSettings().then((betSettings) => {
     enableBetting.checked = betSettings.enableBetting
     betMode.value = betSettings.betMode
     allInTournaments.checked = betSettings.allInTournaments
-    updateBetModeInfo(betMode.value)
+    dollarExhibitions.checked = betSettings.dollarExhibitions
+    updateBetModeInfo(betSettings.betMode)
 })
 
 // Sync match status on popup load
 getStorageMatchStatus().then((matchStatus) => {
     updateStatus(matchStatus)
+})
+
+getStorageCurrentBetData().then((currentBetData) => {
+    updateCurrentBetData(currentBetData)
 })
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
@@ -98,6 +138,10 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     if ('matchStatus' in changes) {
         updateStatus(changes.matchStatus.newValue)
     }
+
+    if ('currentBetData' in changes) {
+        updateCurrentBetData(changes.currentBetData.newValue)
+    }
 })
 
 // Initialize Bet Setting Changes Listeners
@@ -106,7 +150,15 @@ maxBetPercentage.addEventListener('change', updateBetSettings)
 maxBetAmount.addEventListener('change', updateBetSettings)
 enableBetting.addEventListener('change', updateBetSettings)
 allInTournaments.addEventListener('change', updateBetSettings)
+dollarExhibitions.addEventListener('change', updateBetSettings)
 
-debugInfoToggle.addEventListener('click', toggleDebug)
+debugInfoTitle.addEventListener('click', () => {
+    toggleSection('debug-info')
+})
+betModeTitle.addEventListener('click', () => {
+    toggleSection('bet-mode')
+})
+
+version.innerText = chrome.runtime.getManifest().version
 
 resize()

@@ -9,8 +9,15 @@ body {
     margin: 0;
 }
 
-h1 {
-    text-align: center;
+h2, h3, h4, h5 {
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+p {
+    margin-left: 0;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 form div {
@@ -21,6 +28,32 @@ form div {
 
 .wrapper {
     padding: 5px;
+}
+
+.title {
+    width: 100%;
+}
+
+.title > * {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.title p {
+    font-size: 0.9em;
+}
+
+.bet-colour {
+    text-transform: capitalize;
+}
+
+.bet-colour-blue {
+    color: #349eff;
+}
+
+.bet-colour-red {
+    color: #d14836;
 }
 
 .tooltip {
@@ -38,21 +71,21 @@ form div {
     cursor: default;
 }
 
-.debug-info-title, .debug-info-title h5 {
+.collapsible-title, .collapsible-title > * {
     display: inline;
-    user-select: none;
+    user-select: none
 }
 
-.debug-info-title:hover {
-    cursor: pointer;
+.collapsible-title:hover {
+    cursor: pointer
 }
 
-.debug-info {
+.debug-info-content {
     display: none;
     font-size: 0.8em;
 }
 
-.debug-info p {
+.debug-info-content p {
     margin: 5px;
 }
 
@@ -67,15 +100,15 @@ form div {
 }
 
 .links {
-    font-size: 16px;
+    font-size: 12px;
     display: flex;
-    height: 32px;
+    height: 24px;
     align-items: center;
 }
 
 .links img {
-    max-height: 32px;
-    max-width: 32px;
+    max-height: 24px;
+    max-width: 24px;
 }
 
 .links a {

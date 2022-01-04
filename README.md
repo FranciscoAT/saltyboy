@@ -5,8 +5,8 @@ Simple betting tool bot for usage in [Saltybet](https://saltybet.com).
 The project is split up into three parts:
 
 - [Bot](#bot) which is the software that will catalog fighters and matches.
-- [Web](#web) web service interface that will determine the best outcome for two given fighters.
-- [Extension](#extension) Chrome extension to be used on the Saltybet website that interfaces with the Web service
+- [Web](#web) service interface interacts with the database and provides ability to view content of current match along with fighter details.
+- [Extension](#extension) Chrome extension to be used on the Saltybet website that interfaces with the web service and bets for you according to the currently selected betting mode along with providing many different configurations for betting.
 
 The project is currently running and live. You can view more on https://salty-boy.com. You can alternatively use the already working Chrome Extension (link TBD) which is hooked up by default to https://salty-boy.com and have it start betting for you right away!
 
@@ -104,10 +104,18 @@ If you want to update the Bot. Just update the code on disk and click the "Updat
 
 Should you want to make your own changes to the project. Simply edit the files in `extension/src` and re-run `npm run build`, you can also run `npm run dev` which will automatically update the `dist` directory are you update the files. Depending on your changes you may also need to update `manifest.json` and or `webpack.config.js`.
 
-### Considerations
+### Creating a new Betting Method
 
-- The betting mechanism right now is absolutely terrible, it is recommended for now to keep the max bet amount at a low percentage or set a bet amount that you are most comfortable by setting them inside of the Salty Boy Extension icon. The defaults on installation are 5% or $1,000 respectively.
-- There are bugs and there are edge cases, if you spot any personally it would help a lot to log an issue on the repository.
+You can create a new betting method by creating a new file in `extension/src/content_scripts/bet_modes`. Create a function in that file that takes in the `matchDat` object. Then return an object of the following format:
+
+```json
+{
+    "confidence": <value between 0 to 1>,
+    "colour": <"red"|"blue">
+}
+```
+
+After you can then import the function in `extension/src/content_scripts/main.js` and add it to the `BET_MODES` constant. From there update `extension/src/popup/popup.js` `BET_MODE_INFO` constant accordingly. Finally, add the new bet mode as an option inside of the dropdown in `extension/src/popup/popup.html`.
 
 ----
 

@@ -4,7 +4,17 @@
     </head>
     <body>
         <div class="wrapper" id="wrapper">
-            <h1>Salty Boy</h1>
+            <div class="title">
+                <h1>Salty Boy</h1>
+                <p>v<span id="version"></span></p>
+            </div>
+            <hr>
+            <div>
+                <h3>Current Bet Information</h3>
+                <p>Current Confidence: <span id="bet-confidence"></span></p>
+                <p>Favouring: <span id="bet-colour" class="bet-colour"></span></p>
+            </div>
+            <hr>
             <div>
                 <div>
                     <h3>Betting Settings</h3>
@@ -18,6 +28,7 @@
                             <select id="bet-mode" name="betMode">
                                 <option value="naive">Naive</option>
                                 <option value="passive">Passive</option>
+                                <option value="rng">RNG</option>
                             </select>
                         </div>
                         <div>
@@ -34,17 +45,27 @@
                             <label for="allInTournaments">All In on Tournaments:</label>
                             <input type="checkbox" id="all-in-tournaments">
                             <div class="tooltip" title="Whether or not to go all in on tournaments on all bets">?</div>
+                        </div>
+                        <div>
+                            <label for="dollarExhibitions">Bet $1 on Exhibitions:</label>
+                            <input type="checkbox" id="dollar-exhibitions">
+                            <div class="tooltip" title="Only ever bet $1 on Exhibition matches">?</div>
+                        </div>
                     </form>
                 </div>
                 <hr/>
-                <h4>Bet Mode Information</h4>
-                <p id="bet-mode-info"></p>
+                <div id="bet-mode-title" class="collapsible-title">
+                    <h4>Selected Bet Mode </h4><h4 id="bet-mode-symbol">-</h5>
+                </div>
+                <div id="bet-mode-content">
+                    <p id="bet-mode-info"></p>
+                </div>
                 <hr/>
                 <div>
-                    <div id="debug-info-title" class="debug-info-title">
-                        <h5>Debug Information </h5><h5 id="show-hide-symbol">+</h5>
+                    <div id="debug-info-title" class="collapsible-title">
+                        <h5>Debug Information </h5><h5 id="debug-info-symbol">+</h5>
                     </div>
-                    <div class="debug-info" id="debug-info">
+                    <div class="debug-info-content" id="debug-info-content">
                         <p>Logged In: <span id="logged-in"></span></p>
                         <p>Bet Confirmed: <span id="bet-confirmed"></span></p>
                         <p>Match Status: <span id="match-status"></span></p>
