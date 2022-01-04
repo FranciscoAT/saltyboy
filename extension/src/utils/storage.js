@@ -66,12 +66,13 @@ function getStorageCurrentBetData() {
     })
 }
 
-function setStorageCurrentBetData(confidence) {
+function setStorageCurrentBetData(confidence, inFavourOf) {
     return new Promise((res) => {
         chrome.storage.local.set(
             {
                 currentBetData: {
                     confidence: confidence,
+                    inFavourOf: inFavourOf
                 },
             },
             () => {

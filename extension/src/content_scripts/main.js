@@ -124,7 +124,7 @@ function placeBets(matchData) {
     let balance = parseInt(
         document.getElementById('balance').innerText.replace(',', '')
     )
-    setStorageCurrentBetData(betData.confidence)
+    setStorageCurrentBetData(betData.confidence, betData.colour)
     wagerInput.value = getWagerAmount(
         balance,
         betData.confidence,

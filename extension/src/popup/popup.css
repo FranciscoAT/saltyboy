@@ -9,6 +9,17 @@ body {
     margin: 0;
 }
 
+h2, h3, h4, h5 {
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+p {
+    margin-left: 0;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
 form div {
     display: block;
     margin-top: 5px;
@@ -31,6 +42,10 @@ form div {
 
 .title p {
     font-size: 0.9em;
+}
+
+.bet-colour:first-letter {
+    text-transform: capitalize;
 }
 
 .tooltip {
