@@ -58,9 +58,34 @@ function getStorageBetSettings() {
     })
 }
 
+function getStorageCurrentBetData() {
+    return new Promise((res) => {
+        chrome.storage.local.get(['currentBetData'], (result) => {
+            res(result.currentBetData)
+        })
+    })
+}
+
+function setStorageCurrentBetData(confidence) {
+    return new Promise((res) => {
+        chrome.storage.local.set(
+            {
+                currentBetData: {
+                    confidence: confidence,
+                },
+            },
+            () => {
+                res()
+            }
+        )
+    })
+}
+
 export {
     setStorageMatchStatus,
     getStorageMatchStatus,
     setStorageBetSettings,
     getStorageBetSettings,
+    setStorageCurrentBetData,
+    getStorageCurrentBetData
 }

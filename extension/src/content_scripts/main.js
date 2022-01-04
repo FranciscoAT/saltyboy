@@ -2,6 +2,7 @@ import {
     setStorageMatchStatus,
     setStorageBetSettings,
     getStorageBetSettings,
+    setStorageCurrentBetData
 } from '../utils/storage.js'
 import naiveBet from './bet_modes/naive.js'
 import passiveBet from './bet_modes/passive.js'
@@ -123,6 +124,7 @@ function placeBets(matchData) {
     let balance = parseInt(
         document.getElementById('balance').innerText.replace(',', '')
     )
+    setStorageCurrentBetData(betData.confidence)
     wagerInput.value = getWagerAmount(
         balance,
         betData.confidence,

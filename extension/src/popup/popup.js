@@ -2,8 +2,8 @@ import {
     getStorageBetSettings,
     setStorageBetSettings,
     getStorageMatchStatus,
+    getStorageCurrentBetData,
 } from '../utils/storage'
-
 
 // Debug Info
 let debugInfoTitle = document.getElementById('debug-info-title')
@@ -19,14 +19,18 @@ let betMode = document.getElementById('bet-mode')
 let enableBetting = document.getElementById('enable-betting')
 let allInTournaments = document.getElementById('all-in-tournaments')
 let dollarExhibitions = document.getElementById('dollar-exhibitions')
-let betModeTitle = document.getElementById("bet-mode-title")
+let betModeTitle = document.getElementById('bet-mode-title')
 
 // Other
-let version = document.getElementById("version")
+let version = document.getElementById('version')
+
+// Current Bet Data
+let currentBetConfidence = document.getElementById('bet-confidence')
 
 const BET_MODE_INFO = {
     naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Always bets $1 on red in exhibitions. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">naive.js</a>.',
-    passive: 'Passive betting just bets $1 on Red. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/passive.js">passive.js</a>.'
+    passive:
+        'Passive betting just bets $1 on Red. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/passive.js">passive.js</a>.',
 }
 
 function updateStatus(matchStatus) {
@@ -76,8 +80,16 @@ function updateBetSettings() {
     updateBetModeInfo(betMode.value)
 }
 
+function updateCurrentBetData(currentBetData) {
+    if (currentBetData != null) {
+        currentBetConfidence.innerText = currentBetData.confidence
+    } else {
+        currentBetConfidence.innerText = "?"
+    }
+}
+
 function resize() {
-    let wrapper = document.getElementById("wrapper")
+    let wrapper = document.getElementById('wrapper')
     document.body.parentNode.style.height = `${wrapper.clientHeight}px`
 }
 
@@ -97,6 +109,10 @@ getStorageMatchStatus().then((matchStatus) => {
     updateStatus(matchStatus)
 })
 
+getStorageCurrentBetData().then((currentBetData) => {
+    updateCurrentBetData(currentBetData)
+})
+
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace != 'local') {
         return
@@ -104,6 +120,10 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
     if ('matchStatus' in changes) {
         updateStatus(changes.matchStatus.newValue)
+    }
+
+    if ('currentBetData' in changes) {
+        updateCurrentBetData(changes.currentBetData.newValue)
     }
 })
 
@@ -116,12 +136,11 @@ allInTournaments.addEventListener('change', updateBetSettings)
 dollarExhibitions.addEventListener('change', updateBetSettings)
 
 debugInfoTitle.addEventListener('click', () => {
-    toggleSection("debug-info")
+    toggleSection('debug-info')
 })
-betModeTitle.addEventListener("click", () => {
-    toggleSection("bet-mode")
+betModeTitle.addEventListener('click', () => {
+    toggleSection('bet-mode')
 })
-
 
 version.innerText = chrome.runtime.getManifest().version
 
