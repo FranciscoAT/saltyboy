@@ -44,8 +44,16 @@ form div {
     font-size: 0.9em;
 }
 
-.bet-colour:first-letter {
+.bet-colour {
     text-transform: capitalize;
+}
+
+.bet-colour-blue {
+    color: #349eff;
+}
+
+.bet-colour-red {
+    color: #d14836;
 }
 
 .tooltip {

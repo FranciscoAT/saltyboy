@@ -2,16 +2,18 @@ import {
     setStorageMatchStatus,
     setStorageBetSettings,
     getStorageBetSettings,
-    setStorageCurrentBetData
+    setStorageCurrentBetData,
 } from '../utils/storage.js'
 import naiveBet from './bet_modes/naive.js'
 import passiveBet from './bet_modes/passive.js'
+import rngBet from './bet_modes/rng.js'
 
 const RUN_INTERVAL = 5000
 const SALTY_BOY_URL = 'https://www.salty-boy.com'
 const BET_MODES = {
     naive: naiveBet,
     passive: passiveBet,
+    rng: rngBet,
 }
 
 // Bet Settings, values listed are defaults on init

@@ -1,6 +1,8 @@
 /**
  * Naive betting Strategy
  *
+ * Author: Francisco
+ *
  * Basis the bet on previous win-rates and average bets.
  * If either fighter has no info will return a null confidence.
  * Otherwise if both fighters have fought before it will take the one with

@@ -29,9 +29,10 @@ let currentBetConfidence = document.getElementById('bet-confidence')
 let currentBetColour = document.getElementById("bet-colour")
 
 const BET_MODE_INFO = {
-    naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Always bets $1 on red in exhibitions. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">naive.js</a>.',
+    naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Always bets $1 on red in exhibitions. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">Source</a>)',
     passive:
-        'Passive betting just bets $1 on Red. For more info see: <a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/passive.js">passive.js</a>.',
+        'Passive betting just bets $1 on Red. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/passive.js">Source</a>)',
+    rng: 'Flips a coin to determine if betting for Red or Blue. Then goes all in. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/rng.js">Source</a>)'
 }
 
 function updateStatus(matchStatus) {
@@ -83,11 +84,24 @@ function updateBetSettings() {
 
 function updateCurrentBetData(currentBetData) {
     if (currentBetData != null) {
-        currentBetConfidence.innerText = Math.round(currentBetData.confidence * 100) / 100
+        if (currentBetData.confidence == null) {
+            currentBetConfidence.innerText = "Unable to determine"
+        } else {
+            currentBetConfidence.innerText = `${Math.round(currentBetData.confidence * 100)}%`
+        }
         currentBetColour.innerText = currentBetData.inFavourOf
+        if (currentBetData.inFavourOf == "red") {
+            currentBetColour.classList.add("bet-colour-red")
+            currentBetColour.classList.remove("bet-colour-blue")
+        } else {
+            currentBetColour.classList.add("bet-colour-blue")
+            currentBetColour.classList.remove("bet-colour-red")
+        }
     } else {
-        currentBetConfidence.innerText = "?"
-        currentBetColour.innerText = "?"
+        currentBetConfidence.innerText = "No current bet"
+        currentBetColour.innerText = "No current bet"
+        currentBetColour.classList.remove("bet-colour-red")
+        currentBetColour.classList.remove("bet-colour-blue")
     }
 }
 
