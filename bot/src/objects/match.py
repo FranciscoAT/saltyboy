@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Union
+from typing import Optional
 
 from src.objects.waifu import LockedBetMessage, OpenBetMessage, WinMessage
 

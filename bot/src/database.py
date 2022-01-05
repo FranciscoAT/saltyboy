@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+import math
 import sqlite3
 from sqlite3 import Row
 from typing import Optional
@@ -25,10 +26,15 @@ class Database:
             )
             return
 
-        fighter_red = self._get_and_update_fighter(
+        if match.streak_red is None or match.streak_blue is None:
+            raise ValueError(
+                f"Cannot complete operation best streak not provided. {match}"
+            )
+
+        fighter_red = self._get_and_create_fighter(
             match.fighter_red, match.tier, match.streak_red
         )
-        fighter_blue = self._get_and_update_fighter(
+        fighter_blue = self._get_and_create_fighter(
             match.fighter_blue, match.tier, match.streak_blue
         )
 
@@ -94,6 +100,25 @@ class Database:
             insert_obj,
         )
         self.conn.commit()
+
+        red_won = fighter_red["id"] == winner
+        self._update_fighter(
+            fighter_red,
+            match.tier,
+            match.streak_red,
+            fighter_blue["elo"],
+            fighter_blue["tier_elo"],
+            red_won,
+        )
+        self._update_fighter(
+            fighter_blue,
+            match.tier,
+            match.streak_blue,
+            fighter_red["elo"],
+            fighter_red["tier_elo"],
+            not red_won,
+        )
+        self.conn.commit()
         cursor.close()
 
     def update_current_match(
@@ -133,19 +158,12 @@ class Database:
         self.conn.commit()
         cursor.close()
 
-    def _get_and_update_fighter(
-        self, name: str, tier: str, best_streak: Optional[int]
-    ) -> Row:
-        if not best_streak:
-            raise ValueError("Best Streak was never specified.")
-
+    def _get_and_create_fighter(self, name: str, tier: str, best_streak: int) -> Row:
         fighter = self._get_fighter(name=name)
         if not fighter:
             fighter = self._create_fighter(
                 name=name, tier=tier, best_streak=best_streak
             )
-        else:
-            self._update_fighter(fighter, tier, best_streak)
 
         return fighter
 
@@ -158,13 +176,14 @@ class Database:
             "best_streak": best_streak,
             "created_time": now,
             "last_updated": now,
+            "elo": 1500,
         }
         cursor.execute(
             """
             INSERT INTO fighter
-                (name, tier, best_streak, created_time, last_updated)
+                (name, tier, best_streak, created_time, last_updated, elo, tier_elo, prev_tier)
             VALUES
-                (:name, :tier, :best_streak, :created_time, :last_updated)
+                (:name, :tier, :best_streak, :created_time, :last_updated, :elo, :elo, :tier)
             """,
             insert_obj,
         )
@@ -175,15 +194,25 @@ class Database:
         cursor.close()
         return fighter
 
-    def _update_fighter(self, fighter: Row, tier: str, best_streak: int) -> None:
-        updated_tier = None if fighter["tier"] == tier else tier
-        updated_streak = None if fighter["best_streak"] > best_streak else best_streak
-
-        if updated_tier is None and updated_streak is None:
-            return
-
-        updated_tier = updated_tier or fighter["tier"]
-        updated_streak = updated_streak or fighter["best_streak"]
+    def _update_fighter(
+        self,
+        fighter: Row,
+        tier: str,
+        best_streak: int,
+        opponent_elo: int,
+        opponent_tier_elo: int,
+        won: bool,
+    ) -> None:
+        updated_tier = tier
+        prev_tier = fighter["tier"]
+        tier_elo = fighter["tier_elo"] if updated_tier == prev_tier else 1500
+        updated_streak = (
+            best_streak
+            if best_streak > fighter["best_streak"]
+            else fighter["best_streak"]
+        )
+        updated_elo = self._calculate_elo(fighter["elo"], opponent_elo, won)
+        updated_tier_elo = self._calculate_elo(tier_elo, opponent_tier_elo, won)
 
         cursor = self.conn.cursor()
         update_obj = {
@@ -191,21 +220,26 @@ class Database:
             "last_updated": datetime.utcnow(),
             "best_streak": updated_streak,
             "tier": updated_tier,
+            "prev_tier": prev_tier,
+            "tier_elo": updated_tier_elo,
+            "elo": updated_elo,
         }
         cursor.execute(
             """
             UPDATE
                 fighter
             SET
-                tier = :tier,
+                last_updated = :last_updated,
                 best_streak = :best_streak,
-                last_updated = :last_updated
+                tier = :tier,
+                prev_tier = :prev_tier,
+                tier_elo = :tier_elo,
+                elo = :elo
             WHERE
                 id = :id
             """,
             update_obj,
         )
-        self.conn.commit()
         cursor.close()
 
     def _get_fighter(
@@ -228,3 +262,18 @@ class Database:
         fighter = cursor.fetchone()
         cursor.close()
         return fighter
+
+    @classmethod
+    def _calculate_elo(cls, elo: int, opponent_elo: int, won: bool) -> int:
+        # Calculate transformed ratings
+        tr_alpha = math.pow(10, elo / 400)
+        tr_beta = math.pow(10, opponent_elo / 400)
+
+        # Calculate expected score
+        es_alpha = tr_alpha / (tr_alpha + tr_beta)
+
+        # Score
+        score_alpha = 1 if won is True else 0
+
+        # Calculate updated ELO
+        return int(elo + (32 * (score_alpha - es_alpha)))

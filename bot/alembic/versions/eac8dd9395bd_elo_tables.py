@@ -108,7 +108,7 @@ def upgrade():
         sa.Column("prev_tier", sa.String(1), nullable=False),
     )
 
-    conn.execute("INSERT INTO fighter_tmp SELECT * FROM fighter")
+    conn.execute("INSERT INTO fighter_tmp SELECT id,name,tier,created_time,last_updated,best_streak,elo,tier_elo,prev_tier FROM fighter")
     op.drop_table("fighter")
     op.rename_table("fighter_tmp", "fighter")
 
@@ -126,7 +126,7 @@ def downgrade():
 
     conn = op.get_bind()
     conn.execute(
-        "INSERT INTO fighter_tmp SELECT id,name,tier,created_time,best_streak FROM fighter"
+        "INSERT INTO fighter_tmp SELECT id,name,tier,created_time,best_streak,last_updated FROM fighter"
     )
     op.drop_table("fighter")
     op.rename_table("fighter_tmp", "fighter")
