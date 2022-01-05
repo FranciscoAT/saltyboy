@@ -26,6 +26,10 @@ form div {
     margin-bottom: 5px;
 }
 
+.inline > * {
+    display: inline;
+}
+
 .wrapper {
     padding: 5px;
 }
@@ -54,6 +58,27 @@ form div {
 
 .bet-colour-red {
     color: #d14836;
+}
+
+.winnings-colour-green {
+    color: #4db044;
+}
+
+.winnings-colour-red {
+    color: #d14836;
+}
+
+.session-winnings {
+    display: inline-block;
+    width: 100%;
+}
+
+.session-winnings > p {
+    display: inline;
+}
+
+.session-winnings > input {
+    float: right;
 }
 
 .tooltip {

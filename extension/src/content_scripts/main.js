@@ -3,6 +3,7 @@ import {
     setStorageBetSettings,
     getStorageBetSettings,
     setStorageCurrentBetData,
+    updateStorageWinnings,
 } from '../utils/storage.js'
 import naiveBet from './bet_modes/naive.js'
 import passiveBet from './bet_modes/passive.js'
@@ -33,8 +34,12 @@ let LAST_STATUS = null
 let FETCHED_FIGHTER_DATA = false
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
 
+// BALANCE TRACKING
+let PREV_BALANCE = null
+
 function run() {
     if (ENABLE_BETTING == false) {
+        PREV_BALANCE = null
         return
     }
     let matchStatus = updateStatus()
@@ -130,6 +135,12 @@ function placeBets(matchData) {
     let balance = parseInt(
         document.getElementById('balance').innerText.replace(',', '')
     )
+    if (matchData.match_format != 'tournament') {
+        if (PREV_BALANCE != null) {
+            updateStorageWinnings(balance - PREV_BALANCE)
+        }
+        PREV_BALANCE = balance
+    }
     setStorageCurrentBetData(betData.confidence, betData.colour)
     wagerInput.value = getWagerAmount(
         balance,

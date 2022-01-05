@@ -3,6 +3,8 @@ import {
     setStorageBetSettings,
     getStorageMatchStatus,
     getStorageCurrentBetData,
+    getStorageWinnings,
+    resetStorageSessionWinnings,
 } from '../utils/storage'
 
 // Debug Info
@@ -27,6 +29,11 @@ let version = document.getElementById('version')
 // Current Bet Data
 let currentBetConfidence = document.getElementById('bet-confidence')
 let currentBetColour = document.getElementById('bet-colour')
+
+// Session Data
+let totalWinnings = document.getElementById('total-winnings')
+let sessionWinnings = document.getElementById('session-winnings')
+let resetSessionWinningsBtn = document.getElementById('reset-session-winnings')
 
 const BET_MODE_INFO = {
     naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Always bets $1 on red in exhibitions. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">Source</a>)',
@@ -110,6 +117,33 @@ function updateCurrentBetData(currentBetData) {
     }
 }
 
+function updateWinningSpan(amount, span) {
+    if (amount == null) {
+        amount = 0
+    }
+    if (amount < 0) {
+        span.innerText = `-\$${Math.abs(amount)}`
+        span.classList.add('winnings-colour-red')
+        span.classList.remove('winnings-colour-green')
+    } else {
+        span.innerText = `\$${amount}`
+        span.classList.add('winnings-colour-green')
+        span.classList.remove('winnings-colour-red')
+    }
+}
+
+function updateWinnings(winnings) {
+    if (winnings == null) {
+        // Initial state of application
+        winnings = {
+            total: 0,
+            session: 0,
+        }
+    }
+    updateWinningSpan(winnings.total, totalWinnings)
+    updateWinningSpan(winnings.session, sessionWinnings)
+}
+
 function resize() {
     let wrapper = document.getElementById('wrapper')
     document.body.parentNode.style.height = `${wrapper.clientHeight}px`
@@ -135,6 +169,11 @@ getStorageCurrentBetData().then((currentBetData) => {
     updateCurrentBetData(currentBetData)
 })
 
+// Sync Winnings
+getStorageWinnings().then((winnings) => {
+    updateWinnings(winnings)
+})
+
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace != 'local') {
         return
@@ -146,6 +185,10 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
     if ('currentBetData' in changes) {
         updateCurrentBetData(changes.currentBetData.newValue)
+    }
+
+    if ('winnings' in changes) {
+        updateWinnings(changes.winnings.newValue)
     }
 })
 
@@ -162,6 +205,10 @@ debugInfoTitle.addEventListener('click', () => {
 })
 betModeTitle.addEventListener('click', () => {
     toggleSection('bet-mode')
+})
+
+resetSessionWinningsBtn.addEventListener('click', () => {
+    resetStorageSessionWinnings()
 })
 
 version.innerText = chrome.runtime.getManifest().version

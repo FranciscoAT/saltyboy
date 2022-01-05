@@ -1,3 +1,4 @@
+// --- MATCH STATUS ---
 function setStorageMatchStatus(currentStatus, betConfirmed, loggedIn) {
     return new Promise((res) => {
         chrome.storage.local.set(
@@ -23,6 +24,7 @@ function getStorageMatchStatus() {
     })
 }
 
+// --- BET SETTINGS ---
 function setStorageBetSettings(
     betMode,
     maxBetPercentage,
@@ -58,6 +60,7 @@ function getStorageBetSettings() {
     })
 }
 
+// --- CURRENT BET DATA ---
 function getStorageCurrentBetData() {
     return new Promise((res) => {
         chrome.storage.local.get(['currentBetData'], (result) => {
@@ -72,7 +75,7 @@ function setStorageCurrentBetData(confidence, inFavourOf) {
             {
                 currentBetData: {
                     confidence: confidence,
-                    inFavourOf: inFavourOf
+                    inFavourOf: inFavourOf,
                 },
             },
             () => {
@@ -82,11 +85,76 @@ function setStorageCurrentBetData(confidence, inFavourOf) {
     })
 }
 
+// --- WINNINGS ---
+function getStorageWinnings() {
+    return new Promise((res) => {
+        chrome.storage.local.get(['winnings'], (result) => {
+            res(result.winnings)
+        })
+    })
+}
+
+function updateStorageWinnings(winningIncrease) {
+    return new Promise((res) => {
+        getStorageWinnings().then((winnings) => {
+            let newWinnings = {
+                total: winningIncrease,
+                session: winningIncrease,
+            }
+
+            if (winnings != null) {
+                if (winnings.total != null) {
+                    newWinnings.total += winnings.total
+                }
+                if (winnings.session != null) {
+                    newWinnings.session += winnings.session
+                }
+            }
+
+            chrome.storage.local.set(
+                {
+                    winnings: newWinnings,
+                },
+                () => {
+                    res()
+                }
+            )
+        })
+    })
+}
+
+function resetStorageSessionWinnings() {
+    return new Promise((res) => {
+        getStorageWinnings(res).then((winnings) => {
+            let newWinnings = {
+                total: 0,
+                session: 0,
+            }
+
+            if (winnings != null && winnings.total != null) {
+                newWinnings.total = winnings.total
+            }
+
+            chrome.storage.local.set(
+                {
+                    winnings: newWinnings,
+                },
+                () => {
+                    res()
+                }
+            )
+        })
+    })
+}
+
 export {
     setStorageMatchStatus,
     getStorageMatchStatus,
     setStorageBetSettings,
     getStorageBetSettings,
     setStorageCurrentBetData,
-    getStorageCurrentBetData
+    getStorageCurrentBetData,
+    getStorageWinnings,
+    updateStorageWinnings,
+    resetStorageSessionWinnings
 }
