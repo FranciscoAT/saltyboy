@@ -1,5 +1,5 @@
 /**
- * Naive betting Strategy
+ * Naive Betting Strategy
  *
  * Author: Francisco
  *
