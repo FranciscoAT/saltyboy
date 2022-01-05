@@ -8,7 +8,7 @@ The project is split up into three parts:
 - [Web](#web) service interface interacts with the database and provides ability to view content of current match along with fighter details.
 - [Extension](#extension) Chrome extension to be used on the Saltybet website that interfaces with the web service and bets for you according to the currently selected betting mode along with providing many different configurations for betting.
 
-The project is currently running and live. You can view more on https://salty-boy.com. You can alternatively use the already working Chrome Extension (link TBD) which is hooked up by default to https://salty-boy.com and have it start betting for you right away!
+The project is currently running and live. You can view more on https://salty-boy.com. You can alternatively use the already working [Chrome Extension](https://chrome.google.com/webstore/detail/salty-boy/khlbmnneeaecmpeicbaodeaeicljnddj) which is hooked up by default to https://salty-boy.com and have it start betting for you right away!
 
 
 ## Bot
@@ -84,7 +84,7 @@ We are ready to spin up the service:
 
 ## Extension
 
-Right now the bot is not yet deployed on the Chrome Web Store. So will have to be set-up manually. 
+The Extension is available in the [Chrome Web Store](https://chrome.google.com/webstore/detail/salty-boy/khlbmnneeaecmpeicbaodeaeicljnddj). Otherwise you can follow the next steps to set up an editable version of the Chrome Extension.
 
 ### Setting up the Extension
 

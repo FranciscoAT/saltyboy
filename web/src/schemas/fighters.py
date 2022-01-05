@@ -61,5 +61,8 @@ class FighterInfoSchema(JsonSchemaMixin):
     last_updated: datetime
     name: str
     tier: str
+    prev_tier: str
     stats: FighterStatsSchema
     matches: List[MatchSchema]
+    elo: int
+    tier_elo: int
