@@ -11,8 +11,19 @@
             <hr>
             <div>
                 <h3>Current Bet Information</h3>
-                <p>Current Confidence: <span id="bet-confidence"></span></p>
+                <p>Confidence: <span id="bet-confidence"></span></p>
                 <p>Favouring: <span id="bet-colour" class="bet-colour"></span></p>
+            </div>
+            <hr>
+            <div>
+                <div class="inline">
+                    <h3>Winnings </h3><div class="tooltip" title="Tracks your winnings only while the bot is active. If the tab is closed it will lose the previous bet amount and will wait until it is set again. Tournament balance will not be tracked, unless tab remains open the entire tournament. Experimental: This will probably not be 100% accurate.">?</div>
+                </div>
+                <p>Total Winnings: <span id="total-winnings"></span></p>
+                <div class="session-winnings">
+                    <p>Session Winnings: <span id="session-winnings"></span></p>
+                    <input type="button" id="reset-session-winnings" value="Reset" title="Resets only session winnings">
+                </div>
             </div>
             <hr>
             <div>
@@ -29,6 +40,8 @@
                                 <option value="naive">Naive</option>
                                 <option value="passive">Passive</option>
                                 <option value="rng">RNG</option>
+                                <option value="elo">ELO</option>
+                                <option value="eloTier">Tiered ELO</option>
                             </select>
                         </div>
                         <div>
@@ -55,7 +68,7 @@
                 </div>
                 <hr/>
                 <div id="bet-mode-title" class="collapsible-title">
-                    <h4>Selected Bet Mode </h4><h4 id="bet-mode-symbol">-</h5>
+                    <h4>Selected Bet Mode </h4><h4 id="bet-mode-symbol">-</h4>
                 </div>
                 <div id="bet-mode-content">
                     <p id="bet-mode-info"></p>

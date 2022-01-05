@@ -3,6 +3,8 @@ import {
     setStorageBetSettings,
     getStorageMatchStatus,
     getStorageCurrentBetData,
+    getStorageWinnings,
+    resetStorageSessionWinnings,
 } from '../utils/storage'
 
 // Debug Info
@@ -26,13 +28,21 @@ let version = document.getElementById('version')
 
 // Current Bet Data
 let currentBetConfidence = document.getElementById('bet-confidence')
-let currentBetColour = document.getElementById("bet-colour")
+let currentBetColour = document.getElementById('bet-colour')
+
+// Session Data
+let totalWinnings = document.getElementById('total-winnings')
+let sessionWinnings = document.getElementById('session-winnings')
+let resetSessionWinningsBtn = document.getElementById('reset-session-winnings')
 
 const BET_MODE_INFO = {
     naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Always bets $1 on red in exhibitions. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">Source</a>)',
     passive:
         'Passive betting just bets $1 on Red. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/passive.js">Source</a>)',
-    rng: 'Flips a coin to determine if betting for Red or Blue. Then goes all in. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/rng.js">Source</a>)'
+    rng: 'Flips a coin to determine if betting for Red or Blue. Then goes all in. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/rng.js">Source</a>)',
+    elo: 'Bets using ELO of the fighters. Fighters start at 1500 ELO and use a K value of 32. Breaks ties using average bet. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/elo.js">Source</a>)',
+    eloTier:
+        'Bets using the Tiered ELO of the fighters. Whenever a Fighter changes tier they go to 1500 tiered ELO and use a K value of 32. Breaks ties using average bet. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/eloTier.js">Source</a>)',
 }
 
 function updateStatus(matchStatus) {
@@ -85,24 +95,53 @@ function updateBetSettings() {
 function updateCurrentBetData(currentBetData) {
     if (currentBetData != null) {
         if (currentBetData.confidence == null) {
-            currentBetConfidence.innerText = "Unable to determine"
+            currentBetConfidence.innerText = 'Unable to determine'
         } else {
-            currentBetConfidence.innerText = `${Math.round(currentBetData.confidence * 100)}%`
+            currentBetConfidence.innerText = `${Math.round(
+                currentBetData.confidence * 100
+            )}%`
         }
         currentBetColour.innerText = currentBetData.inFavourOf
-        if (currentBetData.inFavourOf == "red") {
-            currentBetColour.classList.add("bet-colour-red")
-            currentBetColour.classList.remove("bet-colour-blue")
+        if (currentBetData.inFavourOf == 'red') {
+            currentBetColour.classList.add('bet-colour-red')
+            currentBetColour.classList.remove('bet-colour-blue')
         } else {
-            currentBetColour.classList.add("bet-colour-blue")
-            currentBetColour.classList.remove("bet-colour-red")
+            currentBetColour.classList.add('bet-colour-blue')
+            currentBetColour.classList.remove('bet-colour-red')
         }
     } else {
-        currentBetConfidence.innerText = "No current bet"
-        currentBetColour.innerText = "No current bet"
-        currentBetColour.classList.remove("bet-colour-red")
-        currentBetColour.classList.remove("bet-colour-blue")
+        currentBetConfidence.innerText = 'No current bet'
+        currentBetColour.innerText = 'No current bet'
+        currentBetColour.classList.remove('bet-colour-red')
+        currentBetColour.classList.remove('bet-colour-blue')
     }
+}
+
+function updateWinningSpan(amount, span) {
+    if (amount == null) {
+        amount = 0
+    }
+    if (amount < 0) {
+        span.innerText = `-\$${Math.abs(amount)}`
+        span.classList.add('winnings-colour-red')
+        span.classList.remove('winnings-colour-green')
+    } else {
+        span.innerText = `\$${amount}`
+        span.classList.add('winnings-colour-green')
+        span.classList.remove('winnings-colour-red')
+    }
+}
+
+function updateWinnings(winnings) {
+    if (winnings == null) {
+        // Initial state of application
+        winnings = {
+            total: 0,
+            session: 0,
+        }
+    }
+    updateWinningSpan(winnings.total, totalWinnings)
+    updateWinningSpan(winnings.session, sessionWinnings)
 }
 
 function resize() {
@@ -130,6 +169,11 @@ getStorageCurrentBetData().then((currentBetData) => {
     updateCurrentBetData(currentBetData)
 })
 
+// Sync Winnings
+getStorageWinnings().then((winnings) => {
+    updateWinnings(winnings)
+})
+
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace != 'local') {
         return
@@ -141,6 +185,10 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
     if ('currentBetData' in changes) {
         updateCurrentBetData(changes.currentBetData.newValue)
+    }
+
+    if ('winnings' in changes) {
+        updateWinnings(changes.winnings.newValue)
     }
 })
 
@@ -157,6 +205,10 @@ debugInfoTitle.addEventListener('click', () => {
 })
 betModeTitle.addEventListener('click', () => {
     toggleSection('bet-mode')
+})
+
+resetSessionWinningsBtn.addEventListener('click', () => {
+    resetStorageSessionWinnings()
 })
 
 version.innerText = chrome.runtime.getManifest().version
