@@ -7,6 +7,7 @@ import {
     resetStorageSessionWinnings,
 } from '../utils/storage'
 
+// TODO: tournament span id is tournament-note
 // Debug Info
 let debugInfoTitle = document.getElementById('debug-info-title')
 let loggedIn = document.getElementById('logged-in')
@@ -121,12 +122,14 @@ function updateWinningSpan(amount, span) {
     if (amount == null) {
         amount = 0
     }
+
+    let strAmount = Math.abs(amount).toLocaleString()
     if (amount < 0) {
-        span.innerText = `-\$${Math.abs(amount)}`
+        span.innerText = `-\$${strAmount}`
         span.classList.add('winnings-colour-red')
         span.classList.remove('winnings-colour-green')
     } else {
-        span.innerText = `\$${amount}`
+        span.innerText = `\$${strAmount}`
         span.classList.add('winnings-colour-green')
         span.classList.remove('winnings-colour-red')
     }
