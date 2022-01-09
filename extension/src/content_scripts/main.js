@@ -133,7 +133,7 @@ function placeBets(matchData) {
 
     let betData = BET_MODES[BET_MODE](matchData)
     let balance = parseInt(
-        document.getElementById('balance').innerText.replace(',', '')
+        document.getElementById('balance').innerText.replaceAll(',', '')
     )
     if (matchData.match_format != 'tournament') {
         if (PREV_BALANCE != null) {
