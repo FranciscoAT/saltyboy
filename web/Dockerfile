@@ -1,6 +1,6 @@
 FROM python:3.10-slim-buster
 
-RUN apt update && apt upgrade -y && rm -rf /var/lb/apt/lists/*
+RUN apt update && apt upgrade -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/web
 

@@ -1,6 +1,6 @@
-# Saltyboy
+# Salty Boy
 
-Simple betting tool bot for usage in [Saltybet](https://saltybet.com).
+Simple betting tool bot for usage in [Salty Bet](https://saltybet.com).
 
 The project is split up into three parts:
 
@@ -122,5 +122,5 @@ After you can then import the function in `extension/src/content_scripts/main.js
 ## Acknowledgements
 
 - All the FOSS chads who provide their 3rd party libraries to make this project possible
-- [Saltybet](https://saltybet.com) into the salt mines!! 
+- [Salty Bet](https://saltybet.com) into the salt mines!! 
 - [favicon.ico](web/public/favicon.ico) was made by [Freepik](https://www.freepik.com) and can be found on [Flaticon](https://www.flaticon.com)

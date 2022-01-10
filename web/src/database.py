@@ -47,9 +47,18 @@ class Database:
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM current_match")
         current_match = cursor.fetchall()
+        cursor.close()
         if not current_match:
             return None
         return current_match[0]
+
+    def get_last_match(self) -> Optional[Row]:
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM match ORDER BY id DESC LIMIT 1")
+        latest_match = cursor.fetchall()
+        if not latest_match:
+            return None
+        return latest_match[0]
 
     def get_stats(self, table: str) -> List[Row]:
         cursor = self.conn.cursor()
