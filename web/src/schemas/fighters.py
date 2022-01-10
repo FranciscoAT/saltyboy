@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, List, Optional
+
 from dataclasses_jsonschema import JsonSchemaMixin
+
+from src.schemas.base import MatchSchema
 
 
 @dataclass
@@ -29,32 +32,18 @@ class GetFighterQuerySchema:
 
 
 @dataclass
-class MatchSchema(JsonSchemaMixin):
-    """Information about a singular match"""
-    bet_blue: int
-    bet_red: int
-    date: datetime
-    fighter_blue: int
-    fighter_red: int
-    id: int
-    match_format: str
-    streak_blue: int
-    streak_red: int
-    tier: str
-    winner: int
-
-
-@dataclass
 class FighterStatsSchema(JsonSchemaMixin):
     """Stats about a given fighter"""
+
     win_rate: float
     average_bet: float
     total_matches: int
 
 
 @dataclass
-class FighterInfoSchema(JsonSchemaMixin):
-    """Information about a given fighter"""
+class MinimalFighterInfoSchema(JsonSchemaMixin):
+    """Minimal information about a fighter"""
+
     id: int
     best_streak: int
     created_time: datetime
@@ -62,7 +51,13 @@ class FighterInfoSchema(JsonSchemaMixin):
     name: str
     tier: str
     prev_tier: str
-    stats: FighterStatsSchema
-    matches: List[MatchSchema]
     elo: int
     tier_elo: int
+
+
+@dataclass
+class FighterInfoSchema(MinimalFighterInfoSchema):
+    """Enhanced information about a given fighter"""
+
+    stats: FighterStatsSchema
+    matches: List[MatchSchema]

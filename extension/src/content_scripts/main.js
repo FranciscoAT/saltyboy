@@ -50,20 +50,18 @@ function run() {
 }
 
 function updateStatus() {
-    let loggedIn = document.getElementsByClassName('nav-text').length == 0
-    let odds = document.getElementById('odds')
+    let betStatus = document.getElementsById("betstatus")
+
     let currentStatus = 'unknown'
+    let loggedIn = document.getElementById("rank") != null
     let betConfirmed = false
 
     if (loggedIn) {
-        if (
-            odds.getInnerHTML() == '' ||
-            document.getElementById('betconfirm') != null
-        ) {
-            currentStatus = 'betting'
+        if (betStatus.innerText == "Bets are OPEN!") {
+            currentStatus = "betting"
             betConfirmed = document.getElementById('betconfirm') != null
         } else {
-            currentStatus = 'ongoing'
+            currentStatus = "ongoing"
         }
     }
 

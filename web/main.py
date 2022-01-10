@@ -21,7 +21,7 @@ from werkzeug.exceptions import BadRequest, NotFound
 from src.biz import database as database_biz, fighter as fighter_biz, match as match_biz
 from src.schemas.database import DatabaseStatsSchema
 from src.schemas.fighters import FighterInfoSchema, GetFighterQuerySchema
-from src.schemas.match import CurrentMatchSchema
+from src.schemas.match import CurrentMatchSchema, EnhancedMatchSchema
 
 
 load_dotenv()
@@ -135,6 +135,27 @@ def get_current_match_request():
     return jsonify(asdict(current_match))
 
 
+@app.route("/last-match", methods=["GET"])
+def get_last_match_request():
+    """
+    Return information about the last recorded match
+    ---
+    responses:
+      200:
+        description: Last matched played information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnhancedMatchSchema'
+      204:
+        description: No latest match recorded
+    """
+    last_match = match_biz.get_last_match()
+    if not last_match:
+        return "", 204
+    return jsonify(asdict(last_match))
+
+
 # --- Flasgger ---
 app.config["SWAGGER"] = {
     "title": "SaltyBoy",
@@ -160,6 +181,7 @@ spec = APISpec(
 spec.components.schema("FighterInfoSchema", schema=FighterInfoSchema)
 spec.components.schema("CurrentMatchSchema", schema=CurrentMatchSchema)
 spec.components.schema("DatabaseStatsSchema", schema=DatabaseStatsSchema)
+spec.components.schema("EnhancedMatchSchema", schema=EnhancedMatchSchema)
 
 template = apispec_to_template(app=app, spec=spec, paths=[get_fighter_request])
 
