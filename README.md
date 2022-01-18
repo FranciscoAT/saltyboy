@@ -2,22 +2,35 @@
 
 Simple betting tool bot for usage in [Salty Bet](https://saltybet.com).
 
+The project is currently running and live. You can view more on https://salty-boy.com. You can alternatively use the already working [Chrome Extension](https://chrome.google.com/webstore/detail/salty-boy/khlbmnneeaecmpeicbaodeaeicljnddj) which is hooked up by default to https://salty-boy.com and have it start betting for you right away!
+
+## Contributing
+
+I would love contributions! If you have ideas for improved betting strategies feel free to follow information listed under [Extension](#extension) on how to create a new betting strategy. Once you've done that feel free to make a new PR against `master` and I'll get to it when I can.
+
+## Submitting Issues
+
+Feel free to submit an issue request if something is wrong or not working. If it's more of a feature request as in a new betting feature I would encourage a PR with the new strategy! 
+
+If the Bot is not betting due to the server being out of date, which can be confirmed if you go to `chrome://extensions` and checking the extensions error log. Then chances are either the webserver or more likely the scraper is down. I generally check the status of the bot around once daily so if the server does go down it should be up and running again in roughly a day!
+
+---
+
+## Running the Project
+
 The project is split up into three parts:
 
 - [Bot](#bot) which is the software that will catalog fighters and matches.
 - [Web](#web) service interface interacts with the database and provides ability to view content of current match along with fighter details.
 - [Extension](#extension) Chrome extension to be used on the Saltybet website that interfaces with the web service and bets for you according to the currently selected betting mode along with providing many different configurations for betting.
 
-The project is currently running and live. You can view more on https://salty-boy.com. You can alternatively use the already working [Chrome Extension](https://chrome.google.com/webstore/detail/salty-boy/khlbmnneeaecmpeicbaodeaeicljnddj) which is hooked up by default to https://salty-boy.com and have it start betting for you right away!
-
-
-## Bot
+### Bot
 
 Code found in `bot` is used for cataloging all the matches, and every fighter. The longer this runs the better data the tool will have to bet.
 
 The bot will track all Tournament and Matchmaking matches and fighters. Exhibition matches are ignored.
 
-### Running
+#### Running
 
 1. Under `db` create a new file called whatever you want. This will serve as the SQLLite3 DB file.
 1. Create a new `.env` file under `bot`, fill it with the following:
@@ -49,13 +62,13 @@ Now we are ready to start the service.
 
 The bot will now begin tracking and cataloging fighters and matches.
 
-## Web
+### Web
 
 Code found in the `web` is used for interfacing with the data stored in the SQLLite3 database.
 
 If you want to find the a live version of this service you can find it here along with some more information: https://salty-boy.com.
 
-### Running
+#### Running
 
 1. Ensure you've done everything under [running the bot](#bot-running)
 1. Create a new `.env` file under `bot`, fill it with the following:
@@ -82,11 +95,11 @@ We are ready to spin up the service:
         - `-lp <path>`/`--log-path <path>` to also log information to disk
 
 
-## Extension
+### Extension
 
 The Extension is available in the [Chrome Web Store](https://chrome.google.com/webstore/detail/salty-boy/khlbmnneeaecmpeicbaodeaeicljnddj). Otherwise you can follow the next steps to set up an editable version of the Chrome Extension.
 
-### Setting up the Extension
+#### Setting up the Extension
 
 1. Install `npm` & `node`
     - Consider looking into `nvm` for installing `node`
@@ -104,7 +117,7 @@ If you want to update the Bot. Just update the code on disk and click the "Updat
 
 Should you want to make your own changes to the project. Simply edit the files in `extension/src` and re-run `npm run build`, you can also run `npm run dev` which will automatically update the `dist` directory are you update the files. Depending on your changes you may also need to update `manifest.json` and or `webpack.config.js`.
 
-### Creating a new Betting Method
+#### Creating a new Betting Method
 
 You can create a new betting method by creating a new file in `extension/src/content_scripts/bet_modes`. Create a function in that file that takes in the `matchDat` object. Then return an object of the following format:
 
