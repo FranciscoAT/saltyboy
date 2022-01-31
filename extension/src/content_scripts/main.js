@@ -178,8 +178,8 @@ function getWagerAmount(balance, confidence, match_format) {
         percentageBet = wagerAmount * (MAX_BET_PERCENTAGE / 100)
     }
 
-    if (MAX_BET_AMOUNT != 0 && wagerAmount > MAX_BET_AMOUNT) {
-        amountBet = MAX_BET_AMOUNT
+    if (MAX_BET_AMOUNT != 0) {
+        amountBet = Math.min(MAX_BET_AMOUNT, balance) * confidence
     }
 
     if (percentageBet != 0 && amountBet != 0) {
