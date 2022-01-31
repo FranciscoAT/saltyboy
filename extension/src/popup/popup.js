@@ -16,6 +16,7 @@ let lastUpdated = document.getElementById('last-updated')
 let betConfirmed = document.getElementById('bet-confirmed')
 
 // Bet Settings
+let allInUntil = document.getElementById('all-in-until')
 let maxBetPercentage = document.getElementById('max-bet-percentage')
 let maxBetAmount = document.getElementById('max-bet-amount')
 let betMode = document.getElementById('bet-mode')
@@ -84,6 +85,7 @@ function updateBetModeInfo(selectedMode) {
 function updateBetSettings() {
     setStorageBetSettings(
         betMode.value,
+        allInUntil.value,
         maxBetPercentage.value,
         maxBetAmount.value,
         allInTournaments.checked,
@@ -154,6 +156,7 @@ function resize() {
 
 // Sync bet settings on popup load
 getStorageBetSettings().then((betSettings) => {
+    allInUntil.value = betSettings.allInUntil
     maxBetPercentage.value = betSettings.maxBetPercentage
     maxBetAmount.value = betSettings.maxBetAmount
     enableBetting.checked = betSettings.enableBetting
@@ -197,6 +200,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
 // Initialize Bet Setting Changes Listeners
 betMode.addEventListener('change', updateBetSettings)
+allInUntil.addEventListener('change', updateBetSettings)
 maxBetPercentage.addEventListener('change', updateBetSettings)
 maxBetAmount.addEventListener('change', updateBetSettings)
 enableBetting.addEventListener('change', updateBetSettings)

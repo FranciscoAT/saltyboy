@@ -27,6 +27,7 @@ function getStorageMatchStatus() {
 // --- BET SETTINGS ---
 function setStorageBetSettings(
     betMode,
+    allInUntil,
     maxBetPercentage,
     maxBetAmount,
     allInTournaments,
@@ -38,6 +39,7 @@ function setStorageBetSettings(
             {
                 betSettings: {
                     betMode: betMode,
+                    allInUntil: allInUntil,
                     maxBetPercentage: maxBetPercentage,
                     maxBetAmount: maxBetAmount,
                     allInTournaments: allInTournaments,

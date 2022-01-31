@@ -31,11 +31,11 @@
                     <h3>Betting Settings</h3>
                     <form>
                         <div>
-                            <label for="enableBetting">Enable Betting:</label>
+                            <label for="enable-betting">Enable Betting:</label>
                             <input id="enable-betting" name="enableBetting" type="checkbox">
                         </div>
                         <div>
-                            <label for="betMode">Betting Mode:</label>
+                            <label for="bet-mode">Betting Mode:</label>
                             <select id="bet-mode" name="betMode">
                                 <option value="naive">Naive</option>
                                 <option value="passive">Passive</option>
@@ -45,22 +45,27 @@
                             </select>
                         </div>
                         <div>
-                            <label for="maxBetPercentage">Max Bet (%):</label>
+                            <label for="all-in-until">All In until:</label>
+                            <input type="number" class="wider" id="all-in-until" name="allInUntil" min="0">
+                            <div class="tooltip" title="Go all in until your balance reaches this value. Overrides other betting settings. Set to 0 to disable.">?</div>
+                        </div>
+                        <div>
+                            <label for="max-bet-percentage">Max Bet (%):</label>
                             <input type="number" id="max-bet-percentage" name="maxBetPercentage" min="0" max="100">
-                            <div class="tooltip" title="Max Percentage of your total balance that will be bet. If set to 0, it will be disabled and use Max Bet Amount instead if set, else will use 100% of your balance.">?</div>
+                            <div class="tooltip" title="Max Percentage of your total balance that will be bet. Set to 0 to disable.">?</div>
                         </div>
                         <div>
-                            <label for="maxBetAmount">Max Bet Amount:</label>
-                            <input type="number" class="max-bet-amount" id="max-bet-amount" name="maxBetAmount" min="0">
-                            <div class="tooltip" title="Max amount that will be bet at most the set amount. If set to 0 will use Max Bet % instead if set, else will use 100% of your balance.">?</div>
+                            <label for="max-bet-amount">Max Bet Amount:</label>
+                            <input type="number" class="wider" id="max-bet-amount" name="maxBetAmount" min="0">
+                            <div class="tooltip" title="Max amount that will be bet. Overrides Max Bet (%) if the calculated value exceeds this value. Set to 0 to disable.">?</div>
                         </div>
                         <div>
-                            <label for="allInTournaments">All In on Tournaments:</label>
+                            <label for="all-in-tournaments">All In on Tournaments:</label>
                             <input type="checkbox" id="all-in-tournaments">
                             <div class="tooltip" title="Whether or not to go all in on tournaments on all bets">?</div>
                         </div>
                         <div>
-                            <label for="dollarExhibitions">Bet $1 on Exhibitions:</label>
+                            <label for="dollar-exhibitions">Bet $1 on Exhibitions:</label>
                             <input type="checkbox" id="dollar-exhibitions">
                             <div class="tooltip" title="Only ever bet $1 on Exhibition matches">?</div>
                         </div>
