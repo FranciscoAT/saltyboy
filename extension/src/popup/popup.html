@@ -13,7 +13,6 @@
                 <h3>Current Bet Information</h3>
                 <p>Confidence: <span id="bet-confidence"></span></p>
                 <p>Favouring: <span id="bet-colour" class="bet-colour"></span></p>
-                <p id="head-to-head">Head To Head: <span id="head-to-head-red" class="red"></span> | <span id="head-to-head-blue" class="blue"></span></p>
                 <div class="match-table" id="match-table">
                     <table>
                         <tr>
@@ -35,6 +34,11 @@
                             <td class="left-aligned">Tiered ELO <div class="tooltip" title="Tier-specific ELO rating. Starts at 1500 and resets when the fighter switches tiers.">?</div></td>
                             <td><span id="red-tier-elo" class="red"></span></td>
                             <td><span id="blue-tier-elo" class="blue"></span></td>
+                        </tr>
+                        <tr id="head-to-head">
+                            <td class="left-aligned">Head To Head <div class="tooltip" title="Wins against each other.">?</div></td>
+                            <td><span id="red-head-to-head" class="red"></span></td>
+                            <td><span id="blue-head-to-head" class="blue"></span></td>
                         </tr>
                     </table>
                 </div>
