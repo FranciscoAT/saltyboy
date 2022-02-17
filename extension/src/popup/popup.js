@@ -30,20 +30,20 @@ let betModeTitle = document.getElementById('bet-mode-title')
 let version = document.getElementById('version')
 
 // Current Bet Data
+let matchTable = document.getElementById('match-table')
+let headToHead = document.getElementById('head-to-head')
 let currentBetConfidence = document.getElementById('bet-confidence')
 let currentBetColour = document.getElementById('bet-colour')
-let headToHead = document.getElementById('head-to-head')
-let headToHeadRed = document.getElementById('head-to-head-red')
-let headToHeadBlue = document.getElementById('head-to-head-blue')
-let matchTable = document.getElementById('match-table')
 let redMatches = document.getElementById('red-matches')
 let redWinRate = document.getElementById('red-win-rate')
 let redElo = document.getElementById('red-elo')
 let redTierElo = document.getElementById('red-tier-elo')
+let redHeadToHead = document.getElementById('red-head-to-head')
 let blueMatches = document.getElementById('blue-matches')
 let blueWinRate = document.getElementById('blue-win-rate')
 let blueElo = document.getElementById('blue-elo')
 let blueTierElo = document.getElementById('blue-tier-elo')
+let blueHeadToHead = document.getElementById('blue-head-to-head')
 
 // Session Data
 let totalWinnings = document.getElementById('total-winnings')
@@ -126,47 +126,43 @@ function updateCurrentData(currentData) {
             currentBetColour.classList.add('blue')
             currentBetColour.classList.remove('red')
         }
-
-        redMatches.innerText = currentData.red?.totalMatches ?? MISSING
-        redWinRate.innerText = currentData.red?.winRate ?? MISSING
-        redElo.innerText = currentData.red?.elo ?? MISSING
-        redTierElo.innerText = currentData.red?.tierElo ?? MISSING
-
-        blueMatches.innerText = currentData.blue?.totalMatches ?? MISSING
-        blueWinRate.innerText = currentData.blue?.winRate ?? MISSING
-        blueElo.innerText = currentData.blue?.elo ?? MISSING
-        blueTierElo.innerText = currentData.blue?.tierElo ?? MISSING
-
-        let redVsBlueMatchData = calculateRedVsBlueMatchData(currentData.matches, currentData.red?.id, currentData.blue?.id)
-        if(redVsBlueMatchData.redMatchesVsBlue != 0) {
-            let redWins = redVsBlueMatchData.redWinsVsBlue
-            let blueWins = redVsBlueMatchData.redMatchesVsBlue - redWins
-            headToHead.style.display = 'block'
-            headToHeadRed.innerText = 'Wins: ' + redWins
-            headToHeadBlue.innerText = 'Wins: ' + blueWins
+        if(currentData.matches != null) {
+            updateCurrentMatchData(currentData)
+            matchTable.style.display = 'block'
         } else {
-            headToHead.style.display = 'none'
-            headToHeadRed.innerText = MISSING
-            headToHeadBlue.innerText = MISSING
+            matchTable.style.display = 'none'
         }
-        matchTable.style.display = 'block'
     } else {
         currentBetConfidence.innerText = 'No current bet'
         currentBetColour.innerText = 'No current bet'
         currentBetColour.classList.remove('red')
         currentBetColour.classList.remove('blue')
-        matchTable.style.display = 'none'
+
+    }
+}
+
+function updateCurrentMatchData(currentData) {
+    redMatches.innerText = currentData.red?.totalMatches ?? MISSING
+    redWinRate.innerText = currentData.red?.winRate ?? MISSING
+    redElo.innerText = currentData.red?.elo ?? MISSING
+    redTierElo.innerText = currentData.red?.tierElo ?? MISSING
+
+    blueMatches.innerText = currentData.blue?.totalMatches ?? MISSING
+    blueWinRate.innerText = currentData.blue?.winRate ?? MISSING
+    blueElo.innerText = currentData.blue?.elo ?? MISSING
+    blueTierElo.innerText = currentData.blue?.tierElo ?? MISSING
+
+    let redVsBlueMatchData = calculateRedVsBlueMatchData(currentData.matches, currentData.red?.id, currentData.blue?.id)
+    if(redVsBlueMatchData.redMatchesVsBlue != 0) {
+        let redWins = redVsBlueMatchData.redWinsVsBlue
+        let blueWins = redVsBlueMatchData.redMatchesVsBlue - redWins
+        headToHead.style.display = 'block'
+        redHeadToHead.innerText = redWins.toString()
+        blueHeadToHead.innerText = blueWins.toString()
+    } else {
         headToHead.style.display = 'none'
-        headToHeadRed.innerText = MISSING
-        headToHeadBlue.innerText = MISSING
-        redMatches.innerText = MISSING
-        redWinRate.innerText = MISSING
-        redElo.innerText = MISSING
-        redTierElo.innerText = MISSING
-        blueMatches.innerText = MISSING
-        blueWinRate.innerText = MISSING
-        blueElo.innerText = MISSING
-        blueTierElo.innerText = MISSING
+        redHeadToHead.innerText = MISSING
+        blueHeadToHead.innerText = MISSING
     }
 }
 

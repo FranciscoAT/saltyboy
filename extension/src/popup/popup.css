@@ -161,6 +161,10 @@ table, td {
     background-color: grey;
 }
 
+.match-table {
+    display: none;
+}
+
 .match-table td {
     text-align: center;
     font-size: 75%;
