@@ -22,6 +22,7 @@ const BET_MODES = {
 }
 
 // Bet Settings, values listed are defaults on init
+let ALL_IN_UNTIL = 0
 let MAX_BET_PERCENTAGE = 5
 let MAX_BET_AMOUNT = 0
 let BET_MODE = 'naive'
@@ -50,7 +51,7 @@ function run() {
 }
 
 function updateStatus() {
-    let betStatus = document.getElementsById("betstatus")
+    let betStatus = document.getElementById("betstatus")
 
     let currentStatus = 'unknown'
     let loggedIn = document.getElementById("rank") != null
@@ -161,6 +162,10 @@ function getWagerAmount(balance, confidence, match_format) {
         return 1
     }
 
+    if(ALL_IN_UNTIL != 0 && balance < ALL_IN_UNTIL) {
+        return balance
+    }
+
     if (confidence == null) {
         return 1
     }
@@ -170,15 +175,11 @@ function getWagerAmount(balance, confidence, match_format) {
     let wagerAmount = balance * confidence
 
     if (MAX_BET_PERCENTAGE != 0) {
-        percentageBet = balance * confidence * (MAX_BET_PERCENTAGE / 100)
+        percentageBet = wagerAmount * (MAX_BET_PERCENTAGE / 100)
     }
 
     if (MAX_BET_AMOUNT != 0) {
-        if (MAX_BET_AMOUNT > balance) {
-            amountBet = balance * confidence
-        } else {
-            amountBet = MAX_BET_AMOUNT * confidence
-        }
+        amountBet = Math.min(MAX_BET_AMOUNT, balance) * confidence
     }
 
     if (percentageBet != 0 && amountBet != 0) {
@@ -200,6 +201,9 @@ function updateBetSettings(betSettings) {
     } else {
         console.error(`Invalid bet mode ${betMode} detected.`)
     }
+
+    // Update All In Until
+    ALL_IN_UNTIL = betSettings.allInUntil
 
     // Update Max Bet Percentage
     MAX_BET_PERCENTAGE = betSettings.maxBetPercentage
@@ -223,6 +227,7 @@ getStorageBetSettings()
         if (betSettings == null) {
             betSettings = {
                 betMode: BET_MODE,
+                allInUntil: ALL_IN_UNTIL,
                 maxBetPercentage: MAX_BET_PERCENTAGE,
                 maxBetAmount: MAX_BET_AMOUNT,
                 allInTournaments: ALL_IN_TOURNAMENTS,
@@ -233,6 +238,10 @@ getStorageBetSettings()
             if (betSettings.betMode == null) {
                 updateDefaults = true
                 betSettings.betMode = BET_MODE
+            }
+            if (betSettings.allInUntil == null) {
+                updateDefaults = true
+                betSettings.allInUntil = ALL_IN_UNTIL
             }
             if (betSettings.maxBetAmount == null) {
                 updateDefaults = true
@@ -261,6 +270,7 @@ getStorageBetSettings()
         if (updateDefaults == true) {
             setStorageBetSettings(
                 betSettings.betMode,
+                betSettings.allInUntil,
                 betSettings.maxBetPercentage,
                 betSettings.maxBetAmount,
                 betSettings.allInTournaments,
