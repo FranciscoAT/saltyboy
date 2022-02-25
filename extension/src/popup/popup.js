@@ -2,10 +2,11 @@ import {
     getStorageBetSettings,
     setStorageBetSettings,
     getStorageMatchStatus,
-    getStorageCurrentBetData,
+    getStorageCurrentData,
     getStorageWinnings,
     resetStorageSessionWinnings,
 } from '../utils/storage'
+import {calculateRedVsBlueMatchData} from "../utils/match";
 
 // TODO: tournament span id is tournament-note
 // Debug Info
@@ -29,14 +30,27 @@ let betModeTitle = document.getElementById('bet-mode-title')
 let version = document.getElementById('version')
 
 // Current Bet Data
+let matchTable = document.getElementById('match-table')
+let headToHead = document.getElementById('head-to-head')
 let currentBetConfidence = document.getElementById('bet-confidence')
 let currentBetColour = document.getElementById('bet-colour')
+let redMatches = document.getElementById('red-matches')
+let redWinRate = document.getElementById('red-win-rate')
+let redElo = document.getElementById('red-elo')
+let redTierElo = document.getElementById('red-tier-elo')
+let redHeadToHead = document.getElementById('red-head-to-head')
+let blueMatches = document.getElementById('blue-matches')
+let blueWinRate = document.getElementById('blue-win-rate')
+let blueElo = document.getElementById('blue-elo')
+let blueTierElo = document.getElementById('blue-tier-elo')
+let blueHeadToHead = document.getElementById('blue-head-to-head')
 
 // Session Data
 let totalWinnings = document.getElementById('total-winnings')
 let sessionWinnings = document.getElementById('session-winnings')
 let resetSessionWinningsBtn = document.getElementById('reset-session-winnings')
 
+const MISSING = '-'
 const BET_MODE_INFO = {
     naive: 'Naive betting using a combination of win-rates from past matches, breaking ties with average bet amounts. Will always bet $1 on red if no past matches are recorded for either fighter. Always bets $1 on red in exhibitions. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/naive.js">Source</a>)',
     passive:
@@ -95,28 +109,60 @@ function updateBetSettings() {
     updateBetModeInfo(betMode.value)
 }
 
-function updateCurrentBetData(currentBetData) {
-    if (currentBetData != null) {
-        if (currentBetData.confidence == null) {
+function updateCurrentData(currentData) {
+    if (currentData != null) {
+        if (currentData.confidence == null) {
             currentBetConfidence.innerText = 'Unable to determine'
         } else {
             currentBetConfidence.innerText = `${Math.round(
-                currentBetData.confidence * 100
+              currentData.confidence * 100
             )}%`
         }
-        currentBetColour.innerText = currentBetData.inFavourOf
-        if (currentBetData.inFavourOf == 'red') {
-            currentBetColour.classList.add('bet-colour-red')
-            currentBetColour.classList.remove('bet-colour-blue')
+        currentBetColour.innerText = currentData.inFavourOf
+        if (currentData.inFavourOf == 'red') {
+            currentBetColour.classList.add('red')
+            currentBetColour.classList.remove('blue')
         } else {
-            currentBetColour.classList.add('bet-colour-blue')
-            currentBetColour.classList.remove('bet-colour-red')
+            currentBetColour.classList.add('blue')
+            currentBetColour.classList.remove('red')
+        }
+        if(currentData.matches != null) {
+            updateCurrentMatchData(currentData)
+            matchTable.style.display = 'block'
+        } else {
+            matchTable.style.display = 'none'
         }
     } else {
         currentBetConfidence.innerText = 'No current bet'
         currentBetColour.innerText = 'No current bet'
-        currentBetColour.classList.remove('bet-colour-red')
-        currentBetColour.classList.remove('bet-colour-blue')
+        currentBetColour.classList.remove('red')
+        currentBetColour.classList.remove('blue')
+
+    }
+}
+
+function updateCurrentMatchData(currentData) {
+    redMatches.innerText = currentData.red?.totalMatches ?? MISSING
+    redWinRate.innerText = currentData.red?.winRate ?? MISSING
+    redElo.innerText = currentData.red?.elo ?? MISSING
+    redTierElo.innerText = currentData.red?.tierElo ?? MISSING
+
+    blueMatches.innerText = currentData.blue?.totalMatches ?? MISSING
+    blueWinRate.innerText = currentData.blue?.winRate ?? MISSING
+    blueElo.innerText = currentData.blue?.elo ?? MISSING
+    blueTierElo.innerText = currentData.blue?.tierElo ?? MISSING
+
+    let redVsBlueMatchData = calculateRedVsBlueMatchData(currentData.matches, currentData.red?.id, currentData.blue?.id)
+    if(redVsBlueMatchData.redMatchesVsBlue != 0) {
+        let redWins = redVsBlueMatchData.redWinsVsBlue
+        let blueWins = redVsBlueMatchData.redMatchesVsBlue - redWins
+        headToHead.style.display = 'block'
+        redHeadToHead.innerText = redWins.toString()
+        blueHeadToHead.innerText = blueWins.toString()
+    } else {
+        headToHead.style.display = 'none'
+        redHeadToHead.innerText = MISSING
+        blueHeadToHead.innerText = MISSING
     }
 }
 
@@ -128,12 +174,12 @@ function updateWinningSpan(amount, span) {
     let strAmount = Math.abs(amount).toLocaleString()
     if (amount < 0) {
         span.innerText = `-\$${strAmount}`
-        span.classList.add('winnings-colour-red')
-        span.classList.remove('winnings-colour-green')
+        span.classList.add('red')
+        span.classList.remove('green')
     } else {
         span.innerText = `\$${strAmount}`
-        span.classList.add('winnings-colour-green')
-        span.classList.remove('winnings-colour-red')
+        span.classList.add('green')
+        span.classList.remove('red')
     }
 }
 
@@ -171,8 +217,8 @@ getStorageMatchStatus().then((matchStatus) => {
     updateStatus(matchStatus)
 })
 
-getStorageCurrentBetData().then((currentBetData) => {
-    updateCurrentBetData(currentBetData)
+getStorageCurrentData().then((currentData) => {
+    updateCurrentData(currentData)
 })
 
 // Sync Winnings
@@ -189,8 +235,8 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         updateStatus(changes.matchStatus.newValue)
     }
 
-    if ('currentBetData' in changes) {
-        updateCurrentBetData(changes.currentBetData.newValue)
+    if ('currentData' in changes) {
+        updateCurrentData(changes.currentData.newValue)
     }
 
     if ('winnings' in changes) {

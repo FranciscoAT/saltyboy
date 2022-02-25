@@ -15,6 +15,7 @@
  * Eg. two fighters with the same win rate against each other will return a
  * confidence of 0.5 betting with the one with the higher average bet.
  */
+import {calculateRedVsBlueMatchData} from "../../utils/match";
 
 function naiveBet(matchData) {
     let betData = {
@@ -28,34 +29,12 @@ function naiveBet(matchData) {
         return betData
     }
 
-    let fighterRedId = fighterRedInfo.id
-    let fighterBlueId = fighterBlueInfo.id
-
     // Base betting on matches of Red vs Blue
-    let redWinsVsBlue = 0
-    let redMatchesVsBlue = 0
-    let redBetVsBlue = 0
-    let blueBetVsRed = 0
-    for (const match of fighterRedInfo.matches) {
-        if (
-            (match.fighter_red == fighterRedId &&
-                match.fighter_blue == fighterBlueId) ||
-            (match.fighter_red == fighterBlueId &&
-                match.fighter_blue == fighterRedId)
-        ) {
-            if (match.winner == fighterRedId) {
-                redWinsVsBlue += 1
-            }
-            redMatchesVsBlue += 1
-            if (match.fighter_red == fighterRedId) {
-                redBetVsBlue += match.bet_red
-                blueBetVsRed += match.bet_blue
-            } else {
-                redBetVsBlue += match.bet_blue
-                blueBetVsRed += match.bet_red
-            }
-        }
-    }
+    let redVsBlueMatchData = calculateRedVsBlueMatchData(fighterRedInfo.matches, fighterRedInfo.id, fighterBlueInfo.id)
+    let redWinsVsBlue = redVsBlueMatchData.redWinsVsBlue
+    let redMatchesVsBlue = redVsBlueMatchData.redMatchesVsBlue
+    let redBetVsBlue = redVsBlueMatchData.redBetVsBlue
+    let blueBetVsRed = redVsBlueMatchData.blueBetVsRed
 
     if (redMatchesVsBlue > 0) {
         let redWinRateVsBlue = redWinsVsBlue / redMatchesVsBlue

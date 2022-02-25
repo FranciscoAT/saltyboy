@@ -13,6 +13,35 @@
                 <h3>Current Bet Information</h3>
                 <p>Confidence: <span id="bet-confidence"></span></p>
                 <p>Favouring: <span id="bet-colour" class="bet-colour"></span></p>
+                <div class="match-table" id="match-table">
+                    <table>
+                        <tr>
+                            <td class="left-aligned">Matches <div class="tooltip" title="Number of matches recorded with Salty Boy">?</div></td>
+                            <td><span id="red-matches" class="red"></span></td>
+                            <td><span id="blue-matches" class="blue"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="left-aligned">Win Rate <div class="tooltip" title="Win rate of matches recorded with Salty Boy">?</div></td>
+                            <td><span id="red-win-rate" class="red"></span></td>
+                            <td><span id="blue-win-rate" class="blue"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="left-aligned">ELO <div class="tooltip" title="Overall ELO rating. Starts at 1500.">?</div></td>
+                            <td><span id="red-elo" class="red"></span></td>
+                            <td><span id="blue-elo" class="blue"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="left-aligned">Tiered ELO <div class="tooltip" title="Tier-specific ELO rating. Starts at 1500 and resets when the fighter switches tiers.">?</div></td>
+                            <td><span id="red-tier-elo" class="red"></span></td>
+                            <td><span id="blue-tier-elo" class="blue"></span></td>
+                        </tr>
+                        <tr id="head-to-head">
+                            <td class="left-aligned">Head To Head <div class="tooltip" title="Wins against each other.">?</div></td>
+                            <td><span id="red-head-to-head" class="red"></span></td>
+                            <td><span id="blue-head-to-head" class="blue"></span></td>
+                        </tr>
+                    </table>
+                </div>
             </div>
             <hr>
             <div>

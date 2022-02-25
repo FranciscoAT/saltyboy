@@ -63,21 +63,36 @@ function getStorageBetSettings() {
 }
 
 // --- CURRENT BET DATA ---
-function getStorageCurrentBetData() {
+function getStorageCurrentData() {
     return new Promise((res) => {
-        chrome.storage.local.get(['currentBetData'], (result) => {
-            res(result.currentBetData)
+        chrome.storage.local.get(['currentData'], (result) => {
+            res(result.currentData)
         })
     })
 }
 
-function setStorageCurrentBetData(confidence, inFavourOf) {
+function setStorageCurrentData(betData, matchData) {
     return new Promise((res) => {
         chrome.storage.local.set(
             {
-                currentBetData: {
-                    confidence: confidence,
-                    inFavourOf: inFavourOf,
+                currentData: {
+                    confidence: betData.confidence,
+                    inFavourOf: betData.colour,
+                    matches: matchData.fighter_red_info?.matches,
+                    red: {
+                        id: matchData.fighter_red_info?.id,
+                        totalMatches: matchData.fighter_red_info?.stats?.total_matches,
+                        winRate: matchData.fighter_red_info?.stats?.win_rate,
+                        elo: matchData.fighter_red_info?.elo,
+                        tierElo: matchData.fighter_red_info?.tier_elo
+                    },
+                    blue: {
+                        id: matchData.fighter_blue_info?.id,
+                        totalMatches: matchData.fighter_blue_info?.stats?.total_matches,
+                        winRate: matchData.fighter_blue_info?.stats?.win_rate,
+                        elo: matchData.fighter_blue_info?.elo,
+                        tierElo: matchData.fighter_blue_info?.tier_elo
+                    }
                 },
             },
             () => {
@@ -154,8 +169,8 @@ export {
     getStorageMatchStatus,
     setStorageBetSettings,
     getStorageBetSettings,
-    setStorageCurrentBetData,
-    getStorageCurrentBetData,
+    setStorageCurrentData,
+    getStorageCurrentData,
     getStorageWinnings,
     updateStorageWinnings,
     resetStorageSessionWinnings

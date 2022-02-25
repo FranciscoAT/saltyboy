@@ -2,7 +2,7 @@ import {
     setStorageMatchStatus,
     setStorageBetSettings,
     getStorageBetSettings,
-    setStorageCurrentBetData,
+    setStorageCurrentData,
     updateStorageWinnings,
 } from '../utils/storage.js'
 import naiveBet from './bet_modes/naive.js'
@@ -140,7 +140,7 @@ function placeBets(matchData) {
         }
         PREV_BALANCE = balance
     }
-    setStorageCurrentBetData(betData.confidence, betData.colour)
+    setStorageCurrentData(betData, matchData)
     wagerInput.value = getWagerAmount(
         balance,
         betData.confidence,

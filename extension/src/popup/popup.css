@@ -26,6 +26,11 @@ form div {
     margin-bottom: 5px;
 }
 
+table, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
 .inline > * {
     display: inline;
 }
@@ -52,20 +57,16 @@ form div {
     text-transform: capitalize;
 }
 
-.bet-colour-blue {
+.blue {
     color: #349eff;
 }
 
-.bet-colour-red {
+.red {
     color: #d14836;
 }
 
-.winnings-colour-green {
+.green {
     color: #4db044;
-}
-
-.winnings-colour-red {
-    color: #d14836;
 }
 
 .session-winnings {
@@ -159,3 +160,23 @@ form div {
     margin-right: 15px;
     background-color: grey;
 }
+
+.match-table {
+    display: none;
+}
+
+.match-table td {
+    text-align: center;
+    font-size: 75%;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.match-table div {
+    margin-top: 2px;
+}
+
+.match-table .left-aligned {
+    text-align: left;
+}
+
