@@ -39,20 +39,6 @@ table, td {
     padding: 5px;
 }
 
-.title {
-    width: 100%;
-}
-
-.title > * {
-    text-align: center;
-    margin: 0;
-    padding: 0;
-}
-
-.title p {
-    font-size: 0.9em;
-}
-
 .bet-colour {
     text-transform: capitalize;
 }
@@ -107,7 +93,6 @@ table, td {
 }
 
 .debug-info-content {
-    display: none;
     font-size: 0.8em;
 }
 
@@ -161,13 +146,8 @@ table, td {
     background-color: grey;
 }
 
-.match-table {
-    display: none;
-}
-
 .match-table td {
     text-align: center;
-    font-size: 75%;
     padding-left: 5px;
     padding-right: 5px;
 }
@@ -178,5 +158,9 @@ table, td {
 
 .match-table .left-aligned {
     text-align: left;
+}
+
+.hidden {
+    display: none;
 }
 
