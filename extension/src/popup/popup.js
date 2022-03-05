@@ -15,6 +15,7 @@ let loggedIn = document.getElementById('logged-in')
 let statusSpan = document.getElementById('match-status')
 let lastUpdated = document.getElementById('last-updated')
 let betConfirmed = document.getElementById('bet-confirmed')
+let version = document.getElementById('version')
 
 // Bet Settings
 let allInUntil = document.getElementById('all-in-until')
@@ -26,12 +27,10 @@ let allInTournaments = document.getElementById('all-in-tournaments')
 let dollarExhibitions = document.getElementById('dollar-exhibitions')
 let betModeTitle = document.getElementById('bet-mode-title')
 
-// Other
-let version = document.getElementById('version')
-
 // Current Bet Data
 let matchTable = document.getElementById('match-table')
 let headToHead = document.getElementById('head-to-head')
+let tieredElo = document.getElementById('tiered-elo')
 let currentBetConfidence = document.getElementById('bet-confidence')
 let currentBetColour = document.getElementById('bet-colour')
 let redMatches = document.getElementById('red-matches')
@@ -73,10 +72,10 @@ function toggleSection(identifier) {
     let showHideSymbol = document.getElementById(`${identifier}-symbol`)
 
     if (showHideSymbol.innerText == '+') {
-        contentWrapper.style.display = 'block'
+        contentWrapper.classList.remove('hidden')
         showHideSymbol.innerText = '-'
     } else {
-        contentWrapper.style.display = 'none'
+        contentWrapper.classList.add('hidden')
         showHideSymbol.innerText = '+'
     }
 
@@ -126,18 +125,17 @@ function updateCurrentData(currentData) {
             currentBetColour.classList.add('blue')
             currentBetColour.classList.remove('red')
         }
-        if(currentData.matches != null) {
+        if(currentData.red != null || currentData.blue != null) {
             updateCurrentMatchData(currentData)
-            matchTable.style.display = 'block'
+            matchTable.classList.remove('hidden')
         } else {
-            matchTable.style.display = 'none'
+            matchTable.classList.add('hidden')
         }
     } else {
         currentBetConfidence.innerText = 'No current bet'
         currentBetColour.innerText = 'No current bet'
         currentBetColour.classList.remove('red')
         currentBetColour.classList.remove('blue')
-
     }
 }
 
@@ -145,24 +143,29 @@ function updateCurrentMatchData(currentData) {
     redMatches.innerText = currentData.red?.totalMatches ?? MISSING
     redWinRate.innerText = currentData.red?.winRate ?? MISSING
     redElo.innerText = currentData.red?.elo ?? MISSING
-    redTierElo.innerText = currentData.red?.tierElo ?? MISSING
 
     blueMatches.innerText = currentData.blue?.totalMatches ?? MISSING
     blueWinRate.innerText = currentData.blue?.winRate ?? MISSING
     blueElo.innerText = currentData.blue?.elo ?? MISSING
-    blueTierElo.innerText = currentData.blue?.tierElo ?? MISSING
+
+    let shouldShowTieredElo = currentData.red?.elo !== currentData.red?.tierElo || currentData.blue?.elo !== currentData.blue?.tierElo
+    if(shouldShowTieredElo) {
+        redTierElo.innerText = currentData.red?.tierElo ?? MISSING
+        blueTierElo.innerText = currentData.blue?.tierElo ?? MISSING
+        tieredElo.classList.remove('hidden')
+    } else {
+        tieredElo.classList.add('hidden')
+    }
 
     let redVsBlueMatchData = calculateRedVsBlueMatchData(currentData.matches, currentData.red?.id, currentData.blue?.id)
     if(redVsBlueMatchData.redMatchesVsBlue != 0) {
         let redWins = redVsBlueMatchData.redWinsVsBlue
         let blueWins = redVsBlueMatchData.redMatchesVsBlue - redWins
-        headToHead.style.display = 'block'
         redHeadToHead.innerText = redWins.toString()
         blueHeadToHead.innerText = blueWins.toString()
+        headToHead.classList.remove('hidden')
     } else {
-        headToHead.style.display = 'none'
-        redHeadToHead.innerText = MISSING
-        blueHeadToHead.innerText = MISSING
+        headToHead.classList.add('hidden')
     }
 }
 

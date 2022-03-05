@@ -1,19 +1,15 @@
+<!DOCTYPE html>
 <html>
     <head>
         <link rel="stylesheet" href="popup.css">
     </head>
     <body>
         <div class="wrapper" id="wrapper">
-            <div class="title">
-                <h1>Salty Boy</h1>
-                <p>v<span id="version"></span></p>
-            </div>
-            <hr>
             <div>
                 <h3>Current Bet Information</h3>
                 <p>Confidence: <span id="bet-confidence"></span></p>
                 <p>Favouring: <span id="bet-colour" class="bet-colour"></span></p>
-                <div class="match-table" id="match-table">
+                <div id="match-table" class="match-table">
                     <table>
                         <tr>
                             <td class="left-aligned">Matches <div class="tooltip" title="Number of matches recorded with Salty Boy">?</div></td>
@@ -26,11 +22,11 @@
                             <td><span id="blue-win-rate" class="blue"></span></td>
                         </tr>
                         <tr>
-                            <td class="left-aligned">ELO <div class="tooltip" title="Overall ELO rating. Starts at 1500.">?</div></td>
+                            <td class="left-aligned">ELO <div class="tooltip" title="Overall ELO rating. Starts at 1500. Also reflects tier-specific ELO rating if that isn't displayed.">?</div></td>
                             <td><span id="red-elo" class="red"></span></td>
                             <td><span id="blue-elo" class="blue"></span></td>
                         </tr>
-                        <tr>
+                        <tr id="tiered-elo">
                             <td class="left-aligned">Tiered ELO <div class="tooltip" title="Tier-specific ELO rating. Starts at 1500 and resets when the fighter switches tiers.">?</div></td>
                             <td><span id="red-tier-elo" class="red"></span></td>
                             <td><span id="blue-tier-elo" class="blue"></span></td>
@@ -112,10 +108,11 @@
                     <div id="debug-info-title" class="collapsible-title">
                         <h5>Debug Information </h5><h5 id="debug-info-symbol">+</h5>
                     </div>
-                    <div class="debug-info-content" id="debug-info-content">
+                    <div class="debug-info-content hidden" id="debug-info-content">
                         <p>Logged In: <span id="logged-in"></span></p>
                         <p>Bet Confirmed: <span id="bet-confirmed"></span></p>
                         <p>Match Status: <span id="match-status"></span></p>
+                        <p>Version: <span id="version"></span></p>
                         <p>Info Last Updated: <span id="last-updated"></span></p>
                     </div>
                 </div>
