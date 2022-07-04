@@ -58,6 +58,7 @@ const BET_MODE_INFO = {
     elo: 'Bets using ELO of the fighters. Fighters start at 1500 ELO and use a K value of 32. Breaks ties using average bet. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/elo.js">Source</a>)',
     eloTier:
         'Bets using the Tiered ELO of the fighters. Whenever a Fighter changes tier they go to 1500 tiered ELO and use a K value of 32. Breaks ties using average bet. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/eloTier.js">Source</a>)',
+    upset: 'A reversed method of naive but flips the end result to the fighter who should lose instead of win.'
 }
 
 function updateStatus(matchStatus) {
