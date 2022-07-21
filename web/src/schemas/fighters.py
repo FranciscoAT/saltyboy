@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from dataclasses_jsonschema import JsonSchemaMixin
-
 from src.schemas.base import MatchSchema
 
 
@@ -60,4 +59,4 @@ class FighterInfoSchema(MinimalFighterInfoSchema):
     """Enhanced information about a given fighter"""
 
     stats: FighterStatsSchema
-    matches: List[MatchSchema]
+    matches: list[MatchSchema]

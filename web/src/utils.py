@@ -1,12 +1,12 @@
 from dataclasses import fields
 from sqlite3 import Row
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Optional, Type, TypeVar
 
 T = TypeVar("T")
 
 
 def row_to_dataclass(
-    row: Row, dc: Type[T], overwrite_fields: Optional[Dict[str, Any]] = None
+    row: Row, dc: Type[T], overwrite_fields: Optional[dict[str, Any]] = None
 ) -> T:
     overwrite_fields = overwrite_fields or {}
     row_args = {}
