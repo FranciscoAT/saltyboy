@@ -11,3 +11,4 @@ extension/saltyboy.zip
 db/*
 logs/**
 __pycache__
+.vscode

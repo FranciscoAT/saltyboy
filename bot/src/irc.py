@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta
 import logging
 import re
-from socket import socket
 import ssl
-from typing import Iterator, List, Optional, Union
+import time
+from datetime import datetime, timedelta
+from socket import socket
+from typing import Iterator, Optional, Union
 
 from src.objects.waifu import (
     LockedBetMessage,
@@ -71,17 +72,18 @@ class TwitchBot:
                 if not message.startswith(":waifu4u"):
                     continue
                 try:
-                    message = self._parse_message(message.split("#saltybet :")[1])
-                    if message:
+                    return_message = self.parse_message(message.split("#saltybet :")[1])
+                    if return_message:
                         logger.debug(message)
-                        yield message
-                except Exception:
+                        yield return_message
+                except Exception:  # pylint: disable=broad-except
                     logger.error("Something went wrong", exc_info=True)
+                time.sleep(2)
 
     @classmethod
-    def _parse_message(cls, message: str) -> Optional[ReturnMessages]:
+    def parse_message(cls, message: str) -> Optional[ReturnMessages]:
         logger.debug(message)
-        waifu_message = None
+        waifu_message: Optional[ReturnMessages] = None
         if match := cls.OPEN_BET_RE.match(message):
             if "(matchmaking)" in message:
                 match_format = "matchmaking"
@@ -117,16 +119,21 @@ class TwitchBot:
     def _send(self, message: str) -> None:
         self.ssl_sock.send(f"{message}\n".encode("utf-8"))
 
-    def _receive(self) -> List[str]:
-        read_buffer = self.ssl_sock.recv(1024).decode()
-        return read_buffer.split("\r\n")
+    def _receive(self) -> list[str]:
+        try:
+            read_buffer = self.ssl_sock.recv(1024).decode()
+            return read_buffer.split("\r\n")
+        except Exception:  # pylint: disable=broad-except
+            return []
 
     def _connect(self, oauth_token: str, username: str) -> None:
         sock = socket()
         sock.settimeout(360)  # About a minute longer than PING/PONG
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
-        self.ssl_sock = ssl.wrap_socket(sock)
+        self.ssl_sock = context.wrap_socket(sock)
         self.ssl_sock.connect(("irc.chat.twitch.tv", 6697))
+        self.ssl_sock.settimeout(360)
 
         self._send(f"PASS {oauth_token}")
         self._send(f"NICK {username}")

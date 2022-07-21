@@ -1,0 +1,11 @@
+[tool.isort]
+profile = "black"
+
+[tool.pylint.format]
+max-line-length = "88"
+
+[tool.pylint.MASTER]
+# C0114: missing-module-docstring
+# C0115: missing-class-docstring
+# C0116: missing-function-docstring
+disable = "C0114, C0115, C0116"
