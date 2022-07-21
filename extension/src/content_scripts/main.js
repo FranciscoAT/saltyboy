@@ -10,6 +10,7 @@ import passiveBet from './bet_modes/passive.js'
 import rngBet from './bet_modes/rng.js'
 import eloTierBet from './bet_modes/eloTier.js'
 import eloBet from './bet_modes/elo.js'
+import upsetBet from './bet_modes/upset.js'
 
 const RUN_INTERVAL = 5000
 const SALTY_BOY_URL = 'https://www.salty-boy.com'
@@ -19,6 +20,7 @@ const BET_MODES = {
     rng: rngBet,
     elo: eloBet,
     eloTier: eloTierBet,
+    upset: upsetBet,
 }
 
 // Bet Settings, values listed are defaults on init

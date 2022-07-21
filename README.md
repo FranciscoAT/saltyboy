@@ -104,6 +104,18 @@ If you want to update the Bot. Just update the code on disk and click the "Updat
 
 Should you want to make your own changes to the project. Simply edit the files in `extension/src` and re-run `npm run build`, you can also run `npm run dev` which will automatically update the `dist` directory are you update the files. Depending on your changes you may also need to update `manifest.json` and or `webpack.config.js`.
 
+### Building the extension on Windows
+
+1. Open `package.json` in the `extension` folder in a text editor such as Notepad++
+2. Change the lines in "build" to this with copy and paste `"build": "npx webpack --config webpack.config.js && 7z a saltyboy.zip dist/",`
+3. You will need to install [7zip](https://www.7-zip.org/download.html) Install into the default location. After this we need to set the environmental variables.
+4. Windows Key + R on your keyboard and type "cmd"
+5. In the command prompt window you need to copy and paste. `'set PATH=%PATH%;C:\Program Files\7-Zip\
+echo %PATH% 
+7z' ` Modify the path accordingly if you installed it elsewhere.
+6. Now that you've done this you should be able to Run in a command prompt `npm run build` if not, restart your PC and verify the path is set in Windows correctly for 7zip in the environmental variables.
+
+
 ### Creating a new Betting Method
 
 You can create a new betting method by creating a new file in `extension/src/content_scripts/bet_modes`. Create a function in that file that takes in the `matchDat` object. Then return an object of the following format:
