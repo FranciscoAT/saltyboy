@@ -18,7 +18,7 @@ RUN pip install poetry==1.2.1 \
 # Install dependencies
 RUN pip install -r requirements.txt
 
-# Create log output, this directory is mounted in the `docker-compose.yml` file
+# Create log output, this directory is volume mounted in the `docker-compose.yml` file
 RUN mkdir -p /opt/logs
 
 CMD alembic upgrade head \

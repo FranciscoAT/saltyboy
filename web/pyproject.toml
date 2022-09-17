@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "web"
+version = "1.0.0"
+description = "Light-weight Web API for serving requests to interact with the SaltyDB"
+authors = ["how2vim <francisco.ad.trindade@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+apispec-webframeworks = "^0.5.2"
+apispec = "^5.2.2"
+dataclasses-jsonschema = "^2.15.3"
+flasgger = "^0.9.5"
+Flask-Cors = "^3.0.10"
+Flask = "^2.2.2"
+Paste = "^3.5.2"
+python-dotenv = "^0.21.0"
+waitress = "^2.1.2"
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.8.0"
+flake8 = "^5.0.4"
+isort = "^5.10.1"
+mypy = "^0.971"
+pylint = "^2.15.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+
+[tool.pylint.format]
+max-line-length = "88"
+
+[tool.pylint.MASTER]
+disable = [
+    "C0114", # C0114: missing-module-docstring
+    "C0115", # C0115: missing-class-docstring
+    "C0116" # C0116: missing-function-docstring
+]

@@ -1,9 +1,0 @@
-apispec-webframeworks==0.5.2
-apispec==5.1.1
-dataclasses-jsonschema==2.15.0
-flasgger==0.9.5
-Flask-cors==3.0.10
-Flask==2.0.2
-Paste==3.5.0
-python-dotenv==0.19.2
-waitress==2.1.2
