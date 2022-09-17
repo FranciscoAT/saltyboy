@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "bot"
+version = "1.0.0"
+description = "Bot to scrape Twitch's IRC for SaltyBet and store match data into a sqllite3 database"
+authors = ["how2vim <francisco.ad.trindade@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+alembic = "^1.8.1"
+python-dotenv = "^0.21.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.8.0"
+flake8 = "^5.0.4"
+isort = "^5.10.1"
+mypy = "^0.971"
+pylint = "^2.15.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+
+[tool.pylint.format]
+max-line-length = "88"
+
+[tool.pylint.MASTER]
+disable = [
+    "C0114", # C0114: missing-module-docstring
+    "C0115", # C0115: missing-class-docstring
+    "C0116" # C0116: missing-function-docstring
+]
