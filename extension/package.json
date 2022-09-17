@@ -4,11 +4,12 @@
   "description": "Project used to bundle JS for Chrome Extension",
   "private": true,
   "scripts": {
-    "build": "rm saltyboy.zip && npx webpack --config webpack.config.js && zip -r saltyboy.zip dist/",
+    "build": "rm -f saltyboy.zip && npx webpack --config webpack.config.js && zip -r saltyboy.zip dist/",
+    "build-win": "npx webpack --config webpack.config.js --env dev && 7z a saltyboy.zip dist/",
     "dev": "npx webpack watch --config webpack.config.js --env dev"
   },
   "keywords": [],
-  "author": "Francisco Trindade",
+  "author": "how2vim (francisco.ad.trindade@gmail.com)",
   "license": "MIT",
   "devDependencies": {
     "copy-webpack-plugin": "^10.2.0",
