@@ -1,11 +1,18 @@
 # Environment variables
 .env
 
-# Development
-.venv
-.vim
-node_modules/
+# Database directory
 db/*
-logs/**
-__pycache__
+!db/.gitkeep
+
+# Logs Directory
+logs/*
+!logs/.gitkeep
+
+# VSCode
 .vscode
+
+# Common Development directories
+.venv/
+node_modules/
+__pycache__/
