@@ -1,14 +1,24 @@
 FROM python:3.10-slim-buster
 
-RUN apt update && apt upgrade -y && rm -rf /var/lib/apt/lists/*
+# Update the image
+RUN apt update \
+    && apt upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/web
 
 COPY . .
 
 RUN pip install --upgrade pip
+
+# Generate the requirements.txt file through Python Poetry
+RUN pip install poetry==1.4.2 \
+    && poetry export -f requirements.txt --output requirements.txt --without dev
+
+# Install dependencies
 RUN pip install -r requirements.txt
 
+# Create log output, this directory is volume mounted in the `docker-compose.yml` file
 RUN mkdir -p /opt/logs
 
 CMD python main.py -lp /opt/logs

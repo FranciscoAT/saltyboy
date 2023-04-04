@@ -1,2 +1,0 @@
-alembic==1.7.5
-python-dotenv==0.19.2

@@ -1,16 +1,14 @@
-from typing import Optional
-
 from src.database import Database
 from src.schemas.fighters import FighterInfoSchema, FighterStatsSchema, MatchSchema
 from src.utils import row_to_dataclass
 
 
-def get_fighter(**kwargs) -> Optional[FighterInfoSchema]:
-    db = Database()
-    fighter = db.get_fighter(**kwargs)
+def get_fighter(**kwargs) -> FighterInfoSchema | None:
+    database_ = Database()
+    fighter = database_.get_fighter(**kwargs)
     if not fighter:
         return None
-    db_matches = db.get_matches(fighter["id"])
+    db_matches = database_.get_matches(fighter["id"])
     matches = [row_to_dataclass(x, MatchSchema) for x in db_matches]
 
     total_matches = len(matches)

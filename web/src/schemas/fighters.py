@@ -1,15 +1,16 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from dataclasses_jsonschema import JsonSchemaMixin
+
 from src.schemas.base import MatchSchema
 
 
 @dataclass
 class GetFighterQuerySchema:
-    fighter_id: Optional[Any] = None
-    fighter_name: Optional[str] = None
+    fighter_id: Any | None = None
+    fighter_name: str | None = None
 
     def __post_init__(self) -> None:
         if self.fighter_id is None and self.fighter_name is None:
@@ -23,8 +24,8 @@ class GetFighterQuerySchema:
         if self.fighter_id is not None:
             try:
                 self.fighter_id = int(self.fighter_id)
-            except ValueError:
-                raise ValueError("Could not deserialize `id` into an integer.")
+            except ValueError as exc:
+                raise ValueError("Could not deserialize `id` into an integer.") from exc
 
             if self.fighter_id < 0:
                 raise ValueError("`id` needs to be a value greater than 0. ")

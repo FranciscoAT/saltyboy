@@ -1,0 +1,19 @@
+{
+    "folders": [
+        {
+            "name": "Bot",
+            "path": "bot/"
+        },
+        {
+            "name": "Web",
+            "path": "web/"
+        },
+        {
+            "name": "Extension",
+            "path": "extension/"
+        },
+        {
+            "path": "."
+        }
+    ]
+}

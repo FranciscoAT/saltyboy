@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from src.objects.waifu import LockedBetMessage, OpenBetMessage, WinMessage
 
@@ -7,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class Match:
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, waifu_message: OpenBetMessage) -> None:
         self.status = "open"
         self.tier = waifu_message.tier
@@ -14,12 +14,12 @@ class Match:
         self.fighter_blue = waifu_message.fighter_blue
         self.match_format = waifu_message.match_format
 
-        self.streak_red: Optional[int] = None
-        self.streak_blue: Optional[int] = None
-        self.bet_red: Optional[int] = None
-        self.bet_blue: Optional[int] = None
-        self.winner: Optional[str] = None
-        self.colour: Optional[str] = None
+        self.streak_red: int | None = None
+        self.streak_blue: int | None = None
+        self.bet_red: int | None = None
+        self.bet_blue: int | None = None
+        self.winner: str | None = None
+        self.colour: str | None = None
 
     def update_locked(self, waifu_message: LockedBetMessage) -> bool:
         if self.status != "open":

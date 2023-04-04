@@ -5,9 +5,9 @@ Revises:
 Create Date: 2021-12-17 23:10:42.825657
 
 """
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "908066480906"
@@ -55,7 +55,7 @@ def upgrade():
         sa.Column("streak_blue", sa.Integer(), nullable=False),
         sa.Column("tier", sa.String(1), nullable=False),
         sa.Column("match_format", sa.String(16), nullable=False),
-        sa.Column("colour", sa.String(8), nullable=False)
+        sa.Column("colour", sa.String(8), nullable=False),
     )
 
 
