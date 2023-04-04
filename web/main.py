@@ -4,7 +4,6 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import os
 from pathlib import Path
-from typing import Optional
 
 from apispec import APISpec
 from apispec_webframeworks.flask import FlaskPlugin
@@ -27,6 +26,7 @@ from src.schemas.match import CurrentMatchSchema, EnhancedMatchSchema
 load_dotenv()
 app = Flask(__name__)
 CORS(app, origins=["https://saltybet.com", "https://salty-boy.com"])
+
 
 # --- Generic Web Stuff --
 @app.route("/", methods=["GET"])
@@ -188,7 +188,7 @@ template = apispec_to_template(app=app, spec=spec, paths=[get_fighter_request])
 swagger = Swagger(app, template=template)
 
 
-def _init_loggers(set_debug: bool, log_path: Optional[str] = None) -> None:
+def _init_loggers(set_debug: bool, log_path: str | None = None) -> None:
     log_level = logging.INFO
     if set_debug:
         log_level = logging.DEBUG

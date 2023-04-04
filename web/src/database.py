@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from sqlite3 import Row
-from typing import Any, Optional
+from typing import Any
 
 
 class Database:
@@ -10,8 +10,8 @@ class Database:
         self.conn.row_factory = Row
 
     def get_fighter(
-        self, fighter_name: Optional[str] = None, fighter_id: Optional[int] = None
-    ) -> Optional[Row]:
+        self, fighter_name: str | None = None, fighter_id: int | None = None
+    ) -> Row | None:
         cursor = self.conn.cursor()
         select_stmt = "SELECT * FROM fighter WHERE"
         query_obj: dict[str, Any] = {}
@@ -43,7 +43,7 @@ class Database:
         )
         return cursor.fetchall()
 
-    def get_current_match(self) -> Optional[Row]:
+    def get_current_match(self) -> Row | None:
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM current_match")
         current_match = cursor.fetchall()
@@ -52,7 +52,7 @@ class Database:
             return None
         return current_match[0]
 
-    def get_last_match(self) -> Optional[Row]:
+    def get_last_match(self) -> Row | None:
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM match ORDER BY id DESC LIMIT 1")
         latest_match = cursor.fetchall()

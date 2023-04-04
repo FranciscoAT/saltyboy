@@ -1,16 +1,16 @@
 from dataclasses import fields
 from sqlite3 import Row
-from typing import Any, Optional, Type, TypeVar
+from typing import Any, Type, TypeVar
 
 T = TypeVar("T")
 
 
 def row_to_dataclass(
-    row: Row, dc: Type[T], overwrite_fields: Optional[dict[str, Any]] = None
+    row: Row, dataclass_: Type[T], overwrite_fields: dict[str, Any] | None = None
 ) -> T:
     overwrite_fields = overwrite_fields or {}
     row_args = {}
-    for dc_field in fields(dc):
+    for dc_field in fields(dataclass_):  # type: ignore
         if dc_field.name in overwrite_fields:
             row_args[dc_field.name] = overwrite_fields[dc_field.name]
         else:
@@ -18,4 +18,4 @@ def row_to_dataclass(
                 row[dc_field.name] if dc_field.name in row.keys() else None
             )
 
-    return dc(**row_args)
+    return dataclass_(**row_args)
