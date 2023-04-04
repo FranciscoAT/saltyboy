@@ -12,7 +12,7 @@ COPY . .
 RUN pip install --upgrade pip
 
 # Generate the requirements.txt file through Python Poetry
-RUN pip install poetry==1.2.1 \
+RUN pip install poetry==1.4.2 \
     && poetry export -f requirements.txt --output requirements.txt --without dev
 
 # Install dependencies

@@ -3,8 +3,10 @@ import re
 import ssl
 import time
 from collections.abc import Iterator
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from select import select
 from socket import socket
+from ssl import SSLSocket
 
 from src.objects.waifu import (
     LockedBetMessage,
@@ -33,11 +35,19 @@ class TwitchBot:
     WINNER_RE = re.compile(r"(.+) wins! Payouts to Team (Red|Blue)\..*")
 
     def __init__(self, username: str, oauth_token: str) -> None:
+        self.username = username
+        self.oauth_token = oauth_token
+        self.ssl_sock: SSLSocket
+        self.last_read = datetime.now(timezone.utc)
+
+        self.connect()
+
+    def connect(self) -> None:
         num_auth_attempts = 0
         connected = False
         while not connected:
             try:
-                self._connect(oauth_token, username)
+                self._initialize_socket()
                 connected = True
             except TimeoutError:
                 num_auth_attempts += 1
@@ -63,6 +73,10 @@ class TwitchBot:
 
     def listen(self) -> Iterator[ReturnMessages]:
         while True:
+            if self.last_read - datetime.now(timezone.utc) > timedelta(minutes=10):
+                # Force a reconnection
+                self.connect()
+
             for message in self._receive():
                 if "PING :tmi.twitch.tv" == message:
                     logger.info("Received a PING, sending PONG.")
@@ -76,7 +90,7 @@ class TwitchBot:
                         yield return_message
                 except Exception:  # pylint: disable=broad-except
                     logger.error("Something went wrong", exc_info=True)
-                time.sleep(2)
+                time.sleep(5)
 
     @classmethod
     def parse_message(cls, message: str) -> ReturnMessages | None:
@@ -119,12 +133,19 @@ class TwitchBot:
 
     def _receive(self) -> list[str]:
         try:
-            read_buffer = self.ssl_sock.recv(1024).decode()
-            return read_buffer.split("\r\n")
+            readable_sockets, _, _ = select([self.ssl_sock], [], [], 10)
+            read_buffer: str | None = None
+            for readable_socket in readable_sockets:
+                read_buffer = readable_socket.recv(1024).decode()
+                self.last_read = datetime.now(timezone.utc)
+
+            if read_buffer:
+                return read_buffer.split("\r\n")
+            return []
         except Exception:  # pylint: disable=broad-except
             return []
 
-    def _connect(self, oauth_token: str, username: str) -> None:
+    def _initialize_socket(self) -> None:
         sock = socket()
         sock.settimeout(360)  # About a minute longer than PING/PONG
         context = ssl.SSLContext(ssl.PROTOCOL_TLS)
@@ -133,10 +154,10 @@ class TwitchBot:
         self.ssl_sock.connect(("irc.chat.twitch.tv", 6697))
         self.ssl_sock.settimeout(360)
 
-        self._send(f"PASS {oauth_token}")
-        self._send(f"NICK {username}")
+        self._send(f"PASS {self.oauth_token}")
+        self._send(f"NICK {self.username}")
 
-        logger.info("Authenticating as %s", username)
+        logger.info("Authenticating as %s", self.username)
         authenticated = False
         authenticated_start = datetime.utcnow()
         while not authenticated:
