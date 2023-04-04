@@ -1,9 +1,9 @@
-from datetime import datetime
 import logging
 import math
 import sqlite3
+from datetime import datetime
 from sqlite3 import Row
-from typing import Optional
+from typing import Any
 
 from src.objects.match import Match
 
@@ -126,7 +126,7 @@ class Database:
         fighter_red: str,
         fighter_blue: str,
         match_format: str,
-        tier: Optional[str] = None,
+        tier: str | None = None,
     ) -> None:
         cursor = self.conn.cursor()
         cursor.execute("DELETE FROM current_match")
@@ -203,6 +203,7 @@ class Database:
         opponent_tier_elo: int,
         won: bool,
     ) -> None:
+        # pylint: disable=too-many-arguments
         updated_tier = tier
         prev_tier = fighter["tier"]
         tier_elo = fighter["tier_elo"] if updated_tier == prev_tier else 1500
@@ -243,17 +244,17 @@ class Database:
         cursor.close()
 
     def _get_fighter(
-        self, id: Optional[int] = None, name: Optional[str] = None
-    ) -> Optional[Row]:
-        if id is None and not name:
+        self, id_: int | None = None, name: str | None = None
+    ) -> Row | None:
+        if id_ is None and not name:
             raise ValueError("Missing one required argument of id or name")
 
         cursor = self.conn.cursor()
         select_stmt = "SELECT * FROM fighter WHERE"
-        query_obj = {}
-        if id is not None:
+        query_obj: dict[str, Any] = {}
+        if id_ is not None:
             select_stmt += " id = :id"
-            query_obj["id"] = id
+            query_obj["id"] = id_
         if name:
             select_stmt += " name = :name"
             query_obj["name"] = name

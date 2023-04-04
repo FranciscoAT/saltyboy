@@ -1,15 +1,14 @@
-from argparse import ArgumentParser
 import logging
+from argparse import ArgumentParser
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
 
 from src.run import run
 
 
-def _init_loggers(set_debug: bool, log_path: Optional[str] = None) -> None:
+def _init_loggers(set_debug: bool, log_path: str | None = None) -> None:
     log_level = logging.INFO
     if set_debug:
         log_level = logging.DEBUG

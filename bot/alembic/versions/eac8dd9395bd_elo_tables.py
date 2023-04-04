@@ -7,9 +7,9 @@ Create Date: 2022-01-04 14:47:10.202793
 """
 import math
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "eac8dd9395bd"
@@ -108,7 +108,9 @@ def upgrade():
         sa.Column("prev_tier", sa.String(1), nullable=False),
     )
 
-    conn.execute("INSERT INTO fighter_tmp SELECT id,name,tier,created_time,last_updated,best_streak,elo,tier_elo,prev_tier FROM fighter")
+    conn.execute(
+        "INSERT INTO fighter_tmp SELECT id,name,tier,created_time,last_updated,best_streak,elo,tier_elo,prev_tier FROM fighter"
+    )
     op.drop_table("fighter")
     op.rename_table("fighter_tmp", "fighter")
 

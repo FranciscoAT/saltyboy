@@ -13,14 +13,12 @@ from src.objects.waifu import (
 
 logger = logging.getLogger(__name__)
 
-FAIL_HOURS = 6
-
 
 def run() -> None:
-    username = _get_environment_variable("USERNAME")
-    oauth_token = _get_environment_variable("OAUTH_TOKEN")
+    username = os.environ["USERNAME"]
+    oauth_token = os.environ["OAUTH_TOKEN"]
 
-    salty_db = Database(_get_environment_variable("DATABASE_PATH"))
+    salty_db = Database(os.environ["DATABASE_PATH"])
     irc_bot = TwitchBot(username, oauth_token)
 
     current_match = None
@@ -78,10 +76,3 @@ def run() -> None:
                             current_match.__dict__,
                             exc_info=True,
                         )
-
-
-def _get_environment_variable(env_var_name: str) -> str:
-    env_var = os.environ[env_var_name]
-    if not env_var:
-        raise ValueError(f"Missing environment variable {env_var_name}")
-    return env_var

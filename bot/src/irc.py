@@ -2,9 +2,9 @@ import logging
 import re
 import ssl
 import time
+from collections.abc import Iterator
 from datetime import datetime, timedelta
 from socket import socket
-from typing import Iterator, Optional, Union
 
 from src.objects.waifu import (
     LockedBetMessage,
@@ -15,13 +15,12 @@ from src.objects.waifu import (
 
 logger = logging.getLogger(__name__)
 
-ReturnMessages = Union[
-    OpenBetMessage, LockedBetMessage, WinMessage, OpenBetExhibitionMessage
-]
+ReturnMessages = (
+    OpenBetMessage | LockedBetMessage | WinMessage | OpenBetExhibitionMessage
+)
 
 
 class TwitchBot:
-
     MAX_AUTH_ATTEMPTS = 5
 
     OPEN_BET_RE = re.compile(r"Bets are OPEN for (.+) vs (.+)!\s+\((.) Tier\)\s+.*")
@@ -29,12 +28,11 @@ class TwitchBot:
         r"Bets are OPEN for (.+) vs (.+)!\s+\(.+\)\s+\(exhibitions\)\s+.*"
     )
     LOCKED_BET_RE = re.compile(
-        r"Bets are locked. (.+) \((-?[0-9]+)\) - \$(([0-9]{1,3},)*[0-9]{1,3}), (.+) \((-?[0-9]+)\) - \$(([0-9]{1,3},)*[0-9]{1,3})"
+        r"Bets are locked. (.+) \((-?[0-9]+)\) - \$(([0-9]{1,3},)*[0-9]{1,3}), (.+) \((-?[0-9]+)\) - \$(([0-9]{1,3},)*[0-9]{1,3})"  # pylint: disable=line-too-long
     )
     WINNER_RE = re.compile(r"(.+) wins! Payouts to Team (Red|Blue)\..*")
 
     def __init__(self, username: str, oauth_token: str) -> None:
-
         num_auth_attempts = 0
         connected = False
         while not connected:
@@ -81,9 +79,9 @@ class TwitchBot:
                 time.sleep(2)
 
     @classmethod
-    def parse_message(cls, message: str) -> Optional[ReturnMessages]:
+    def parse_message(cls, message: str) -> ReturnMessages | None:
         logger.debug(message)
-        waifu_message: Optional[ReturnMessages] = None
+        waifu_message: ReturnMessages | None = None
         if match := cls.OPEN_BET_RE.match(message):
             if "(matchmaking)" in message:
                 match_format = "matchmaking"
