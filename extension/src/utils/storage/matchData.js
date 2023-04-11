@@ -18,7 +18,10 @@ function setCurrentMatchData(betData, matchData) {
                     confidence: betData.confidence,
                     inFavourOf: betData.colour,
                     matches: matchData.fighter_red_info?.matches,
+                    mode: matchData.match_format,
+                    tier: matchData.tier,
                     red: {
+                        name: matchData.fighter_red,
                         id: matchData.fighter_red_info?.id,
                         totalMatches:
                             matchData.fighter_red_info?.stats?.total_matches,
@@ -27,6 +30,7 @@ function setCurrentMatchData(betData, matchData) {
                         tierElo: matchData.fighter_red_info?.tier_elo,
                     },
                     blue: {
+                        name: matchData.fighter_blue,
                         id: matchData.fighter_blue_info?.id,
                         totalMatches:
                             matchData.fighter_blue_info?.stats?.total_matches,

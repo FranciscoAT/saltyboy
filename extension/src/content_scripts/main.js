@@ -33,7 +33,7 @@ let DOLLAR_EXHIBITIONS = true
 
 // Extension State Values
 let LAST_STATUS = null
-let FETCHED_FIGHTER_DATA = false
+let FETCH_FIGHTER_DATA = true
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
 
 // BALANCE TRACKING
@@ -47,23 +47,29 @@ let PREV_BALANCE = null
 function run() {
     let saltyBetStatus = getSaltyBetStatus()
 
-    if (
-        saltyBetStatus.currentStatus != 'betting' ||
-        saltyBetStatus.betConfirmed == true ||
-        FETCHED_FIGHTER_DATA == true
-    ) {
+    if (LAST_STATUS != saltyBetStatus) {
+        // We only want to re-fetch fighter data in the event we go from
+        // ongoing into betting.
+        if (LAST_STATUS != null && LAST_STATUS.currentStatus == 'ongoing') {
+            FETCH_FIGHTER_DATA = true
+        }
+
+        LAST_STATUS = saltyBetStatus
+    }
+
+    if (FETCH_FIGHTER_DATA == false) {
         return
     }
 
     getSaltyBoyMatchData().then((matchData) => {
-        placeBets(matchData)
+        placeBets(matchData, saltyBetStatus)
     })
 }
 
 /**
  * Get the status of Salty Bet by reading elements from the DOM.
  *
- * @returns {object}
+ * @returns
  */
 function getSaltyBetStatus() {
     let betStatus = document.getElementById('betstatus')
@@ -84,18 +90,11 @@ function getSaltyBetStatus() {
     // Used for debugging in the popup
     matchStatusStorage.setMatchStatus(currentStatus, betConfirmed, loggedIn)
 
-    let matchStatus = {
+    return {
         currentStatus: currentStatus,
         betConfirmed: betConfirmed,
         loggedIn: loggedIn,
     }
-
-    if (LAST_STATUS != matchStatus) {
-        LAST_STATUS = matchStatus
-        FETCHED_FIGHTER_DATA = false
-    }
-
-    return matchStatus
 }
 
 /**
@@ -114,7 +113,7 @@ function getSaltyBoyMatchData() {
                 'Something went wrong getting current match from server.',
                 err
             )
-            FETCHED_FIGHTER_DATA = false
+            FETCH_FIGHTER_DATA = true
         })
 }
 
@@ -122,9 +121,24 @@ function getSaltyBoyMatchData() {
  * Places current bets
  *
  * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
+ * @param {object} saltyBetStatus - Current state of Salty Bet
  * @returns
  */
-function placeBets(matchData) {
+function placeBets(matchData, saltyBetStatus) {
+    let betData = BET_MODES[BET_MODE](matchData)
+    matchDataStorage.setCurrentMatchData(betData, matchData)
+
+    if (
+        saltyBetStatus.currentStatus == 'ongoing' ||
+        saltyBetStatus.loggedIn == false
+    ) {
+        return
+    }
+
+    if (ENABLE_BETTING == false) {
+        return
+    }
+
     let wagerInput = document.getElementById('wager')
     let fighterRedBtn = document.getElementById('player1')
     let fighterBlueBtn = document.getElementById('player2')
@@ -147,17 +161,15 @@ function placeBets(matchData) {
     }
     CURR_OUT_OF_DATE_ERR_COUNT = 0
 
-    let betData = BET_MODES[BET_MODE](matchData)
     let balance = parseInt(
         document.getElementById('balance').innerText.replaceAll(',', '')
     )
     if (matchData.match_format != 'tournament') {
         if (PREV_BALANCE != null) {
-            updateStorageWinnings(balance - PREV_BALANCE)
+            winningsStorage.updateWinnings(balance - PREV_BALANCE)
         }
         PREV_BALANCE = balance
     }
-    setStorageCurrentData(betData, matchData)
 
     if (ENABLE_BETTING == false) {
         PREV_BALANCE = null

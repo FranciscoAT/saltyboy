@@ -76,6 +76,7 @@ table, td {
     border-radius: 1em;
     width: 1em;
     height: 1em;
+    line-height: 1em;
     color: #222526;
 }
 
@@ -164,3 +165,6 @@ table, td {
     display: none;
 }
 
+.capitalize::first-letter {
+    text-transform: capitalize;
+}

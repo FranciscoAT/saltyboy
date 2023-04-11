@@ -1,12 +1,9 @@
-import {
-    getStorageBetSettings,
-    setStorageBetSettings,
-    getStorageMatchStatus,
-    getStorageCurrentData,
-    getStorageWinnings,
-    resetStorageSessionWinnings,
-} from '../utils/storage'
-import {calculateRedVsBlueMatchData} from "../utils/match";
+import { calculateRedVsBlueMatchData } from '../utils/match'
+
+import * as matchDataStorage from '../utils/storage/matchData.js'
+import * as betSettingsStorage from '../utils/storage/betSettings.js'
+import * as winningsStorage from '../utils/storage/winnings.js'
+import * as matchStatusStorage from '../utils/storage/matchStatus.js'
 
 // TODO: tournament span id is tournament-note
 // Debug Info
@@ -33,6 +30,10 @@ let headToHead = document.getElementById('head-to-head')
 let tieredElo = document.getElementById('tiered-elo')
 let currentBetConfidence = document.getElementById('bet-confidence')
 let currentBetColour = document.getElementById('bet-colour')
+let redFighter = document.getElementById('red-fighter')
+let blueFighter = document.getElementById('blue-fighter')
+let matchMode = document.getElementById('match-mode')
+let matchTier = document.getElementById('match-tier')
 let redMatches = document.getElementById('red-matches')
 let redWinRate = document.getElementById('red-win-rate')
 let redElo = document.getElementById('red-elo')
@@ -58,7 +59,7 @@ const BET_MODE_INFO = {
     elo: 'Bets using ELO of the fighters. Fighters start at 1500 ELO and use a K value of 32. Breaks ties using average bet. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/elo.js">Source</a>)',
     eloTier:
         'Bets using the Tiered ELO of the fighters. Whenever a Fighter changes tier they go to 1500 tiered ELO and use a K value of 32. Breaks ties using average bet. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/eloTier.js">Source</a>)',
-    upset: 'A reversed method of naive but flips the end result to the fighter who should lose instead of win. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/upset.js">Source</a>)'
+    upset: 'A reversed method of naive but flips the end result to the fighter who should lose instead of win. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/upset.js">Source</a>)',
 }
 
 function updateStatus(matchStatus) {
@@ -66,6 +67,8 @@ function updateStatus(matchStatus) {
     betConfirmed.innerText = matchStatus.betConfirmed
     statusSpan.innerText = matchStatus.currentStatus
     lastUpdated.innerText = new Date().toString()
+
+    resize()
 }
 
 function toggleSection(identifier) {
@@ -92,12 +95,10 @@ function updateBetModeInfo(selectedMode) {
     } else {
         betModeInfoPTag.innerHTML = betModeInfo
     }
-
-    resize()
 }
 
 function updateBetSettings() {
-    setStorageBetSettings(
+    betSettingsStorage.setBetSettings(
         betMode.value,
         allInUntil.value,
         maxBetPercentage.value,
@@ -106,7 +107,10 @@ function updateBetSettings() {
         enableBetting.checked,
         dollarExhibitions.checked
     )
+
     updateBetModeInfo(betMode.value)
+
+    resize()
 }
 
 function updateCurrentData(currentData) {
@@ -115,9 +119,10 @@ function updateCurrentData(currentData) {
             currentBetConfidence.innerText = 'Unable to determine'
         } else {
             currentBetConfidence.innerText = `${Math.round(
-              currentData.confidence * 100
+                currentData.confidence * 100
             )}%`
         }
+
         currentBetColour.innerText = currentData.inFavourOf
         if (currentData.inFavourOf == 'red') {
             currentBetColour.classList.add('red')
@@ -126,21 +131,37 @@ function updateCurrentData(currentData) {
             currentBetColour.classList.add('blue')
             currentBetColour.classList.remove('red')
         }
-        if(currentData.red != null || currentData.blue != null) {
-            updateCurrentMatchData(currentData)
+
+        if (currentData.red != null || currentData.blue != null) {
+            updateCurrentMatchTable(currentData)
             matchTable.classList.remove('hidden')
         } else {
             matchTable.classList.add('hidden')
         }
+
+        redFighter.innerText = currentData.red.name
+        blueFighter.innerText = currentData.blue.name
+
+        matchMode.innerText = currentData.mode
+        matchTier.innerText = currentData.tier
     } else {
         currentBetConfidence.innerText = 'No current bet'
         currentBetColour.innerText = 'No current bet'
+
         currentBetColour.classList.remove('red')
         currentBetColour.classList.remove('blue')
+
+        redFighter.innerText = 'Unknown'
+        blueFighter.innerText = 'Unknown'
+
+        matchMode.innerText = 'Unknown'
+        matchTier.innerText = 'Unknown'
     }
+
+    resize()
 }
 
-function updateCurrentMatchData(currentData) {
+function updateCurrentMatchTable(currentData) {
     redMatches.innerText = currentData.red?.totalMatches ?? MISSING
     redWinRate.innerText = currentData.red?.winRate ?? MISSING
     redElo.innerText = currentData.red?.elo ?? MISSING
@@ -149,8 +170,10 @@ function updateCurrentMatchData(currentData) {
     blueWinRate.innerText = currentData.blue?.winRate ?? MISSING
     blueElo.innerText = currentData.blue?.elo ?? MISSING
 
-    let shouldShowTieredElo = currentData.red?.elo !== currentData.red?.tierElo || currentData.blue?.elo !== currentData.blue?.tierElo
-    if(shouldShowTieredElo) {
+    let shouldShowTieredElo =
+        currentData.red?.elo !== currentData.red?.tierElo ||
+        currentData.blue?.elo !== currentData.blue?.tierElo
+    if (shouldShowTieredElo) {
         redTierElo.innerText = currentData.red?.tierElo ?? MISSING
         blueTierElo.innerText = currentData.blue?.tierElo ?? MISSING
         tieredElo.classList.remove('hidden')
@@ -158,13 +181,21 @@ function updateCurrentMatchData(currentData) {
         tieredElo.classList.add('hidden')
     }
 
-    let redVsBlueMatchData = calculateRedVsBlueMatchData(currentData.matches, currentData.red?.id, currentData.blue?.id)
-    if(redVsBlueMatchData.redMatchesVsBlue != 0) {
-        let redWins = redVsBlueMatchData.redWinsVsBlue
-        let blueWins = redVsBlueMatchData.redMatchesVsBlue - redWins
-        redHeadToHead.innerText = redWins.toString()
-        blueHeadToHead.innerText = blueWins.toString()
-        headToHead.classList.remove('hidden')
+    if (currentData.matches != null || currentData.matches != undefined) {
+        let redVsBlueMatchData = calculateRedVsBlueMatchData(
+            currentData.matches,
+            currentData.red?.id,
+            currentData.blue?.id
+        )
+        if (redVsBlueMatchData.redMatchesVsBlue != 0) {
+            let redWins = redVsBlueMatchData.redWinsVsBlue
+            let blueWins = redVsBlueMatchData.redMatchesVsBlue - redWins
+            redHeadToHead.innerText = redWins.toString()
+            blueHeadToHead.innerText = blueWins.toString()
+            headToHead.classList.remove('hidden')
+        } else {
+            headToHead.classList.add('hidden')
+        }
     } else {
         headToHead.classList.add('hidden')
     }
@@ -197,6 +228,8 @@ function updateWinnings(winnings) {
     }
     updateWinningSpan(winnings.total, totalWinnings)
     updateWinningSpan(winnings.session, sessionWinnings)
+
+    resize()
 }
 
 function resize() {
@@ -205,7 +238,7 @@ function resize() {
 }
 
 // Sync bet settings on popup load
-getStorageBetSettings().then((betSettings) => {
+betSettingsStorage.getBetSettings().then((betSettings) => {
     allInUntil.value = betSettings.allInUntil
     maxBetPercentage.value = betSettings.maxBetPercentage
     maxBetAmount.value = betSettings.maxBetAmount
@@ -217,16 +250,16 @@ getStorageBetSettings().then((betSettings) => {
 })
 
 // Sync match status on popup load
-getStorageMatchStatus().then((matchStatus) => {
+matchStatusStorage.getMatchStatus().then((matchStatus) => {
     updateStatus(matchStatus)
 })
 
-getStorageCurrentData().then((currentData) => {
+matchDataStorage.getCurrentMatchData().then((currentData) => {
     updateCurrentData(currentData)
 })
 
 // Sync Winnings
-getStorageWinnings().then((winnings) => {
+winningsStorage.getWinnings().then((winnings) => {
     updateWinnings(winnings)
 })
 
@@ -265,9 +298,9 @@ betModeTitle.addEventListener('click', () => {
 })
 
 resetSessionWinningsBtn.addEventListener('click', () => {
-    resetStorageSessionWinnings()
+    winningsStorage.resetSessionWinnings()
 })
 
 version.innerText = chrome.runtime.getManifest().version
 
-resize()
+window.onload = resize

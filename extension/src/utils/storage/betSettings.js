@@ -83,30 +83,32 @@ function initializeBetSettings(
     dollarExhibitions
 ) {
     return getBetSettings().then((betSettings) => {
-        function getDefault(storedValue, defaultValue) {
-            if (storedValue == null || storedValue == undefined) {
-                return defaultValue
+        if (betSettings != null || betSettings != null) {
+            function getDefault(defaultValue, key) {
+                if (!betSettings.hasOwnProperty(key)) {
+                    return defaultValue
+                }
+
+                let storedValue = betSettings.key
+
+                if (storedValue == null || storedValue == undefined) {
+                    return defaultValue
+                }
+
+                return storedValue
             }
 
-            return storedValue
+            betMode = getDefault(betMode, 'betMode')
+            allInUntil = getDefault(allInUntil, 'allInUntil')
+            maxBetPercentage = getDefault(maxBetPercentage, 'maxBetPercentage')
+            maxBetAmount = getDefault(maxBetAmount, 'maxBetAmount')
+            allInTournaments = getDefault(allInTournaments, 'allInTournaments')
+            enableBetting = getDefault(enableBetting, 'enableBetting')
+            dollarExhibitions = getDefault(
+                dollarExhibitions,
+                'dollarExhibitions'
+            )
         }
-
-        betMode = getDefault(betMode, betSettings.betMode)
-        allInUntil = getDefault(allInUntil, betSettings.allInUntil)
-        maxBetPercentage = getDefault(
-            maxBetPercentage,
-            betSettings.maxBetPercentage
-        )
-        maxBetAmount = getDefault(maxBetAmount, betSettings.maxBetAmount)
-        allInTournaments = getDefault(
-            allInTournaments,
-            betSettings.allInTournaments
-        )
-        enableBetting = getDefault(enableBetting, betSettings.enableBetting)
-        dollarExhibitions = getDefault(
-            dollarExhibitions,
-            betSettings.dollarExhibitions
-        )
 
         return setBetSettings(
             betMode,

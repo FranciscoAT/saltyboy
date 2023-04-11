@@ -9,6 +9,9 @@
                 <h3>Current Bet Information</h3>
                 <p>Confidence: <span id="bet-confidence"></span></p>
                 <p>Favouring: <span id="bet-colour" class="bet-colour"></span></p>
+                <p>Matchup: <span id="red-fighter" class="red"></span> vs. <span id="blue-fighter" class="blue"></span></p>
+                <p>Mode: <span id="match-mode" class="capitalize"></span></p>
+                <p>Tier: <span id="match-tier" class="capitalize"></span></p>
                 <div id="match-table" class="match-table">
                     <table>
                         <tr>
@@ -71,7 +74,7 @@
                             </select>
                         </div>
                         <div>
-                            <label for="all-in-until">All In until:</label>
+                            <label for="all-in-until">All In Until ($):</label>
                             <input type="number" class="wider" id="all-in-until" name="allInUntil" min="0">
                             <div class="tooltip" title="Go all in until your balance reaches this value. Overrides other betting settings. Set to 0 to disable.">?</div>
                         </div>
@@ -81,7 +84,7 @@
                             <div class="tooltip" title="Max Percentage of your total balance that will be bet. Set to 0 to disable.">?</div>
                         </div>
                         <div>
-                            <label for="max-bet-amount">Max Bet Amount:</label>
+                            <label for="max-bet-amount">Max Bet Amount ($):</label>
                             <input type="number" class="wider" id="max-bet-amount" name="maxBetAmount" min="0">
                             <div class="tooltip" title="Max amount that will be bet. Set to 0 to disable.">?</div>
                         </div>
