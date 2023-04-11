@@ -1,10 +1,9 @@
-import {
-    setStorageMatchStatus,
-    setStorageBetSettings,
-    getStorageBetSettings,
-    setStorageCurrentData,
-    updateStorageWinnings,
-} from '../utils/storage.js'
+import * as matchDataStorage from '../utils/storage/matchData.js'
+import * as betSettingsStorage from '../utils/storage/betSettings.js'
+import * as winningsStorage from '../utils/storage/winnings.js'
+import * as matchStatusStorage from '../utils/storage/matchStatus.js'
+
+// // Betting Imports
 import naiveBet from './bet_modes/naive.js'
 import passiveBet from './bet_modes/passive.js'
 import rngBet from './bet_modes/rng.js'
@@ -40,35 +39,50 @@ let CURR_OUT_OF_DATE_ERR_COUNT = 0
 // BALANCE TRACKING
 let PREV_BALANCE = null
 
+/**
+ * Main logic loop of the application.
+ *
+ * @returns
+ */
 function run() {
-    if (ENABLE_BETTING == false) {
-        PREV_BALANCE = null
+    let saltyBetStatus = getSaltyBetStatus()
+
+    if (
+        saltyBetStatus.currentStatus != 'betting' ||
+        saltyBetStatus.betConfirmed == true ||
+        FETCHED_FIGHTER_DATA == true
+    ) {
         return
     }
-    let matchStatus = updateStatus()
-    if (matchStatus.loggedIn == false) {
-        return
-    }
-    getFighterData(matchStatus)
+
+    getSaltyBoyMatchData().then((matchData) => {
+        placeBets(matchData)
+    })
 }
 
-function updateStatus() {
-    let betStatus = document.getElementById("betstatus")
+/**
+ * Get the status of Salty Bet by reading elements from the DOM.
+ *
+ * @returns {object}
+ */
+function getSaltyBetStatus() {
+    let betStatus = document.getElementById('betstatus')
 
     let currentStatus = 'unknown'
-    let loggedIn = document.getElementById("rank") != null
+    let loggedIn = document.getElementById('rank') != null
     let betConfirmed = false
 
     if (loggedIn) {
-        if (betStatus.innerText == "Bets are OPEN!") {
-            currentStatus = "betting"
+        if (betStatus.innerText == 'Bets are OPEN!') {
+            currentStatus = 'betting'
             betConfirmed = document.getElementById('betconfirm') != null
         } else {
-            currentStatus = "ongoing"
+            currentStatus = 'ongoing'
         }
     }
 
-    setStorageMatchStatus(currentStatus, betConfirmed, loggedIn)
+    // Used for debugging in the popup
+    matchStatusStorage.setMatchStatus(currentStatus, betConfirmed, loggedIn)
 
     let matchStatus = {
         currentStatus: currentStatus,
@@ -84,21 +98,16 @@ function updateStatus() {
     return matchStatus
 }
 
-function getFighterData(matchStatus) {
-    if (
-        matchStatus.currentStatus != 'betting' ||
-        matchStatus.betConfirmed == true ||
-        FETCHED_FIGHTER_DATA == true
-    ) {
-        return
-    }
-
-    FETCHED_FIGHTER_DATA = true
-
-    fetch(`${SALTY_BOY_URL}/current-match`, { method: 'get' })
+/**
+ * Get the match data from Salty Boy
+ *
+ * @returns {object} - Fighter data from : https://salty-boy.com/apidocs/#/default/get_current_match
+ */
+function getSaltyBoyMatchData() {
+    return fetch(`${SALTY_BOY_URL}/current-match`, { method: 'get' })
         .then((res) => res.json())
         .then((data) => {
-            placeBets(data)
+            return data
         })
         .catch((err) => {
             console.error(
@@ -109,6 +118,12 @@ function getFighterData(matchStatus) {
         })
 }
 
+/**
+ * Places current bets
+ *
+ * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
+ * @returns
+ */
 function placeBets(matchData) {
     let wagerInput = document.getElementById('wager')
     let fighterRedBtn = document.getElementById('player1')
@@ -143,6 +158,12 @@ function placeBets(matchData) {
         PREV_BALANCE = balance
     }
     setStorageCurrentData(betData, matchData)
+
+    if (ENABLE_BETTING == false) {
+        PREV_BALANCE = null
+        return
+    }
+
     wagerInput.value = getWagerAmount(
         balance,
         betData.confidence,
@@ -155,6 +176,14 @@ function placeBets(matchData) {
     }
 }
 
+/**
+ * Calculate the amount to wager
+ *
+ * @param {number} balance - Users balance, [0, ...]
+ * @param {number} confidence - Confidence of the betting algorithm, [0, 1] or null
+ * @param {*} match_format - Match format, should be one of "exhibition", "tournament", "matchmaking"
+ * @returns
+ */
 function getWagerAmount(balance, confidence, match_format) {
     if (match_format == 'tournament' && ALL_IN_TOURNAMENTS == true) {
         return balance
@@ -164,7 +193,7 @@ function getWagerAmount(balance, confidence, match_format) {
         return 1
     }
 
-    if(ALL_IN_UNTIL != 0 && balance < ALL_IN_UNTIL) {
+    if (ALL_IN_UNTIL != 0 && balance < ALL_IN_UNTIL) {
         return balance
     }
 
@@ -172,29 +201,42 @@ function getWagerAmount(balance, confidence, match_format) {
         return 1
     }
 
-    let percentageBet = 0
-    let amountBet = 0
+    // By default we use the entire balance
     let wagerAmount = balance * confidence
 
+    let percentageBet = 0
+    let amountBet = 0
+
+    // If MAX_BET_PERCENTAGE is enabled we want to bet using this as the theoretical max
     if (MAX_BET_PERCENTAGE != 0) {
         percentageBet = wagerAmount * (MAX_BET_PERCENTAGE / 100)
     }
 
+    // If MAX_BET_AMOUNT is enabled we want to bet using this as the theoretical max
     if (MAX_BET_AMOUNT != 0) {
         amountBet = Math.min(MAX_BET_AMOUNT, balance) * confidence
     }
 
     if (percentageBet != 0 && amountBet != 0) {
+        // If both percentage and amount bets are enabled take the smallest
         wagerAmount = Math.min(percentageBet, amountBet)
     } else if (percentageBet != 0) {
+        // If only percentage is enabled take the percentage bet
         wagerAmount = percentageBet
     } else if (amountBet != 0) {
+        // If only amount bet is enabled take the amount bet
         wagerAmount = amountBet
     }
 
+    // Return the rounded amount to bet
     return Math.round(wagerAmount)
 }
 
+/**
+ * Updates the bet settings as defined by user
+ *
+ * @param {object} betSettings
+ */
 function updateBetSettings(betSettings) {
     // Update Bet Mode
     let betMode = betSettings.betMode
@@ -223,79 +265,35 @@ function updateBetSettings(betSettings) {
     DOLLAR_EXHIBITIONS = betSettings.dollarExhibitions
 }
 
-getStorageBetSettings()
-    .then((betSettings) => {
-        let updateDefaults = false
-        if (betSettings == null) {
-            betSettings = {
-                betMode: BET_MODE,
-                allInUntil: ALL_IN_UNTIL,
-                maxBetPercentage: MAX_BET_PERCENTAGE,
-                maxBetAmount: MAX_BET_AMOUNT,
-                allInTournaments: ALL_IN_TOURNAMENTS,
-                enableBetting: ENABLE_BETTING,
-                dollarExhibitions: DOLLAR_EXHIBITIONS,
-            }
-        } else {
-            if (betSettings.betMode == null) {
-                updateDefaults = true
-                betSettings.betMode = BET_MODE
-            }
-            if (betSettings.allInUntil == null) {
-                updateDefaults = true
-                betSettings.allInUntil = ALL_IN_UNTIL
-            }
-            if (betSettings.maxBetAmount == null) {
-                updateDefaults = true
-                betSettings.maxBetAmount = MAX_BET_AMOUNT
-            }
-            if (betSettings.maxBetPercentage == null) {
-                updateDefaults = true
-                betSettings.maxBetPercentage = MAX_BET_PERCENTAGE
-            }
-            if (betSettings.allInTournaments == null) {
-                updateDefaults = true
-                betSettings.allInTournaments = ALL_IN_TOURNAMENTS
-            }
-
-            if (betSettings.enableBetting == null) {
-                updateDefaults = true
-                betSettings.enableBetting = ENABLE_BETTING
-            }
-
-            if (betSettings.dollarExhibitions == null) {
-                updateDefaults = true
-                betSettings.dollarExhibitions = DOLLAR_EXHIBITIONS
-            }
-        }
-
-        if (updateDefaults == true) {
-            setStorageBetSettings(
-                betSettings.betMode,
-                betSettings.allInUntil,
-                betSettings.maxBetPercentage,
-                betSettings.maxBetAmount,
-                betSettings.allInTournaments,
-                betSettings.enableBetting,
-                betSettings.dollarExhibitions
-            )
-        }
-        updateBetSettings(betSettings)
-    })
-    .catch((err) => {
-        console.error(
-            `Failed to properly update bet settings into extension storage. ${err}`
+// Initialize the application
+matchDataStorage
+    .initializeCurrentMatchData()
+    .then(() =>
+        betSettingsStorage.initializeBetSettings(
+            BET_MODE,
+            ALL_IN_UNTIL,
+            MAX_BET_PERCENTAGE,
+            MAX_BET_AMOUNT,
+            ALL_IN_TOURNAMENTS,
+            ENABLE_BETTING,
+            DOLLAR_EXHIBITIONS
         )
+    )
+    .then(() => matchStatusStorage.initializeMatchStatus())
+    .then(() => winningsStorage.updateWinnings(0))
+    .then(() => betSettingsStorage.getBetSettings())
+    .then((betSettings) => {
+        updateBetSettings(betSettings)
+
+        chrome.storage.onChanged.addListener((changes, namespace) => {
+            if (namespace != 'local') {
+                return
+            }
+
+            if ('betSettings' in changes) {
+                updateBetSettings(changes.betSettings.newValue)
+            }
+        })
+
+        setInterval(run, RUN_INTERVAL)
     })
-
-chrome.storage.onChanged.addListener((changes, namespace) => {
-    if (namespace != 'local') {
-        return
-    }
-
-    if ('betSettings' in changes) {
-        updateBetSettings(changes.betSettings.newValue)
-    }
-})
-
-setInterval(run, RUN_INTERVAL)
