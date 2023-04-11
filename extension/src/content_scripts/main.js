@@ -2,6 +2,7 @@ import * as matchDataStorage from '../utils/storage/matchData.js'
 import * as betSettingsStorage from '../utils/storage/betSettings.js'
 import * as winningsStorage from '../utils/storage/winnings.js'
 import * as matchStatusStorage from '../utils/storage/matchStatus.js'
+import * as debugStorage from '../utils/storage/debugSettings.js'
 
 // // Betting Imports
 import naiveBet from './bet_modes/naive.js'
@@ -36,8 +37,11 @@ let LAST_STATUS = null
 let FETCH_FIGHTER_DATA = true
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
 
-// BALANCE TRACKING
+// Balance Tracking
 let PREV_BALANCE = null
+
+// Debug Information
+let DEBUG_ENABLED = false
 
 /**
  * Main logic loop of the application.
@@ -50,7 +54,11 @@ function run() {
     if (LAST_STATUS != saltyBetStatus) {
         // We only want to re-fetch fighter data in the event we go from
         // ongoing into betting.
-        if (LAST_STATUS != null && LAST_STATUS.currentStatus == 'ongoing') {
+        if (
+            LAST_STATUS != null &&
+            LAST_STATUS.currentStatus == 'ongoing' &&
+            saltyBetStatus.currentStatus == 'betting'
+        ) {
             FETCH_FIGHTER_DATA = true
         }
 
@@ -103,6 +111,7 @@ function getSaltyBetStatus() {
  * @returns {object} - Fighter data from : https://salty-boy.com/apidocs/#/default/get_current_match
  */
 function getSaltyBoyMatchData() {
+    verboseLog('Getting fighter data from SaltyBet.com')
     return fetch(`${SALTY_BOY_URL}/current-match`, { method: 'get' })
         .then((res) => res.json())
         .then((data) => {
@@ -125,8 +134,10 @@ function getSaltyBoyMatchData() {
  * @returns
  */
 function placeBets(matchData, saltyBetStatus) {
+    verboseLog(`Calculating using betting algorithm ${BET_MODE}`)
     let betData = BET_MODES[BET_MODE](matchData)
     matchDataStorage.setCurrentMatchData(betData, matchData)
+    FETCH_FIGHTER_DATA = false
 
     if (
         saltyBetStatus.currentStatus == 'ongoing' ||
@@ -139,7 +150,6 @@ function placeBets(matchData, saltyBetStatus) {
         return
     }
 
-    let wagerInput = document.getElementById('wager')
     let fighterRedBtn = document.getElementById('player1')
     let fighterBlueBtn = document.getElementById('player2')
 
@@ -157,9 +167,13 @@ function placeBets(matchData, saltyBetStatus) {
                 matchData
             )
         }
+
+        FETCH_FIGHTER_DATA = true
         return
     }
     CURR_OUT_OF_DATE_ERR_COUNT = 0
+
+    let wagerInput = document.getElementById('wager')
 
     let balance = parseInt(
         document.getElementById('balance').innerText.replaceAll(',', '')
@@ -186,6 +200,12 @@ function placeBets(matchData, saltyBetStatus) {
     } else {
         fighterBlueBtn.click()
     }
+
+    verboseLog(
+        `Betting on ${betData.colour} with a confidence of ${Math.round(
+            betData.confidence
+        )}`
+    )
 }
 
 /**
@@ -198,18 +218,30 @@ function placeBets(matchData, saltyBetStatus) {
  */
 function getWagerAmount(balance, confidence, match_format) {
     if (match_format == 'tournament' && ALL_IN_TOURNAMENTS == true) {
+        verboseLog(
+            'Detected tournament format and going all in on tournaments is set. So going all in.'
+        )
         return balance
     }
 
     if (match_format == 'exhibition' && DOLLAR_EXHIBITIONS == true) {
+        verboseLog(
+            'Detected exhibition matches and dollar exhibitions set so only betting $1.'
+        )
         return 1
     }
 
     if (ALL_IN_UNTIL != 0 && balance < ALL_IN_UNTIL) {
+        verboseLog(
+            `All in until is set (\$${ALL_IN_UNTIL}) and balance (\$${balance}) is less than the value therefore going all in.`
+        )
         return balance
     }
 
     if (confidence == null) {
+        verboseLog(
+            'Betting method did not produce a confidence so only betting $1.'
+        )
         return 1
     }
 
@@ -231,16 +263,28 @@ function getWagerAmount(balance, confidence, match_format) {
 
     if (percentageBet != 0 && amountBet != 0) {
         // If both percentage and amount bets are enabled take the smallest
+        verboseLog(
+            `Both max bet amount set (\$${MAX_BET_AMOUNT}) and max bet percentage set (%${MAX_BET_PERCENTAGE}). Taking the lowest of both (\$${Math.round(
+                percentageBet
+            )}, \$${Math.round(amountBet)}).`
+        )
         wagerAmount = Math.min(percentageBet, amountBet)
     } else if (percentageBet != 0) {
         // If only percentage is enabled take the percentage bet
+        verboseLog(
+            `Only max percentage percentage set (%${MAX_BET_PERCENTAGE}) using to determine bet amount.`
+        )
         wagerAmount = percentageBet
     } else if (amountBet != 0) {
         // If only amount bet is enabled take the amount bet
+        verboseLog(
+            `Only max percentage amount set (\$${MAX_BET_AMOUNT}) using to determine bet amount.`
+        )
         wagerAmount = amountBet
     }
 
     // Return the rounded amount to bet
+    verboseLog(`Betting \$${Math.round(wagerAmount)}`)
     return Math.round(wagerAmount)
 }
 
@@ -250,6 +294,9 @@ function getWagerAmount(balance, confidence, match_format) {
  * @param {object} betSettings
  */
 function updateBetSettings(betSettings) {
+    verboseLog('Detected bet settings updates')
+    verboseLog(betSettings)
+
     // Update Bet Mode
     let betMode = betSettings.betMode
     if (betMode in BET_MODES) {
@@ -277,6 +324,31 @@ function updateBetSettings(betSettings) {
     DOLLAR_EXHIBITIONS = betSettings.dollarExhibitions
 }
 
+/**
+ * Updates debug settings for extension
+ *
+ * @param {object} debugSettings
+ */
+function updateDebugSettings(debugSettings) {
+    DEBUG_ENABLED = debugSettings.debugEnabled
+
+    verboseLog('Detected debug settings changes')
+    verboseLog(debugSettings)
+}
+
+/**
+ * Message to print to console if debug mode set
+ *
+ * @param {string} message
+ */
+function verboseLog(message) {
+    if (DEBUG_ENABLED == false) {
+        return
+    }
+
+    chrome.runtime.sendMessage({ message: message })
+}
+
 // Initialize the application
 matchDataStorage
     .initializeCurrentMatchData()
@@ -293,7 +365,12 @@ matchDataStorage
     )
     .then(() => matchStatusStorage.initializeMatchStatus())
     .then(() => winningsStorage.updateWinnings(0))
-    .then(() => betSettingsStorage.getBetSettings())
+    .then(() => debugStorage.initializeDebugSettings())
+    .then(() => debugStorage.getDebugSettings())
+    .then((debugSettings) => {
+        updateDebugSettings(debugSettings)
+        return betSettingsStorage.getBetSettings()
+    })
     .then((betSettings) => {
         updateBetSettings(betSettings)
 
@@ -304,6 +381,10 @@ matchDataStorage
 
             if ('betSettings' in changes) {
                 updateBetSettings(changes.betSettings.newValue)
+            }
+
+            if ('debugSettings' in changes) {
+                updateDebugSettings(changes.debugSettings.newValue)
             }
         })
 

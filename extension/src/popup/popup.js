@@ -4,6 +4,7 @@ import * as matchDataStorage from '../utils/storage/matchData.js'
 import * as betSettingsStorage from '../utils/storage/betSettings.js'
 import * as winningsStorage from '../utils/storage/winnings.js'
 import * as matchStatusStorage from '../utils/storage/matchStatus.js'
+import * as debugStorage from '../utils/storage/debugSettings.js'
 
 // TODO: tournament span id is tournament-note
 // Debug Info
@@ -13,6 +14,8 @@ let statusSpan = document.getElementById('match-status')
 let lastUpdated = document.getElementById('last-updated')
 let betConfirmed = document.getElementById('bet-confirmed')
 let version = document.getElementById('version')
+let alertLocalStorageBtn = document.getElementById('alert-storage')
+let debugEnabled = document.getElementById('debug-enabled')
 
 // Bet Settings
 let allInUntil = document.getElementById('all-in-until')
@@ -237,6 +240,23 @@ function resize() {
     document.body.parentNode.style.height = `${wrapper.clientHeight}px`
 }
 
+function alertLocalStorage() {
+    chrome.storage.local.get(
+        ['betSettings', 'matchStatus', 'winnings', 'debugSettings'],
+        (localStorage) => {
+            alert(JSON.stringify(localStorage, null, 2))
+        }
+    )
+}
+
+function updateDebug(debugSettings) {
+    debugEnabled.checked = debugSettings.debugEnabled
+}
+
+function updateDebugSettings() {
+    debugStorage.setDebugSettings(debugEnabled.checked)
+}
+
 // Sync bet settings on popup load
 betSettingsStorage.getBetSettings().then((betSettings) => {
     allInUntil.value = betSettings.allInUntil
@@ -254,6 +274,7 @@ matchStatusStorage.getMatchStatus().then((matchStatus) => {
     updateStatus(matchStatus)
 })
 
+// Sync current match data
 matchDataStorage.getCurrentMatchData().then((currentData) => {
     updateCurrentData(currentData)
 })
@@ -261,6 +282,11 @@ matchDataStorage.getCurrentMatchData().then((currentData) => {
 // Sync Winnings
 winningsStorage.getWinnings().then((winnings) => {
     updateWinnings(winnings)
+})
+
+// Sync Debug information
+debugStorage.getDebugSettings().then((debugSettings) => {
+    updateDebug(debugSettings)
 })
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
@@ -300,6 +326,12 @@ betModeTitle.addEventListener('click', () => {
 resetSessionWinningsBtn.addEventListener('click', () => {
     winningsStorage.resetSessionWinnings()
 })
+
+alertLocalStorageBtn.addEventListener('click', () => {
+    alertLocalStorage()
+})
+
+debugEnabled.addEventListener('change', updateDebugSettings)
 
 version.innerText = chrome.runtime.getManifest().version
 

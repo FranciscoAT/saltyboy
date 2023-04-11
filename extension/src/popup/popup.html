@@ -118,6 +118,12 @@
                         <p>Match Status: <span id="match-status"></span></p>
                         <p>Version: <span id="version"></span></p>
                         <p>Info Last Updated: <span id="last-updated"></span></p>
+                        <p>
+                            <label for="debug-enabled">Enable Debugging Mode: </label>
+                            <input type="checkbox" id="debug-enabled">
+                            <span class="tooltip" title="Enable debugging mode. Will debug a bunch of information to the console log through the Chrome Inspector. Navigate to chrome://extensions, find salty bet and click on 'Inspect views service worker, then click on the 'Console' tab.">?</span>
+                        </p>
+                        <p><button id="alert-storage">Alert Local Storage</button> <span class="tooltip" title="Alerts everything in Local Storage">?</span></p>
                     </div>
                 </div>
                 <hr/>

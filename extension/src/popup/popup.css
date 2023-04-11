@@ -101,6 +101,10 @@ table, td {
     margin: 5px;
 }
 
+.debug-info-content button {
+    font-size: 0.9em;
+}
+
 .wider {
     width: 140px;
 }
