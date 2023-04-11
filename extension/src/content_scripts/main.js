@@ -143,10 +143,15 @@ function placeBets(matchData, saltyBetStatus) {
         saltyBetStatus.currentStatus == 'ongoing' ||
         saltyBetStatus.loggedIn == false
     ) {
+        verboseLog(
+            'Either match is currently ongoing or we are not logged in. Will not bet.'
+        )
         return
     }
 
     if (ENABLE_BETTING == false) {
+        verboseLog('Betting is disabled do not bet.')
+        PREV_BALANCE = null
         return
     }
 
@@ -158,6 +163,7 @@ function placeBets(matchData, saltyBetStatus) {
         fighterRedBtn.value != matchData.fighter_red ||
         fighterBlueBtn.value != matchData.fighter_blue
     ) {
+        verboseLog('Match was out of date from server. Forcing a retry.')
         CURR_OUT_OF_DATE_ERR_COUNT += 1
         if (CURR_OUT_OF_DATE_ERR_COUNT > 5) {
             console.warn(
@@ -180,14 +186,12 @@ function placeBets(matchData, saltyBetStatus) {
     )
     if (matchData.match_format != 'tournament') {
         if (PREV_BALANCE != null) {
+            verboseLog(
+                `Detected a balance change of ${balance - PREV_BALANCE}$`
+            )
             winningsStorage.updateWinnings(balance - PREV_BALANCE)
         }
         PREV_BALANCE = balance
-    }
-
-    if (ENABLE_BETTING == false) {
-        PREV_BALANCE = null
-        return
     }
 
     wagerInput.value = getWagerAmount(
@@ -202,9 +206,9 @@ function placeBets(matchData, saltyBetStatus) {
     }
 
     verboseLog(
-        `Betting on ${betData.colour} with a confidence of ${Math.round(
-            betData.confidence
-        )}`
+        `Betting on ${betData.colour} with a confidence of ${
+            Math.round(betData.confidence * 100) / 100
+        }`
     )
 }
 
