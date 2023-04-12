@@ -81,9 +81,11 @@ function run() {
         return
     }
 
+    updateOverlay({}, true)
+
     getSaltyBoyMatchData().then((matchData) => {
         placeBets(matchData, saltyBetStatus)
-        updateOverlay(matchData)
+        updateOverlay(matchData, false)
     })
 }
 
@@ -234,8 +236,9 @@ function placeBets(matchData, saltyBetStatus) {
 /**
  *
  * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
+ * @param {boolean} clearOverlay - Clear overlay between matches
  */
-function updateOverlay(matchData) {
+function updateOverlay(matchData, clearOverlay) {
     let bettingSpanIdBlue = 'betting-blue-overlay'
     let bettingSpanIdRed = 'betting-red-overlay'
 
@@ -250,6 +253,22 @@ function updateOverlay(matchData) {
 
         removeBettingSpan(bettingSpanIdRed)
         removeBettingSpan(bettingSpanIdBlue)
+
+        return
+    }
+
+    if (clearOverlay == true) {
+        verboseLog('Overlay enabled. Clearing overlay between matches.')
+
+        function clearBettingSpan(spanId) {
+            let bettingSpan = document.getElementById(spanId)
+            if (bettingSpan != null) {
+                bettingSpan.innerText = 'Updating...'
+            }
+        }
+
+        clearBettingSpan(bettingSpanIdRed)
+        clearBettingSpan(bettingSpanIdBlue)
 
         return
     }
