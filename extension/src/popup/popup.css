@@ -31,6 +31,10 @@ table, td {
     border-collapse: collapse;
 }
 
+input[type="checkbox"] {
+    vertical-align: middle;
+}
+
 .inline > * {
     display: inline;
 }
@@ -76,6 +80,7 @@ table, td {
     border-radius: 1em;
     width: 1em;
     height: 1em;
+    line-height: 1em;
     color: #222526;
 }
 
@@ -98,6 +103,10 @@ table, td {
 
 .debug-info-content p {
     margin: 5px;
+}
+
+.debug-info-content button {
+    font-size: 0.9em;
 }
 
 .wider {
@@ -164,3 +173,14 @@ table, td {
     display: none;
 }
 
+.capitalize {
+    text-transform: capitalize;
+}
+
+.bet-tier-table td {
+    padding-left: 4px;
+}
+
+.bet-tier-table label {
+    vertical-align: middle;
+}

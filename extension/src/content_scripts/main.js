@@ -1,16 +1,18 @@
-import {
-    setStorageMatchStatus,
-    setStorageBetSettings,
-    getStorageBetSettings,
-    setStorageCurrentData,
-    updateStorageWinnings,
-} from '../utils/storage.js'
+import * as matchDataStorage from '../utils/storage/matchData.js'
+import * as betSettingsStorage from '../utils/storage/betSettings.js'
+import * as winningsStorage from '../utils/storage/winnings.js'
+import * as matchStatusStorage from '../utils/storage/matchStatus.js'
+import * as debugStorage from '../utils/storage/debugSettings.js'
+import * as appSettingsStorage from '../utils/storage/appSettings.js'
+
+// // Betting Imports
 import naiveBet from './bet_modes/naive.js'
 import passiveBet from './bet_modes/passive.js'
 import rngBet from './bet_modes/rng.js'
 import eloTierBet from './bet_modes/eloTier.js'
 import eloBet from './bet_modes/elo.js'
 import upsetBet from './bet_modes/upset.js'
+import { calculateRedVsBlueMatchData } from '../utils/match.js'
 
 const RUN_INTERVAL = 5000
 const SALTY_BOY_URL = 'https://www.salty-boy.com'
@@ -30,87 +32,152 @@ let MAX_BET_AMOUNT = 0
 let BET_MODE = 'naive'
 let ALL_IN_TOURNAMENTS = true
 let ENABLE_BETTING = true
-let DOLLAR_EXHIBITIONS = true
+let EXHIBITION_BET = 1
+let BET_TIER_X = true
+let BET_TIER_S = true
+let BET_TIER_A = true
+let BET_TIER_B = true
+let BET_TIER_P = true
 
 // Extension State Values
 let LAST_STATUS = null
-let FETCHED_FIGHTER_DATA = false
+let FETCH_FIGHTER_DATA = true
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
 
-// BALANCE TRACKING
+// Balance Tracking
 let PREV_BALANCE = null
 
+// Debug Information
+let DEBUG_ENABLED = false
+
+// App Settings
+let ENABLE_OVERLAY = true
+
+/**
+ * Main logic loop of the application.
+ *
+ * @returns
+ */
 function run() {
-    if (ENABLE_BETTING == false) {
-        PREV_BALANCE = null
+    let saltyBetStatus = getSaltyBetStatus()
+
+    if (
+        LAST_STATUS == null ||
+        LAST_STATUS.currentStatus != saltyBetStatus.currentStatus ||
+        LAST_STATUS.loggedIn != saltyBetStatus.loggedIn
+    ) {
+        verboseLog('Detected update in SaltyBet status.')
+        verboseLog(saltyBetStatus)
+
+        // We only want to re-fetch fighter data in the event we go from
+        // ongoing into betting.
+        if (
+            LAST_STATUS != null &&
+            LAST_STATUS.currentStatus == 'ongoing' &&
+            saltyBetStatus.currentStatus == 'betting'
+        ) {
+            // Give the Salty Boy server a few seconds to update
+            setTimeout(() => {
+                FETCH_FIGHTER_DATA = true
+            }, 2000)
+        }
+
+        LAST_STATUS = saltyBetStatus
+    }
+
+    if (FETCH_FIGHTER_DATA == false) {
         return
     }
-    let matchStatus = updateStatus()
-    if (matchStatus.loggedIn == false) {
-        return
-    }
-    getFighterData(matchStatus)
+
+    updateOverlay({}, true)
+
+    getSaltyBoyMatchData().then((matchData) => {
+        placeBets(matchData, saltyBetStatus)
+        updateOverlay(matchData, false)
+    })
 }
 
-function updateStatus() {
-    let betStatus = document.getElementById("betstatus")
+/**
+ * Get the status of Salty Bet by reading elements from the DOM.
+ *
+ * @returns
+ */
+function getSaltyBetStatus() {
+    let betStatus = document.getElementById('betstatus')
 
     let currentStatus = 'unknown'
-    let loggedIn = document.getElementById("rank") != null
+    let loggedIn = document.getElementById('rank') != null
     let betConfirmed = false
 
     if (loggedIn) {
-        if (betStatus.innerText == "Bets are OPEN!") {
-            currentStatus = "betting"
+        if (betStatus.innerText == 'Bets are OPEN!') {
+            currentStatus = 'betting'
             betConfirmed = document.getElementById('betconfirm') != null
         } else {
-            currentStatus = "ongoing"
+            currentStatus = 'ongoing'
         }
     }
 
-    setStorageMatchStatus(currentStatus, betConfirmed, loggedIn)
+    // Used for debugging in the popup
+    matchStatusStorage.setMatchStatus(currentStatus, betConfirmed, loggedIn)
 
-    let matchStatus = {
+    return {
         currentStatus: currentStatus,
         betConfirmed: betConfirmed,
         loggedIn: loggedIn,
     }
-
-    if (LAST_STATUS != matchStatus) {
-        LAST_STATUS = matchStatus
-        FETCHED_FIGHTER_DATA = false
-    }
-
-    return matchStatus
 }
 
-function getFighterData(matchStatus) {
-    if (
-        matchStatus.currentStatus != 'betting' ||
-        matchStatus.betConfirmed == true ||
-        FETCHED_FIGHTER_DATA == true
-    ) {
-        return
-    }
-
-    FETCHED_FIGHTER_DATA = true
-
-    fetch(`${SALTY_BOY_URL}/current-match`, { method: 'get' })
+/**
+ * Get the match data from Salty Boy
+ *
+ * @returns {object} - Fighter data from : https://salty-boy.com/apidocs/#/default/get_current_match
+ */
+function getSaltyBoyMatchData() {
+    verboseLog('Getting fighter data from SaltyBet.com')
+    return fetch(`${SALTY_BOY_URL}/current-match`, { method: 'get' })
         .then((res) => res.json())
         .then((data) => {
-            placeBets(data)
+            return data
         })
         .catch((err) => {
             console.error(
                 'Something went wrong getting current match from server.',
                 err
             )
-            FETCHED_FIGHTER_DATA = false
+            FETCH_FIGHTER_DATA = true
         })
 }
 
-function placeBets(matchData) {
-    let wagerInput = document.getElementById('wager')
+/**
+ * Places current bets
+ *
+ * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
+ * @param {object} saltyBetStatus - Current state of Salty Bet
+ * @returns
+ */
+function placeBets(matchData, saltyBetStatus) {
+    verboseLog(`Calculating using betting algorithm ${BET_MODE}`)
+    let betData = BET_MODES[BET_MODE](matchData)
+    matchDataStorage.setCurrentMatchData(betData, matchData)
+    FETCH_FIGHTER_DATA = false
+
+    if (
+        saltyBetStatus.currentStatus == 'ongoing' ||
+        saltyBetStatus.loggedIn == false
+    ) {
+        verboseLog(
+            'Either match is currently ongoing or we are not logged in. Will not bet.'
+        )
+        return
+    }
+
+    if (ENABLE_BETTING == false) {
+        verboseLog('Betting is disabled do not bet.')
+        PREV_BALANCE = null
+        return
+    }
+
     let fighterRedBtn = document.getElementById('player1')
     let fighterBlueBtn = document.getElementById('player2')
 
@@ -119,6 +186,7 @@ function placeBets(matchData) {
         fighterRedBtn.value != matchData.fighter_red ||
         fighterBlueBtn.value != matchData.fighter_blue
     ) {
+        verboseLog('Match was out of date from server. Forcing a retry.')
         CURR_OUT_OF_DATE_ERR_COUNT += 1
         if (CURR_OUT_OF_DATE_ERR_COUNT > 5) {
             console.warn(
@@ -128,74 +196,289 @@ function placeBets(matchData) {
                 matchData
             )
         }
+
+        FETCH_FIGHTER_DATA = true
         return
     }
     CURR_OUT_OF_DATE_ERR_COUNT = 0
 
-    let betData = BET_MODES[BET_MODE](matchData)
+    let wagerInput = document.getElementById('wager')
+
     let balance = parseInt(
         document.getElementById('balance').innerText.replaceAll(',', '')
     )
     if (matchData.match_format != 'tournament') {
         if (PREV_BALANCE != null) {
-            updateStorageWinnings(balance - PREV_BALANCE)
+            verboseLog(
+                `Detected a balance change of ${balance - PREV_BALANCE}$`
+            )
+            winningsStorage.updateWinnings(balance - PREV_BALANCE)
         }
         PREV_BALANCE = balance
     }
-    setStorageCurrentData(betData, matchData)
-    wagerInput.value = getWagerAmount(
+
+    let wagerAmount = getWagerAmount(
         balance,
         betData.confidence,
-        matchData.match_format
-    ).toString()
-    if (betData.colour == 'red') {
-        fighterRedBtn.click()
+        matchData.match_format,
+        matchData.tier
+    )
+
+    if (wagerAmount != '') {
+        wagerInput.value = wagerAmount.toString()
+        if (betData.colour == 'red') {
+            fighterRedBtn.click()
+        } else {
+            fighterBlueBtn.click()
+        }
+
+        verboseLog(
+            `Betting on ${betData.colour} with a confidence of ${
+                Math.round(betData.confidence * 100) / 100
+            }`
+        )
     } else {
-        fighterBlueBtn.click()
+        verboseLog('Wager amount returned empty, not betting.')
     }
 }
 
-function getWagerAmount(balance, confidence, match_format) {
-    if (match_format == 'tournament' && ALL_IN_TOURNAMENTS == true) {
+/**
+ *
+ * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
+ * @param {boolean} clearOverlay - Clear overlay between matches
+ */
+function updateOverlay(matchData, clearOverlay) {
+    let bettingSpanIdBlue = 'betting-blue-overlay'
+    let bettingSpanIdRed = 'betting-red-overlay'
+
+    if (ENABLE_OVERLAY == false) {
+        verboseLog('Overlay disabled. Removing overlay elements if they exist.')
+        function removeBettingSpan(spanId) {
+            let bettingSpan = document.getElementById(spanId)
+            if (bettingSpan != null) {
+                bettingSpan.remove()
+            }
+        }
+
+        removeBettingSpan(bettingSpanIdRed)
+        removeBettingSpan(bettingSpanIdBlue)
+
+        return
+    }
+
+    if (clearOverlay == true) {
+        verboseLog('Overlay enabled. Clearing overlay between matches.')
+
+        function clearBettingSpan(spanId) {
+            let bettingSpan = document.getElementById(spanId)
+            if (bettingSpan != null) {
+                bettingSpan.innerText = 'Updating...'
+            }
+        }
+
+        clearBettingSpan(bettingSpanIdRed)
+        clearBettingSpan(bettingSpanIdBlue)
+
+        return
+    }
+
+    verboseLog(
+        `Overlay enabled. Updating for ${matchData.fighter_red} vs ${matchData.fighter_blue}`
+    )
+
+    let fighterRed = document.getElementById('player1').value
+    let fighterBlue = document.getElementById('player2').value
+
+    if (
+        fighterRed != matchData.fighter_red ||
+        fighterBlue != matchData.fighter_blue
+    ) {
+        verboseLog('Match was out of date from server. Not updating overlay.')
+        return
+    }
+
+    function updateForPlayer(
+        fighterSubmitBtnId,
+        spanId,
+        classText,
+        fighterInfo
+    ) {
+        let bettingSpan = document.getElementById(spanId)
+        if (bettingSpan == null) {
+            bettingSpan = document.createElement('span')
+            bettingSpan.id = spanId
+            bettingSpan.classList.add(classText)
+            bettingSpan.style.fontSize = '0.9em'
+            bettingSpan.style.marginTop = '12px'
+            bettingSpan.style.display = 'inline-block'
+            bettingSpan.style.width = '100%'
+            bettingSpan.style.textAlign = 'center'
+            document
+                .getElementById(fighterSubmitBtnId)
+                .parentNode.appendChild(bettingSpan)
+        }
+
+        if (matchData.match_format == 'exhibition') {
+            bettingSpan.innerText = 'Exhibition match'
+            return
+        }
+
+        let redVsBlueInfo = calculateRedVsBlueMatchData(
+            matchData.fighter_red_info?.matches,
+            matchData.fighter_red_info?.id,
+            matchData.fighter_blue_info?.id
+        )
+
+        let winsVs = 0
+        if (fighterSubmitBtnId == 'player1') {
+            winsVs = redVsBlueInfo.redWinsVsBlue
+        } else {
+            winsVs =
+                redVsBlueInfo.redMatchesVsBlue - redVsBlueInfo.redWinsVsBlue
+        }
+
+        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${
+            fighterInfo.tier_elo
+        }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${
+            fighterInfo.stats.total_matches
+        } | Wins VS: ${winsVs}`
+    }
+
+    updateForPlayer(
+        'player1',
+        bettingSpanIdRed,
+        'redtext',
+        matchData.fighter_red_info
+    )
+    updateForPlayer(
+        'player2',
+        bettingSpanIdBlue,
+        'bluetext',
+        matchData.fighter_blue_info
+    )
+}
+
+/**
+ * Calculate the amount to wager
+ *
+ * @param {number} balance - Users balance, [0, ...]
+ * @param {number} confidence - Confidence of the betting algorithm, [0, 1] or null
+ * @param {string} matchFormat - Match format, should be one of "exhibition", "tournament", "matchmaking"
+ * @param {string} matchTier - Match tier, should be one of "X", "S", "A", "B", "P"
+ * @returns
+ */
+function getWagerAmount(balance, confidence, matchFormat, matchTier) {
+    if (matchFormat == 'tournament' && ALL_IN_TOURNAMENTS == true) {
+        verboseLog(
+            'Detected tournament format and going all in on tournaments is set. So going all in.'
+        )
         return balance
     }
 
-    if (match_format == 'exhibition' && DOLLAR_EXHIBITIONS == true) {
-        return 1
+    if (matchFormat == 'exhibition') {
+        if (EXHIBITION_BET == 0) {
+            verboseLog(
+                'Detected exhibition matches and exhibition bet set to $0, not betting.'
+            )
+            return ''
+        }
+
+        verboseLog(
+            `Detected exhibition betting exhibition bet amount \$${EXHIBITION_BET}`
+        )
+
+        return EXHIBITION_BET
     }
 
-    if(ALL_IN_UNTIL != 0 && balance < ALL_IN_UNTIL) {
+    if (matchFormat == 'matchmaking') {
+        if (matchTier == 'X' && BET_TIER_X == false) {
+            verboseLog('Disabled betting on X tier.')
+            return ''
+        }
+        if (matchTier == 'S' && BET_TIER_S == false) {
+            verboseLog('Disabled betting on S tier.')
+            return ''
+        }
+        if (matchTier == 'A' && BET_TIER_A == false) {
+            verboseLog('Disabled betting on A tier.')
+            return ''
+        }
+        if (matchTier == 'B' && BET_TIER_B == false) {
+            verboseLog('Disabled betting on B tier.')
+            return ''
+        }
+        if (matchTier == 'P' && BET_TIER_P == false) {
+            verboseLog('Disabled betting on P tier.')
+            return ''
+        }
+    }
+
+    if (ALL_IN_UNTIL != 0 && balance < ALL_IN_UNTIL) {
+        verboseLog(
+            `All in until is set (\$${ALL_IN_UNTIL}) and balance (\$${balance}) is less than the value therefore going all in.`
+        )
         return balance
     }
 
     if (confidence == null) {
+        verboseLog(
+            'Betting method did not produce a confidence so only betting $1.'
+        )
         return 1
     }
 
-    let percentageBet = 0
-    let amountBet = 0
+    // By default we use the entire balance
     let wagerAmount = balance * confidence
 
+    let percentageBet = 0
+    let amountBet = 0
+
+    // If MAX_BET_PERCENTAGE is enabled we want to bet using this as the theoretical max
     if (MAX_BET_PERCENTAGE != 0) {
         percentageBet = wagerAmount * (MAX_BET_PERCENTAGE / 100)
     }
 
+    // If MAX_BET_AMOUNT is enabled we want to bet using this as the theoretical max
     if (MAX_BET_AMOUNT != 0) {
         amountBet = Math.min(MAX_BET_AMOUNT, balance) * confidence
     }
 
     if (percentageBet != 0 && amountBet != 0) {
+        // If both percentage and amount bets are enabled take the smallest
+        verboseLog(
+            `Both max bet amount set (\$${MAX_BET_AMOUNT}) and max bet percentage set (%${MAX_BET_PERCENTAGE}). Taking the lowest of both (\$${Math.round(
+                percentageBet
+            )}, \$${Math.round(amountBet)}).`
+        )
         wagerAmount = Math.min(percentageBet, amountBet)
     } else if (percentageBet != 0) {
+        // If only percentage is enabled take the percentage bet
+        verboseLog(
+            `Only max percentage percentage set (%${MAX_BET_PERCENTAGE}) using to determine bet amount.`
+        )
         wagerAmount = percentageBet
     } else if (amountBet != 0) {
+        // If only amount bet is enabled take the amount bet
+        verboseLog(
+            `Only max percentage amount set (\$${MAX_BET_AMOUNT}) using to determine bet amount.`
+        )
         wagerAmount = amountBet
     }
 
+    // Return the rounded amount to bet
+    verboseLog(`Betting \$${Math.round(wagerAmount)}`)
     return Math.round(wagerAmount)
 }
 
+/**
+ * Updates the bet settings as defined by user
+ *
+ * @param {object} betSettings
+ */
 function updateBetSettings(betSettings) {
+    verboseLog('Detected bet settings updates')
+    verboseLog(betSettings)
+
     // Update Bet Mode
     let betMode = betSettings.betMode
     if (betMode in BET_MODES) {
@@ -205,13 +488,13 @@ function updateBetSettings(betSettings) {
     }
 
     // Update All In Until
-    ALL_IN_UNTIL = betSettings.allInUntil
+    ALL_IN_UNTIL = Number(betSettings.allInUntil)
 
     // Update Max Bet Percentage
-    MAX_BET_PERCENTAGE = betSettings.maxBetPercentage
+    MAX_BET_PERCENTAGE = Number(betSettings.maxBetPercentage)
 
     // Update Max Bet Amount
-    MAX_BET_AMOUNT = betSettings.maxBetAmount
+    MAX_BET_AMOUNT = Number(betSettings.maxBetAmount)
 
     // Update Tournament all in
     ALL_IN_TOURNAMENTS = betSettings.allInTournaments
@@ -219,83 +502,124 @@ function updateBetSettings(betSettings) {
     // Enable Betting
     ENABLE_BETTING = betSettings.enableBetting
 
-    // Only $1 Exhibition Matches
-    DOLLAR_EXHIBITIONS = betSettings.dollarExhibitions
+    // Amount to bet on Exhibitions
+    EXHIBITION_BET = Number(betSettings.exhibitionBet)
+
+    // Bet Tiers
+    BET_TIER_X = betSettings.betTier.x
+    BET_TIER_S = betSettings.betTier.s
+    BET_TIER_A = betSettings.betTier.a
+    BET_TIER_B = betSettings.betTier.b
+    BET_TIER_P = betSettings.betTier.p
 }
 
-getStorageBetSettings()
-    .then((betSettings) => {
-        let updateDefaults = false
-        if (betSettings == null) {
-            betSettings = {
-                betMode: BET_MODE,
-                allInUntil: ALL_IN_UNTIL,
-                maxBetPercentage: MAX_BET_PERCENTAGE,
-                maxBetAmount: MAX_BET_AMOUNT,
-                allInTournaments: ALL_IN_TOURNAMENTS,
-                enableBetting: ENABLE_BETTING,
-                dollarExhibitions: DOLLAR_EXHIBITIONS,
-            }
-        } else {
-            if (betSettings.betMode == null) {
-                updateDefaults = true
-                betSettings.betMode = BET_MODE
-            }
-            if (betSettings.allInUntil == null) {
-                updateDefaults = true
-                betSettings.allInUntil = ALL_IN_UNTIL
-            }
-            if (betSettings.maxBetAmount == null) {
-                updateDefaults = true
-                betSettings.maxBetAmount = MAX_BET_AMOUNT
-            }
-            if (betSettings.maxBetPercentage == null) {
-                updateDefaults = true
-                betSettings.maxBetPercentage = MAX_BET_PERCENTAGE
-            }
-            if (betSettings.allInTournaments == null) {
-                updateDefaults = true
-                betSettings.allInTournaments = ALL_IN_TOURNAMENTS
-            }
+/**
+ * Updates debug settings for extension
+ *
+ * @param {object} debugSettings
+ */
+function updateDebugSettings(debugSettings) {
+    DEBUG_ENABLED = debugSettings.debugEnabled
 
-            if (betSettings.enableBetting == null) {
-                updateDefaults = true
-                betSettings.enableBetting = ENABLE_BETTING
-            }
+    verboseLog('Detected debug settings changes')
+    verboseLog(debugSettings)
+}
 
-            if (betSettings.dollarExhibitions == null) {
-                updateDefaults = true
-                betSettings.dollarExhibitions = DOLLAR_EXHIBITIONS
-            }
-        }
+/**
+ * Updates app settings
+ *
+ * @param {object} appSettings
+ */
+function updateAppSettings(appSettings) {
+    ENABLE_OVERLAY = appSettings.enableOverlay
 
-        if (updateDefaults == true) {
-            setStorageBetSettings(
-                betSettings.betMode,
-                betSettings.allInUntil,
-                betSettings.maxBetPercentage,
-                betSettings.maxBetAmount,
-                betSettings.allInTournaments,
-                betSettings.enableBetting,
-                betSettings.dollarExhibitions
-            )
-        }
-        updateBetSettings(betSettings)
-    })
-    .catch((err) => {
-        console.error(
-            `Failed to properly update bet settings into extension storage. ${err}`
-        )
-    })
+    verboseLog('Detecting app settings changes')
+    verboseLog(appSettings)
 
-chrome.storage.onChanged.addListener((changes, namespace) => {
-    if (namespace != 'local') {
+    // Force a refetching of data
+    FETCH_FIGHTER_DATA = true
+}
+
+/**
+ * Message to print to console if debug mode set
+ *
+ * @param {string} message
+ */
+function verboseLog(message) {
+    if (DEBUG_ENABLED == false) {
         return
     }
 
-    if ('betSettings' in changes) {
-        updateBetSettings(changes.betSettings.newValue)
-    }
-})
+    chrome.runtime.sendMessage({ message: message })
+}
 
-setInterval(run, RUN_INTERVAL)
+// Initialize the application
+matchDataStorage
+    .initializeCurrentMatchData()
+    .then(() =>
+        betSettingsStorage.initializeBetSettings(
+            BET_MODE,
+            ALL_IN_UNTIL,
+            MAX_BET_PERCENTAGE,
+            MAX_BET_AMOUNT,
+            ALL_IN_TOURNAMENTS,
+            ENABLE_BETTING,
+            EXHIBITION_BET,
+            {
+                x: BET_TIER_X,
+                s: BET_TIER_S,
+                a: BET_TIER_A,
+                b: BET_TIER_B,
+                p: BET_TIER_P,
+            }
+        )
+    )
+    .then(() => matchStatusStorage.initializeMatchStatus())
+    .then(() => winningsStorage.updateWinnings(0))
+    .then(() => appSettingsStorage.initializeAppSettings(ENABLE_OVERLAY))
+    .then(() => appSettingsStorage.getAppSettings())
+    .then((appSettings) => {
+        updateAppSettings(appSettings)
+        return debugStorage.initializeDebugSettings()
+    })
+    .then(() => debugStorage.getDebugSettings())
+    .then((debugSettings) => {
+        updateDebugSettings(debugSettings)
+        return betSettingsStorage.getBetSettings()
+    })
+    .then((betSettings) => {
+        updateBetSettings(betSettings)
+
+        chrome.storage.onChanged.addListener((changes, namespace) => {
+            if (namespace != 'local') {
+                return
+            }
+
+            if ('betSettings' in changes) {
+                updateBetSettings(changes.betSettings.newValue)
+            }
+
+            if ('debugSettings' in changes) {
+                updateDebugSettings(changes.debugSettings.newValue)
+            }
+
+            if ('appSettings' in changes) {
+                updateAppSettings(changes.appSettings.newValue)
+            }
+        })
+
+        chrome.runtime.onMessage.addListener(
+            (request, sender, sendResponse) => {
+                if ('reBet' in request) {
+                    verboseLog('Manual re-bet received.')
+                    let wagerInput = document.getElementById('wager')
+                    if (wagerInput.style.display != 'none') {
+                        wagerInput.value = ''
+                    }
+                    FETCH_FIGHTER_DATA = true
+                }
+            }
+        )
+
+        setInterval(run, RUN_INTERVAL)
+    })
