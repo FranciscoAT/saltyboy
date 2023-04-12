@@ -200,22 +200,28 @@ function placeBets(matchData, saltyBetStatus) {
         PREV_BALANCE = balance
     }
 
-    wagerInput.value = getWagerAmount(
+    let wagerAmount = getWagerAmount(
         balance,
         betData.confidence,
         matchData.match_format
-    ).toString()
-    if (betData.colour == 'red') {
-        fighterRedBtn.click()
-    } else {
-        fighterBlueBtn.click()
-    }
-
-    verboseLog(
-        `Betting on ${betData.colour} with a confidence of ${
-            Math.round(betData.confidence * 100) / 100
-        }`
     )
+
+    if (wagerAmount != '') {
+        wagerInput.value = wagerAmount.toString()
+        if (betData.colour == 'red') {
+            fighterRedBtn.click()
+        } else {
+            fighterBlueBtn.click()
+        }
+
+        verboseLog(
+            `Betting on ${betData.colour} with a confidence of ${
+                Math.round(betData.confidence * 100) / 100
+            }`
+        )
+    } else {
+        verboseLog('Wager amount returned empty, not betting.')
+    }
 }
 
 /**
@@ -319,6 +325,19 @@ function getWagerAmount(balance, confidence, matchFormat) {
             'Detected tournament format and going all in on tournaments is set. So going all in.'
         )
         return balance
+    }
+
+    if (matchFormat == 'exhibition') {
+        if (DOLLAR_EXHIBITIONS == true) {
+            verboseLog(
+                'Detected exhibition matches and dollar exhibitions set so only betting $1.'
+            )
+            return 1
+        }
+
+        verboseLog('Detected exhibition so not betting at all.')
+
+        return ''
     }
 
     if (matchFormat == 'exhibition' && DOLLAR_EXHIBITIONS == true) {
@@ -512,6 +531,11 @@ matchDataStorage
         chrome.runtime.onMessage.addListener(
             (request, sender, sendResponse) => {
                 if ('reBet' in request) {
+                    verboseLog('Manual re-bet received.')
+                    let wagerInput = document.getElementById('wager')
+                    if (wagerInput.style.display != 'none') {
+                        wagerInput.value = ''
+                    }
                     FETCH_FIGHTER_DATA = true
                 }
             }

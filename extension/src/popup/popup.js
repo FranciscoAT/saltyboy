@@ -357,8 +357,12 @@ debugEnabled.addEventListener('change', updateDebugSettings)
 
 enableOverlay.addEventListener('change', updateAppSettings)
 
-reBetBtn.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ reBet: true })
+reBetBtn.addEventListener('click', async () => {
+    let [tab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true,
+    })
+    chrome.tabs.sendMessage(tab.id, { reBet: true })
 })
 
 version.innerText = chrome.runtime.getManifest().version
