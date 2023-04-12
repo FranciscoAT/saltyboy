@@ -23,6 +23,11 @@ let allInTournaments = document.getElementById('all-in-tournaments')
 let exhibitionBet = document.getElementById('exhibition-bet')
 let betModeTitle = document.getElementById('bet-mode-title')
 let reBetBtn = document.getElementById('re-bet-btn')
+let betTierX = document.getElementById('bet-tier-x')
+let betTierS = document.getElementById('bet-tier-s')
+let betTierA = document.getElementById('bet-tier-a')
+let betTierB = document.getElementById('bet-tier-b')
+let betTierP = document.getElementById('bet-tier-p')
 
 // App Settings
 let enableOverlay = document.getElementById('enable-overlay')
@@ -99,7 +104,14 @@ function updateBetSettings() {
         maxBetAmount.value,
         allInTournaments.checked,
         enableBetting.checked,
-        exhibitionBet.value
+        exhibitionBet.value,
+        {
+            x: betTierX.checked,
+            s: betTierS.checked,
+            a: betTierA.checked,
+            b: betTierB.checked,
+            p: betTierP.checked,
+        }
     )
 
     updateBetModeInfo(betMode.value)
@@ -267,6 +279,11 @@ betSettingsStorage.getBetSettings().then((betSettings) => {
     betMode.value = betSettings.betMode
     allInTournaments.checked = betSettings.allInTournaments
     exhibitionBet.value = betSettings.exhibitionBet
+    betTierX.checked = betSettings.betTier.x
+    betTierS.checked = betSettings.betTier.s
+    betTierA.checked = betSettings.betTier.a
+    betTierB.checked = betSettings.betTier.b
+    betTierP.checked = betSettings.betTier.p
     updateBetModeInfo(betSettings.betMode)
 })
 
@@ -312,6 +329,11 @@ maxBetAmount.addEventListener('change', updateBetSettings)
 enableBetting.addEventListener('change', updateBetSettings)
 allInTournaments.addEventListener('change', updateBetSettings)
 exhibitionBet.addEventListener('change', updateBetSettings)
+betTierX.addEventListener('change', updateBetSettings)
+betTierS.addEventListener('change', updateBetSettings)
+betTierA.addEventListener('change', updateBetSettings)
+betTierB.addEventListener('change', updateBetSettings)
+betTierP.addEventListener('change', updateBetSettings)
 
 debugInfoTitle.addEventListener('click', () => {
     toggleSection('debug-info')

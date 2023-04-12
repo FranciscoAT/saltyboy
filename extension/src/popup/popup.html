@@ -101,6 +101,37 @@
                             <input type="number" class="wider" id="exhibition-bet" min="0">
                             <div class="tooltip" title="Amount to bet on ALL exhibitions. Set to 0 to disable exhibition betting.">?</div>
                         </div>
+                        <div>
+                            <span>Enable Betting for Tier</span>
+                            <div class="tooltip" title="For matchmaking only enable or disable betting for certain tiers. Ignored in Tournaments and Exhibition matches.">?</div>
+                            <br />
+                            <table class="bet-tier-table">
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <label for="bet-tier-x">X</label>
+                                            <input type="checkbox" id="bet-tier-x">
+                                        </td>
+                                        <td>
+                                            <label for="bet-tier-s">S</label>
+                                            <input type="checkbox" id="bet-tier-s">
+                                        </td>
+                                        <td>
+                                            <label for="bet-tier-A">A</label>
+                                            <input type="checkbox" id="bet-tier-a">
+                                        </td>
+                                        <td>
+                                            <label for="bet-tier-b">B</label>
+                                            <input type="checkbox" id="bet-tier-b">
+                                        </td>
+                                        <td>
+                                            <label for="bet-tier-p">P</label>
+                                            <input type="checkbox" id="bet-tier-p">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </form>
                 </div>
                 <div id="bet-mode-title" class="collapsible-title">

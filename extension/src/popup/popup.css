@@ -176,3 +176,11 @@ input[type="checkbox"] {
 .capitalize {
     text-transform: capitalize;
 }
+
+.bet-tier-table td {
+    padding-left: 4px;
+}
+
+.bet-tier-table label {
+    vertical-align: middle;
+}

@@ -33,6 +33,11 @@ let BET_MODE = 'naive'
 let ALL_IN_TOURNAMENTS = true
 let ENABLE_BETTING = true
 let EXHIBITION_BET = 1
+let BET_TIER_X = true
+let BET_TIER_S = true
+let BET_TIER_A = true
+let BET_TIER_B = true
+let BET_TIER_P = true
 
 // Extension State Values
 let LAST_STATUS = null
@@ -212,7 +217,8 @@ function placeBets(matchData, saltyBetStatus) {
     let wagerAmount = getWagerAmount(
         balance,
         betData.confidence,
-        matchData.match_format
+        matchData.match_format,
+        matchData.tier
     )
 
     if (wagerAmount != '') {
@@ -354,10 +360,11 @@ function updateOverlay(matchData, clearOverlay) {
  *
  * @param {number} balance - Users balance, [0, ...]
  * @param {number} confidence - Confidence of the betting algorithm, [0, 1] or null
- * @param {*} matchFormat - Match format, should be one of "exhibition", "tournament", "matchmaking"
+ * @param {string} matchFormat - Match format, should be one of "exhibition", "tournament", "matchmaking"
+ * @param {string} matchTier - Match tier, should be one of "X", "S", "A", "B", "P"
  * @returns
  */
-function getWagerAmount(balance, confidence, matchFormat) {
+function getWagerAmount(balance, confidence, matchFormat, matchTier) {
     if (matchFormat == 'tournament' && ALL_IN_TOURNAMENTS == true) {
         verboseLog(
             'Detected tournament format and going all in on tournaments is set. So going all in.'
@@ -378,6 +385,29 @@ function getWagerAmount(balance, confidence, matchFormat) {
         )
 
         return EXHIBITION_BET
+    }
+
+    if (matchFormat == 'matchmaking') {
+        if (matchTier == 'X' && BET_TIER_X == false) {
+            verboseLog('Disabled betting on X tier.')
+            return ''
+        }
+        if (matchTier == 'S' && BET_TIER_S == false) {
+            verboseLog('Disabled betting on S tier.')
+            return ''
+        }
+        if (matchTier == 'A' && BET_TIER_A == false) {
+            verboseLog('Disabled betting on A tier.')
+            return ''
+        }
+        if (matchTier == 'B' && BET_TIER_B == false) {
+            verboseLog('Disabled betting on B tier.')
+            return ''
+        }
+        if (matchTier == 'P' && BET_TIER_P == false) {
+            verboseLog('Disabled betting on P tier.')
+            return ''
+        }
     }
 
     if (ALL_IN_UNTIL != 0 && balance < ALL_IN_UNTIL) {
@@ -471,6 +501,13 @@ function updateBetSettings(betSettings) {
 
     // Amount to bet on Exhibitions
     EXHIBITION_BET = Number(betSettings.exhibitionBet)
+
+    // Bet Tiers
+    BET_TIER_X = betSettings.betTier.x
+    BET_TIER_S = betSettings.betTier.s
+    BET_TIER_A = betSettings.betTier.a
+    BET_TIER_B = betSettings.betTier.b
+    BET_TIER_P = betSettings.betTier.p
 }
 
 /**
@@ -524,7 +561,14 @@ matchDataStorage
             MAX_BET_AMOUNT,
             ALL_IN_TOURNAMENTS,
             ENABLE_BETTING,
-            EXHIBITION_BET
+            EXHIBITION_BET,
+            {
+                x: BET_TIER_X,
+                s: BET_TIER_S,
+                a: BET_TIER_A,
+                b: BET_TIER_B,
+                p: BET_TIER_P,
+            }
         )
     )
     .then(() => matchStatusStorage.initializeMatchStatus())
