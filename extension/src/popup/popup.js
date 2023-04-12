@@ -5,6 +5,7 @@ import * as betSettingsStorage from '../utils/storage/betSettings.js'
 import * as winningsStorage from '../utils/storage/winnings.js'
 import * as matchStatusStorage from '../utils/storage/matchStatus.js'
 import * as debugStorage from '../utils/storage/debugSettings.js'
+import * as appSettingsStorage from '../utils/storage/appSettings.js'
 
 // TODO: tournament span id is tournament-note
 // Debug Info
@@ -26,6 +27,9 @@ let enableBetting = document.getElementById('enable-betting')
 let allInTournaments = document.getElementById('all-in-tournaments')
 let dollarExhibitions = document.getElementById('dollar-exhibitions')
 let betModeTitle = document.getElementById('bet-mode-title')
+
+// App Settings
+let enableOverlay = document.getElementById('enable-overlay')
 
 // Current Bet Data
 let matchTable = document.getElementById('match-table')
@@ -242,7 +246,13 @@ function resize() {
 
 function alertLocalStorage() {
     chrome.storage.local.get(
-        ['betSettings', 'matchStatus', 'winnings', 'debugSettings'],
+        [
+            'betSettings',
+            'matchStatus',
+            'winnings',
+            'debugSettings',
+            'appSettings',
+        ],
         (localStorage) => {
             alert(JSON.stringify(localStorage, null, 2))
         }
@@ -257,6 +267,10 @@ function updateDebugSettings() {
     debugStorage.setDebugSettings(debugEnabled.checked)
 }
 
+function updateAppSettings() {
+    appSettingsStorage.setAppSettings(enableOverlay.checked)
+}
+
 // Sync bet settings on popup load
 betSettingsStorage.getBetSettings().then((betSettings) => {
     allInUntil.value = betSettings.allInUntil
@@ -267,6 +281,11 @@ betSettingsStorage.getBetSettings().then((betSettings) => {
     allInTournaments.checked = betSettings.allInTournaments
     dollarExhibitions.checked = betSettings.dollarExhibitions
     updateBetModeInfo(betSettings.betMode)
+})
+
+// Sync app settings
+appSettingsStorage.getAppSettings().then((appSettings) => {
+    enableOverlay.checked = appSettings.enableOverlay
 })
 
 // Sync match status on popup load
@@ -323,6 +342,8 @@ betModeTitle.addEventListener('click', () => {
     toggleSection('bet-mode')
 })
 
+toggleSection('bet-mode')
+
 resetSessionWinningsBtn.addEventListener('click', () => {
     winningsStorage.resetSessionWinnings()
 })
@@ -332,6 +353,8 @@ alertLocalStorageBtn.addEventListener('click', () => {
 })
 
 debugEnabled.addEventListener('change', updateDebugSettings)
+
+enableOverlay.addEventListener('change', updateAppSettings)
 
 version.innerText = chrome.runtime.getManifest().version
 

@@ -31,6 +31,10 @@ table, td {
     border-collapse: collapse;
 }
 
+input[type="checkbox"] {
+    vertical-align: middle;
+}
+
 .inline > * {
     display: inline;
 }

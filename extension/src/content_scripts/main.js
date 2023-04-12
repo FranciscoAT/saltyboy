@@ -3,6 +3,7 @@ import * as betSettingsStorage from '../utils/storage/betSettings.js'
 import * as winningsStorage from '../utils/storage/winnings.js'
 import * as matchStatusStorage from '../utils/storage/matchStatus.js'
 import * as debugStorage from '../utils/storage/debugSettings.js'
+import * as appSettingsStorage from '../utils/storage/appSettings.js'
 
 // // Betting Imports
 import naiveBet from './bet_modes/naive.js'
@@ -42,6 +43,9 @@ let PREV_BALANCE = null
 
 // Debug Information
 let DEBUG_ENABLED = false
+
+// App Settings
+let ENABLE_OVERLAY = true
 
 /**
  * Main logic loop of the application.
@@ -341,6 +345,18 @@ function updateDebugSettings(debugSettings) {
 }
 
 /**
+ * Updates app settings
+ *
+ * @param {object} appSettings
+ */
+function updateAppSettings(appSettings) {
+    ENABLE_OVERLAY = appSettings.enableOverlay
+
+    verboseLog('Detecting app settings changes')
+    verboseLog(appSettings)
+}
+
+/**
  * Message to print to console if debug mode set
  *
  * @param {string} message
@@ -370,6 +386,7 @@ matchDataStorage
     .then(() => matchStatusStorage.initializeMatchStatus())
     .then(() => winningsStorage.updateWinnings(0))
     .then(() => debugStorage.initializeDebugSettings())
+    .then(() => appSettingsStorage.initializeAppSettings(ENABLE_OVERLAY))
     .then(() => debugStorage.getDebugSettings())
     .then((debugSettings) => {
         updateDebugSettings(debugSettings)
@@ -389,6 +406,10 @@ matchDataStorage
 
             if ('debugSettings' in changes) {
                 updateDebugSettings(changes.debugSettings.newValue)
+            }
+
+            if ('appSettings' in changes) {
+                updateAppSettings(changes.appSettings.newValue)
             }
         })
 
