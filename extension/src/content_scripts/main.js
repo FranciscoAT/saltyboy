@@ -32,7 +32,7 @@ let MAX_BET_AMOUNT = 0
 let BET_MODE = 'naive'
 let ALL_IN_TOURNAMENTS = true
 let ENABLE_BETTING = true
-let DOLLAR_EXHIBITIONS = true
+let EXHIBITION_BET = 1
 
 // Extension State Values
 let LAST_STATUS = null
@@ -283,10 +283,11 @@ function updateOverlay(matchData) {
             matchData.fighter_blue_info?.id
         )
 
+        let winsVs = 0
         if (fighterSubmitBtnId == 'player1') {
-            let winsVs = redVsBlueInfo.redWinsVsBlue
+            winsVs = redVsBlueInfo.redWinsVsBlue
         } else {
-            let winsVs =
+            winsVs =
                 redVsBlueInfo.redMatchesVsBlue - redVsBlueInfo.redWinsVsBlue
         }
 
@@ -328,23 +329,18 @@ function getWagerAmount(balance, confidence, matchFormat) {
     }
 
     if (matchFormat == 'exhibition') {
-        if (DOLLAR_EXHIBITIONS == true) {
+        if (EXHIBITION_BET == 0) {
             verboseLog(
-                'Detected exhibition matches and dollar exhibitions set so only betting $1.'
+                'Detected exhibition matches and exhibition bet set to $0, not betting.'
             )
-            return 1
+            return ''
         }
 
-        verboseLog('Detected exhibition so not betting at all.')
-
-        return ''
-    }
-
-    if (matchFormat == 'exhibition' && DOLLAR_EXHIBITIONS == true) {
         verboseLog(
-            'Detected exhibition matches and dollar exhibitions set so only betting $1.'
+            `Detected exhibition betting exhibition bet amount \$${EXHIBITION_BET}`
         )
-        return 1
+
+        return EXHIBITION_BET
     }
 
     if (ALL_IN_UNTIL != 0 && balance < ALL_IN_UNTIL) {
@@ -422,13 +418,13 @@ function updateBetSettings(betSettings) {
     }
 
     // Update All In Until
-    ALL_IN_UNTIL = betSettings.allInUntil
+    ALL_IN_UNTIL = Number(betSettings.allInUntil)
 
     // Update Max Bet Percentage
-    MAX_BET_PERCENTAGE = betSettings.maxBetPercentage
+    MAX_BET_PERCENTAGE = Number(betSettings.maxBetPercentage)
 
     // Update Max Bet Amount
-    MAX_BET_AMOUNT = betSettings.maxBetAmount
+    MAX_BET_AMOUNT = Number(betSettings.maxBetAmount)
 
     // Update Tournament all in
     ALL_IN_TOURNAMENTS = betSettings.allInTournaments
@@ -436,8 +432,8 @@ function updateBetSettings(betSettings) {
     // Enable Betting
     ENABLE_BETTING = betSettings.enableBetting
 
-    // Only $1 Exhibition Matches
-    DOLLAR_EXHIBITIONS = betSettings.dollarExhibitions
+    // Amount to bet on Exhibitions
+    EXHIBITION_BET = Number(betSettings.exhibitionBet)
 }
 
 /**
@@ -491,7 +487,7 @@ matchDataStorage
             MAX_BET_AMOUNT,
             ALL_IN_TOURNAMENTS,
             ENABLE_BETTING,
-            DOLLAR_EXHIBITIONS
+            EXHIBITION_BET
         )
     )
     .then(() => matchStatusStorage.initializeMatchStatus())

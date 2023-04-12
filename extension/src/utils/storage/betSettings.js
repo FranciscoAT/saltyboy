@@ -7,7 +7,7 @@
  * @param {number} maxBetAmount  - Max amount to ever bet. [0, ...]
  * @param {boolean} allInTournaments - Whether or not to go all in on tournaments.
  * @param {boolean} enableBetting  - Enable disable betting in the extension.
- * @param {boolean} dollarExhibitions - Enable disable betting $1 on exhibitions.
+ * @param {boolean} exhibitionBet - Amount to bet on exhibitions.
  * @returns
  */
 function setBetSettings(
@@ -17,7 +17,7 @@ function setBetSettings(
     maxBetAmount,
     allInTournaments,
     enableBetting,
-    dollarExhibitions
+    exhibitionBet
 ) {
     return new Promise((res) => {
         chrome.storage.local.set(
@@ -29,7 +29,7 @@ function setBetSettings(
                     maxBetAmount: maxBetAmount,
                     allInTournaments: allInTournaments,
                     enableBetting: enableBetting,
-                    dollarExhibitions: dollarExhibitions,
+                    exhibitionBet: exhibitionBet,
                 },
             },
             () => {
@@ -49,7 +49,7 @@ function setBetSettings(
  *      "maxBetPercentage": number [0, 100],
  *      "allInTournaments": boolean,
  *      "enableBetting": boolean,
- *      "dollarExhibitions": boolean,
+ *      "exhibitionBet": boolean,
  *  }
  *  ```
  */
@@ -70,7 +70,7 @@ function getBetSettings() {
  * @param {number} maxBetAmount  - Max amount to ever bet. [0, ...]
  * @param {boolean} allInTournaments - Whether or not to go all in on tournaments.
  * @param {boolean} enableBetting  - Enable disable betting in the extension.
- * @param {boolean} dollarExhibitions - Enable disable betting $1 on exhibitions.
+ * @param {boolean} exhibitionBet - Enable disable betting $1 on exhibitions.
  * @returns
  */
 function initializeBetSettings(
@@ -80,7 +80,7 @@ function initializeBetSettings(
     maxBetAmount,
     allInTournaments,
     enableBetting,
-    dollarExhibitions
+    exhibitionBet
 ) {
     return getBetSettings().then((betSettings) => {
         if (betSettings != null || betSettings != null) {
@@ -104,10 +104,7 @@ function initializeBetSettings(
             maxBetAmount = getDefault(maxBetAmount, 'maxBetAmount')
             allInTournaments = getDefault(allInTournaments, 'allInTournaments')
             enableBetting = getDefault(enableBetting, 'enableBetting')
-            dollarExhibitions = getDefault(
-                dollarExhibitions,
-                'dollarExhibitions'
-            )
+            exhibitionBet = getDefault(exhibitionBet, 'exhibitionBet')
         }
 
         return setBetSettings(
@@ -117,7 +114,7 @@ function initializeBetSettings(
             maxBetAmount,
             allInTournaments,
             enableBetting,
-            dollarExhibitions
+            exhibitionBet
         )
     })
 }

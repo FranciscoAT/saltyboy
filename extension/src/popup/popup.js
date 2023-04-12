@@ -25,7 +25,7 @@ let maxBetAmount = document.getElementById('max-bet-amount')
 let betMode = document.getElementById('bet-mode')
 let enableBetting = document.getElementById('enable-betting')
 let allInTournaments = document.getElementById('all-in-tournaments')
-let dollarExhibitions = document.getElementById('dollar-exhibitions')
+let exhibitionBet = document.getElementById('exhibition-bet')
 let betModeTitle = document.getElementById('bet-mode-title')
 let reBetBtn = document.getElementById('re-bet-btn')
 
@@ -113,7 +113,7 @@ function updateBetSettings() {
         maxBetAmount.value,
         allInTournaments.checked,
         enableBetting.checked,
-        dollarExhibitions.checked
+        exhibitionBet.value
     )
 
     updateBetModeInfo(betMode.value)
@@ -280,7 +280,7 @@ betSettingsStorage.getBetSettings().then((betSettings) => {
     enableBetting.checked = betSettings.enableBetting
     betMode.value = betSettings.betMode
     allInTournaments.checked = betSettings.allInTournaments
-    dollarExhibitions.checked = betSettings.dollarExhibitions
+    exhibitionBet.value = betSettings.exhibitionBet
     updateBetModeInfo(betSettings.betMode)
 })
 
@@ -334,7 +334,7 @@ maxBetPercentage.addEventListener('change', updateBetSettings)
 maxBetAmount.addEventListener('change', updateBetSettings)
 enableBetting.addEventListener('change', updateBetSettings)
 allInTournaments.addEventListener('change', updateBetSettings)
-dollarExhibitions.addEventListener('change', updateBetSettings)
+exhibitionBet.addEventListener('change', updateBetSettings)
 
 debugInfoTitle.addEventListener('click', () => {
     toggleSection('debug-info')
