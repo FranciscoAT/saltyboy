@@ -89,7 +89,7 @@ function initializeBetSettings(
                     return defaultValue
                 }
 
-                let storedValue = betSettings.key
+                let storedValue = betSettings[key]
 
                 if (storedValue == null || storedValue == undefined) {
                     return defaultValue

@@ -12,6 +12,7 @@ import rngBet from './bet_modes/rng.js'
 import eloTierBet from './bet_modes/eloTier.js'
 import eloBet from './bet_modes/elo.js'
 import upsetBet from './bet_modes/upset.js'
+import { calculateRedVsBlueMatchData } from '../utils/match.js'
 
 const RUN_INTERVAL = 5000
 const SALTY_BOY_URL = 'https://www.salty-boy.com'
@@ -75,6 +76,7 @@ function run() {
 
     getSaltyBoyMatchData().then((matchData) => {
         placeBets(matchData, saltyBetStatus)
+        updateOverlay(matchData)
     })
 }
 
@@ -217,22 +219,109 @@ function placeBets(matchData, saltyBetStatus) {
 }
 
 /**
+ *
+ * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
+ */
+function updateOverlay(matchData) {
+    let bettingSpanIdBlue = 'betting-blue-overlay'
+    let bettingSpanIdRed = 'betting-red-overlay'
+
+    if (ENABLE_OVERLAY == false) {
+        verboseLog('Overlay disabled. Removing overlay elements if they exist.')
+        function removeBettingSpan(spanId) {
+            let bettingSpan = document.getElementById(spanId)
+            if (bettingSpan != null) {
+                bettingSpan.remove()
+            }
+        }
+
+        removeBettingSpan(bettingSpanIdRed)
+        removeBettingSpan(bettingSpanIdBlue)
+
+        return
+    }
+
+    verboseLog(
+        `Overlay enabled. Updating for ${matchData.fighter_red} vs ${matchData.fighter_blue}`
+    )
+
+    function updateForPlayer(
+        fighterSubmitBtnId,
+        spanId,
+        classText,
+        fighterInfo
+    ) {
+        let bettingSpan = document.getElementById(spanId)
+        if (bettingSpan == null) {
+            bettingSpan = document.createElement('span')
+            bettingSpan.id = spanId
+            bettingSpan.classList.add(classText)
+            bettingSpan.style.fontSize = '0.9em'
+            bettingSpan.style.marginTop = '12px'
+            bettingSpan.style.display = 'inline-block'
+            bettingSpan.style.width = '100%'
+            bettingSpan.style.textAlign = 'center'
+            document
+                .getElementById(fighterSubmitBtnId)
+                .parentNode.appendChild(bettingSpan)
+        }
+
+        if (matchData.match_format == 'exhibition') {
+            bettingSpan.innerText = 'Exhibition match'
+            return
+        }
+
+        let redVsBlueInfo = calculateRedVsBlueMatchData(
+            matchData.fighter_red_info?.matches,
+            matchData.fighter_red_info?.id,
+            matchData.fighter_blue_info?.id
+        )
+
+        if (fighterSubmitBtnId == 'player1') {
+            let winsVs = redVsBlueInfo.redWinsVsBlue
+        } else {
+            let winsVs =
+                redVsBlueInfo.redMatchesVsBlue - redVsBlueInfo.redWinsVsBlue
+        }
+
+        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${
+            fighterInfo.tier_elo
+        }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${
+            fighterInfo.stats.total_matches
+        } | Wins VS: ${winsVs}`
+    }
+
+    updateForPlayer(
+        'player1',
+        bettingSpanIdRed,
+        'redtext',
+        matchData.fighter_red_info
+    )
+    updateForPlayer(
+        'player2',
+        bettingSpanIdBlue,
+        'bluetext',
+        matchData.fighter_blue_info
+    )
+}
+
+/**
  * Calculate the amount to wager
  *
  * @param {number} balance - Users balance, [0, ...]
  * @param {number} confidence - Confidence of the betting algorithm, [0, 1] or null
- * @param {*} match_format - Match format, should be one of "exhibition", "tournament", "matchmaking"
+ * @param {*} matchFormat - Match format, should be one of "exhibition", "tournament", "matchmaking"
  * @returns
  */
-function getWagerAmount(balance, confidence, match_format) {
-    if (match_format == 'tournament' && ALL_IN_TOURNAMENTS == true) {
+function getWagerAmount(balance, confidence, matchFormat) {
+    if (matchFormat == 'tournament' && ALL_IN_TOURNAMENTS == true) {
         verboseLog(
             'Detected tournament format and going all in on tournaments is set. So going all in.'
         )
         return balance
     }
 
-    if (match_format == 'exhibition' && DOLLAR_EXHIBITIONS == true) {
+    if (matchFormat == 'exhibition' && DOLLAR_EXHIBITIONS == true) {
         verboseLog(
             'Detected exhibition matches and dollar exhibitions set so only betting $1.'
         )
@@ -354,6 +443,9 @@ function updateAppSettings(appSettings) {
 
     verboseLog('Detecting app settings changes')
     verboseLog(appSettings)
+
+    // Force a refetching of data
+    FETCH_FIGHTER_DATA = true
 }
 
 /**
@@ -385,8 +477,12 @@ matchDataStorage
     )
     .then(() => matchStatusStorage.initializeMatchStatus())
     .then(() => winningsStorage.updateWinnings(0))
-    .then(() => debugStorage.initializeDebugSettings())
     .then(() => appSettingsStorage.initializeAppSettings(ENABLE_OVERLAY))
+    .then(() => appSettingsStorage.getAppSettings())
+    .then((appSettings) => {
+        updateAppSettings(appSettings)
+        return debugStorage.initializeDebugSettings()
+    })
     .then(() => debugStorage.getDebugSettings())
     .then((debugSettings) => {
         updateDebugSettings(debugSettings)

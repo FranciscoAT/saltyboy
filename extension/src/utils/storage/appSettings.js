@@ -51,7 +51,7 @@ function initializeAppSettings(enableOverlay) {
                     return defaultValue
                 }
 
-                let storedValue = appSettings.key
+                let storedValue = appSettings[key]
 
                 if (storedValue == null || storedValue == undefined) {
                     return defaultValue
@@ -63,7 +63,7 @@ function initializeAppSettings(enableOverlay) {
             enableOverlay = getDefault(enableOverlay, 'enableOverlay')
         }
 
-        return setBetSettings(enableOverlay)
+        return setAppSettings(enableOverlay)
     })
 }
 
