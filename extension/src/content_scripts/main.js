@@ -76,7 +76,10 @@ function run() {
             LAST_STATUS.currentStatus == 'ongoing' &&
             saltyBetStatus.currentStatus == 'betting'
         ) {
-            FETCH_FIGHTER_DATA = true
+            // Give the Salty Boy server a few seconds to update
+            setTimeout(() => {
+                FETCH_FIGHTER_DATA = true
+            }, 2000)
         }
 
         LAST_STATUS = saltyBetStatus
