@@ -253,6 +253,7 @@ function alertLocalStorage() {
             'appSettings',
         ],
         (localStorage) => {
+            chrome.runtime.sendMessage({ message: localStorage })
             alert(JSON.stringify(localStorage, null, 2))
         }
     )
