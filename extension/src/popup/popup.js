@@ -3,17 +3,12 @@ import { calculateRedVsBlueMatchData } from '../utils/match'
 import * as matchDataStorage from '../utils/storage/matchData.js'
 import * as betSettingsStorage from '../utils/storage/betSettings.js'
 import * as winningsStorage from '../utils/storage/winnings.js'
-import * as matchStatusStorage from '../utils/storage/matchStatus.js'
 import * as debugStorage from '../utils/storage/debugSettings.js'
 import * as appSettingsStorage from '../utils/storage/appSettings.js'
 
 // TODO: tournament span id is tournament-note
 // Debug Info
 let debugInfoTitle = document.getElementById('debug-info-title')
-let loggedIn = document.getElementById('logged-in')
-let statusSpan = document.getElementById('match-status')
-let lastUpdated = document.getElementById('last-updated')
-let betConfirmed = document.getElementById('bet-confirmed')
 let version = document.getElementById('version')
 let alertLocalStorageBtn = document.getElementById('alert-storage')
 let debugEnabled = document.getElementById('debug-enabled')
@@ -68,15 +63,6 @@ const BET_MODE_INFO = {
     eloTier:
         'Bets using the Tiered ELO of the fighters. Whenever a Fighter changes tier they go to 1500 tiered ELO and use a K value of 32. Breaks ties using average bet. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/eloTier.js">Source</a>)',
     upset: 'A reversed method of naive but flips the end result to the fighter who should lose instead of win. (<a href="https://github.com/FranciscoAT/saltyboy/blob/master/extension/src/content_scripts/bet_modes/upset.js">Source</a>)',
-}
-
-function updateStatus(matchStatus) {
-    loggedIn.innerText = matchStatus.loggedIn
-    betConfirmed.innerText = matchStatus.betConfirmed
-    statusSpan.innerText = matchStatus.currentStatus
-    lastUpdated.innerText = new Date().toString()
-
-    resize()
 }
 
 function toggleSection(identifier) {
@@ -289,11 +275,6 @@ appSettingsStorage.getAppSettings().then((appSettings) => {
     enableOverlay.checked = appSettings.enableOverlay
 })
 
-// Sync match status on popup load
-matchStatusStorage.getMatchStatus().then((matchStatus) => {
-    updateStatus(matchStatus)
-})
-
 // Sync current match data
 matchDataStorage.getCurrentMatchData().then((currentData) => {
     updateCurrentData(currentData)
@@ -312,10 +293,6 @@ debugStorage.getDebugSettings().then((debugSettings) => {
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace != 'local') {
         return
-    }
-
-    if ('matchStatus' in changes) {
-        updateStatus(changes.matchStatus.newValue)
     }
 
     if ('currentData' in changes) {

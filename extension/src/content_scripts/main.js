@@ -56,7 +56,14 @@ let ENABLE_OVERLAY = true
 function run() {
     let saltyBetStatus = getSaltyBetStatus()
 
-    if (LAST_STATUS != saltyBetStatus) {
+    if (
+        LAST_STATUS == null ||
+        LAST_STATUS.currentStatus != saltyBetStatus.currentStatus ||
+        LAST_STATUS.loggedIn != saltyBetStatus.loggedIn
+    ) {
+        verboseLog('Detected update in SaltyBet status.')
+        verboseLog(saltyBetStatus)
+
         // We only want to re-fetch fighter data in the event we go from
         // ongoing into betting.
         if (
@@ -250,6 +257,17 @@ function updateOverlay(matchData) {
     verboseLog(
         `Overlay enabled. Updating for ${matchData.fighter_red} vs ${matchData.fighter_blue}`
     )
+
+    let fighterRed = document.getElementById('player1').value
+    let fighterBlue = document.getElementById('player2').value
+
+    if (
+        fighterRed != matchData.fighter_red ||
+        fighterBlue != matchData.fighter_blue
+    ) {
+        verboseLog('Match was out of date from server. Not updating overlay.')
+        return
+    }
 
     function updateForPlayer(
         fighterSubmitBtnId,
