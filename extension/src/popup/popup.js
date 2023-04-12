@@ -27,6 +27,7 @@ let enableBetting = document.getElementById('enable-betting')
 let allInTournaments = document.getElementById('all-in-tournaments')
 let dollarExhibitions = document.getElementById('dollar-exhibitions')
 let betModeTitle = document.getElementById('bet-mode-title')
+let reBetBtn = document.getElementById('re-bet-btn')
 
 // App Settings
 let enableOverlay = document.getElementById('enable-overlay')
@@ -355,6 +356,10 @@ alertLocalStorageBtn.addEventListener('click', () => {
 debugEnabled.addEventListener('change', updateDebugSettings)
 
 enableOverlay.addEventListener('change', updateAppSettings)
+
+reBetBtn.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ reBet: true })
+})
 
 version.innerText = chrome.runtime.getManifest().version
 

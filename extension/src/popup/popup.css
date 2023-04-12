@@ -173,6 +173,6 @@ input[type="checkbox"] {
     display: none;
 }
 
-.capitalize::first-letter {
+.capitalize {
     text-transform: capitalize;
 }

@@ -509,5 +509,13 @@ matchDataStorage
             }
         })
 
+        chrome.runtime.onMessage.addListener(
+            (request, sender, sendResponse) => {
+                if ('reBet' in request) {
+                    FETCH_FIGHTER_DATA = true
+                }
+            }
+        )
+
         setInterval(run, RUN_INTERVAL)
     })

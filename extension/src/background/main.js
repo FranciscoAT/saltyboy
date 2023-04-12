@@ -1,3 +1,5 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log(request.message)
+    if ('message' in request) {
+        console.log(request.message)
+    }
 })
