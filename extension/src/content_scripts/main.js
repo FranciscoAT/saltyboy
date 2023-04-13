@@ -33,6 +33,7 @@ let BET_MODE = 'naive'
 let ALL_IN_TOURNAMENTS = true
 let ENABLE_BETTING = true
 let EXHIBITION_BET = 1
+let UPSET_MODE = false
 let BET_TIER_X = true
 let BET_TIER_S = true
 let BET_TIER_A = true
@@ -226,14 +227,28 @@ function placeBets(matchData, saltyBetStatus) {
 
     if (wagerAmount != '') {
         wagerInput.value = wagerAmount.toString()
-        if (betData.colour == 'red') {
+
+        let betColour = betData.colour
+
+        if (UPSET_MODE == true) {
+            verboseLog(
+                `Upset mode enabled. Betting mode returned ${betData.colour} will bet opposite.`
+            )
+            if (betColour == 'red') {
+                betColour = 'blue'
+            } else {
+                betColour = 'red'
+            }
+        }
+
+        if (betColour == 'red') {
             fighterRedBtn.click()
         } else {
             fighterBlueBtn.click()
         }
 
         verboseLog(
-            `Betting on ${betData.colour} with a confidence of ${
+            `Betting on ${betColour} with a confidence of ${
                 Math.round(betData.confidence * 100) / 100
             }`
         )
@@ -505,6 +520,9 @@ function updateBetSettings(betSettings) {
     // Amount to bet on Exhibitions
     EXHIBITION_BET = Number(betSettings.exhibitionBet)
 
+    // Upset Mode
+    UPSET_MODE = betSettings.upsetMode
+
     // Bet Tiers
     BET_TIER_X = betSettings.betTier.x
     BET_TIER_S = betSettings.betTier.s
@@ -565,6 +583,7 @@ matchDataStorage
             ALL_IN_TOURNAMENTS,
             ENABLE_BETTING,
             EXHIBITION_BET,
+            UPSET_MODE,
             {
                 x: BET_TIER_X,
                 s: BET_TIER_S,

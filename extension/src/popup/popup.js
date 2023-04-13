@@ -14,6 +14,7 @@ let alertLocalStorageBtn = document.getElementById('alert-storage')
 let debugEnabled = document.getElementById('debug-enabled')
 
 // Bet Settings
+let reBetBtn = document.getElementById('re-bet-btn')
 let allInUntil = document.getElementById('all-in-until')
 let maxBetPercentage = document.getElementById('max-bet-percentage')
 let maxBetAmount = document.getElementById('max-bet-amount')
@@ -22,7 +23,7 @@ let enableBetting = document.getElementById('enable-betting')
 let allInTournaments = document.getElementById('all-in-tournaments')
 let exhibitionBet = document.getElementById('exhibition-bet')
 let betModeTitle = document.getElementById('bet-mode-title')
-let reBetBtn = document.getElementById('re-bet-btn')
+let upsetMode = document.getElementById('upset-mode')
 let betTierX = document.getElementById('bet-tier-x')
 let betTierS = document.getElementById('bet-tier-s')
 let betTierA = document.getElementById('bet-tier-a')
@@ -105,6 +106,7 @@ function updateBetSettings() {
         allInTournaments.checked,
         enableBetting.checked,
         exhibitionBet.value,
+        upsetMode.checked,
         {
             x: betTierX.checked,
             s: betTierS.checked,
@@ -280,6 +282,7 @@ betSettingsStorage.getBetSettings().then((betSettings) => {
     betMode.value = betSettings.betMode
     allInTournaments.checked = betSettings.allInTournaments
     exhibitionBet.value = betSettings.exhibitionBet
+    upsetMode.checked = betSettings.upsetMode
     betTierX.checked = betSettings.betTier.x
     betTierS.checked = betSettings.betTier.s
     betTierA.checked = betSettings.betTier.a
@@ -330,6 +333,7 @@ maxBetAmount.addEventListener('change', updateBetSettings)
 enableBetting.addEventListener('change', updateBetSettings)
 allInTournaments.addEventListener('change', updateBetSettings)
 exhibitionBet.addEventListener('change', updateBetSettings)
+upsetMode.addEventListener('change', updateBetSettings)
 betTierX.addEventListener('change', updateBetSettings)
 betTierS.addEventListener('change', updateBetSettings)
 betTierA.addEventListener('change', updateBetSettings)
