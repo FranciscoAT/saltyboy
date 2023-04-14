@@ -27,6 +27,7 @@ const BET_MODES = {
     eloTier: eloTierBet,
     upset: upsetBet,
 }
+const APP_VERSION = chrome.runtime.getManifest().version
 
 // Bet Settings, values listed are defaults on init
 let ALL_IN_UNTIL = 0
@@ -147,7 +148,12 @@ function getSaltyBetStatus() {
  */
 function getSaltyBoyMatchData() {
     verboseLog('Getting fighter data from SaltyBoy')
-    return fetch(`${SALTY_BOY_URL}/current-match`, { method: 'get' })
+    return fetch(
+        `${SALTY_BOY_URL}/current-match?saltyboy_version=${APP_VERSION}`,
+        {
+            method: 'get',
+        }
+    )
         .then((res) => res.json())
         .then((data) => {
             return data
