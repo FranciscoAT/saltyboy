@@ -83,6 +83,7 @@ function run() {
             saltyBetStatus.currentStatus == 'betting'
         ) {
             updateOverlay({}, true)
+            updateBetOverlay({}, saltyBetStatus, true)
 
             // Give the Salty Boy server a few seconds to update
             if (FETCH_QUEUED == false) {
@@ -95,6 +96,14 @@ function run() {
             }
 
             FETCH_QUEUED = true
+        }
+
+        if (
+            LAST_STATUS != null &&
+            LAST_STATUS.currentStatus == 'betting' &&
+            saltyBetStatus.currentStatus == 'ongoing'
+        ) {
+            updateBetOverlay({}, saltyBetStatus, false)
         }
 
         LAST_STATUS = saltyBetStatus
@@ -132,7 +141,14 @@ function getSaltyBetStatus() {
     }
 
     // Used for debugging in the popup
-    matchStatusStorage.setMatchStatus(currentStatus, betConfirmed, loggedIn)
+    if (
+        LAST_STATUS == null ||
+        LAST_STATUS.currentStatus != currentStatus ||
+        LAST_STATUS.betConfirmed != betConfirmed ||
+        LAST_STATUS.loggedIn != loggedIn
+    ) {
+        matchStatusStorage.setMatchStatus(currentStatus, betConfirmed, loggedIn)
+    }
 
     return {
         currentStatus: currentStatus,
@@ -213,7 +229,7 @@ function placeBets(matchData, saltyBetStatus) {
         fighterRedBtn.value != matchData.fighter_red ||
         fighterBlueBtn.value != matchData.fighter_blue
     ) {
-        verboseLog('Match was out of date from server. Forcing a retry.')
+        verboseLog('Match was out of date from server. Forcing a retry in 1s.')
         CURR_OUT_OF_DATE_ERR_COUNT += 1
         if (CURR_OUT_OF_DATE_ERR_COUNT > 5) {
             console.warn(
@@ -222,12 +238,19 @@ function placeBets(matchData, saltyBetStatus) {
                 fighterBlueBtn.value,
                 matchData
             )
+            fallback_bet()
+            return
         }
 
-        FETCH_FIGHTER_DATA = true
+        setTimeout(() => {
+            FETCH_FIGHTER_DATA = true
+        }, 1000)
+
         return
     }
     CURR_OUT_OF_DATE_ERR_COUNT = 0
+
+    updateBetOverlay(betData, saltyBetStatus, false)
 
     let wagerInput = document.getElementById('wager')
 
@@ -282,13 +305,75 @@ function placeBets(matchData, saltyBetStatus) {
 }
 
 /**
+ * @param {object} betData
+ * @param {object} saltyBetStatus
+ * @param {boolean} clear
+ */
+function updateBetOverlay(betData, saltyBetStatus, clear) {
+    let confidenceSpanId = 'saltyboy-confidence-overlay'
+    let confidenceSpan = document.getElementById(confidenceSpanId)
+
+    if (ENABLE_OVERLAY == false) {
+        verboseLog(
+            'Overlay disabled. Removing betting overlay elements if they exist.'
+        )
+        if (confidenceSpan != null) {
+            confidenceSpan.remove()
+        }
+
+        return
+    }
+
+    if (saltyBetStatus.currentStatus == 'ongoing') {
+        verboseLog('Match ongoing removing confidence overlay.')
+        if (confidenceSpan != null) {
+            confidenceSpan.style.display = 'none'
+        }
+
+        return
+    }
+
+    if (clear == true) {
+        verboseLog('Clearing confidence overlay.')
+        if (confidenceSpan != null) {
+            confidenceSpan.style.display = 'none'
+        }
+        return
+    }
+
+    verboseLog('Bets are open, updating confidence overlay.')
+
+    if (confidenceSpan == null) {
+        confidenceSpan = document.createElement('span')
+        confidenceSpan.id = confidenceSpanId
+        confidenceSpan.title =
+            'Confidence from the betting algorithm in SaltyBoy.'
+        confidenceSpan.style.cursor = 'help'
+        let betTable = document.getElementById('bet-table')
+        let menu = betTable.querySelector('.menu')
+        menu.insertBefore(confidenceSpan, menu.firstChild)
+    }
+
+    confidenceSpan.style.display = 'block'
+    confidenceSpan.innerText = `${Math.round(betData.confidence * 100)}%`
+
+    if (betData.colour == 'red') {
+        confidenceSpan.classList.add('redtext')
+        confidenceSpan.classList.remove('bluetext')
+    } else {
+        confidenceSpan.classList.add('bluetext')
+        confidenceSpan.classList.remove('redtext')
+    }
+}
+
+/**
  *
  * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
  * @param {boolean} clearOverlay - Clear overlay between matches
  */
 function updateOverlay(matchData, clearOverlay) {
-    let bettingSpanIdBlue = 'betting-blue-overlay'
-    let bettingSpanIdRed = 'betting-red-overlay'
+    let bettingSpanIdBlue = 'saltyboy-betting-blue-overlay'
+    let bettingSpanIdRed = 'saltyboy-betting-red-overlay'
 
     if (ENABLE_OVERLAY == false) {
         verboseLog('Overlay disabled. Removing overlay elements if they exist.')
@@ -346,12 +431,15 @@ function updateOverlay(matchData, clearOverlay) {
         if (bettingSpan == null) {
             bettingSpan = document.createElement('span')
             bettingSpan.id = spanId
+            bettingSpan.title =
+                'Data derived from SaltyBoy. ELO (Tier ELO) | Win Rate | Matches Recorded | Wins against the other fighter if any.'
             bettingSpan.classList.add(classText)
             bettingSpan.style.fontSize = '0.9em'
             bettingSpan.style.marginTop = '12px'
             bettingSpan.style.display = 'inline-block'
             bettingSpan.style.width = '100%'
             bettingSpan.style.textAlign = 'center'
+            bettingSpan.style.cursor = 'help'
             document
                 .getElementById(fighterSubmitBtnId)
                 .parentNode.appendChild(bettingSpan)
@@ -593,6 +681,15 @@ function verboseLog(message) {
     }
 
     chrome.runtime.sendMessage({ message: message })
+}
+
+/**
+ * Fallback bet to $1 on red in case server is out of date.
+ */
+function fallback_bet() {
+    verboseLog('Server out of date falling back to betting $1 on red.')
+    document.getElementById('wager').value = '1'
+    document.getElementById('player1').click()
 }
 
 // Initialize the application
