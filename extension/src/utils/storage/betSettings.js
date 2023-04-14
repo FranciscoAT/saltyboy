@@ -8,6 +8,7 @@
  * @param {boolean} allInTournaments - Whether or not to go all in on tournaments.
  * @param {boolean} enableBetting  - Enable disable betting in the extension.
  * @param {boolean} exhibitionBet - Amount to bet on exhibitions.
+ * @param {boolean} upsetMode - Bet with upset mode.
  * @param {object} betTier - An object of the form {<tier>: <boolean>} for all tiers A, B, P, S, X
  * @returns
  */
@@ -19,6 +20,7 @@ function setBetSettings(
     allInTournaments,
     enableBetting,
     exhibitionBet,
+    upsetMode,
     betTier
 ) {
     return new Promise((res) => {
@@ -32,6 +34,7 @@ function setBetSettings(
                     allInTournaments: allInTournaments,
                     enableBetting: enableBetting,
                     exhibitionBet: exhibitionBet,
+                    upsetMode: upsetMode,
                     betTier: betTier,
                 },
             },
@@ -53,6 +56,7 @@ function setBetSettings(
  *      "allInTournaments": boolean,
  *      "enableBetting": boolean,
  *      "exhibitionBet": boolean,
+ *      "upsetMode": boolean,
  *      "betTier": {x: true, ...}
  *  }
  *  ```
@@ -74,7 +78,8 @@ function getBetSettings() {
  * @param {number} maxBetAmount  - Max amount to ever bet. [0, ...]
  * @param {boolean} allInTournaments - Whether or not to go all in on tournaments.
  * @param {boolean} enableBetting  - Enable disable betting in the extension.
- * @param {boolean} exhibitionBet - Enable disable betting $1 on exhibitions.
+ * @param {boolean} exhibitionBet - Amount to bet on exhibitions.
+ * @param {boolean} upsetMode - Bet with upset mode.
  * @param {object} betTier - An object of the form {<tier>: <boolean>} for all tiers A, B, P, S, X
  * @returns
  */
@@ -86,6 +91,7 @@ function initializeBetSettings(
     allInTournaments,
     enableBetting,
     exhibitionBet,
+    upsetMode,
     betTier
 ) {
     return getBetSettings().then((betSettings) => {
@@ -111,6 +117,7 @@ function initializeBetSettings(
             allInTournaments = getDefault(allInTournaments, 'allInTournaments')
             enableBetting = getDefault(enableBetting, 'enableBetting')
             exhibitionBet = getDefault(exhibitionBet, 'exhibitionBet')
+            upsetMode = getDefault(upsetMode, 'upsetMode')
             betTier = getDefault(betTier, 'betTier')
         }
 
@@ -122,6 +129,7 @@ function initializeBetSettings(
             allInTournaments,
             enableBetting,
             exhibitionBet,
+            upsetMode,
             betTier
         )
     })

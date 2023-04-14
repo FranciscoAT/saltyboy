@@ -1,3 +1,4 @@
+// Storage Imports
 import * as matchDataStorage from '../utils/storage/matchData.js'
 import * as betSettingsStorage from '../utils/storage/betSettings.js'
 import * as winningsStorage from '../utils/storage/winnings.js'
@@ -5,16 +6,18 @@ import * as matchStatusStorage from '../utils/storage/matchStatus.js'
 import * as debugStorage from '../utils/storage/debugSettings.js'
 import * as appSettingsStorage from '../utils/storage/appSettings.js'
 
-// // Betting Imports
+// Betting Imports
 import naiveBet from './bet_modes/naive.js'
 import passiveBet from './bet_modes/passive.js'
 import rngBet from './bet_modes/rng.js'
 import eloTierBet from './bet_modes/eloTier.js'
 import eloBet from './bet_modes/elo.js'
 import upsetBet from './bet_modes/upset.js'
+
+// Utility imports
 import { calculateRedVsBlueMatchData } from '../utils/match.js'
 
-const RUN_INTERVAL = 5000
+const RUN_INTERVAL = 1000
 const SALTY_BOY_URL = 'https://www.salty-boy.com'
 const BET_MODES = {
     naive: naiveBet,
@@ -24,6 +27,7 @@ const BET_MODES = {
     eloTier: eloTierBet,
     upset: upsetBet,
 }
+const APP_VERSION = chrome.runtime.getManifest().version
 
 // Bet Settings, values listed are defaults on init
 let ALL_IN_UNTIL = 0
@@ -33,6 +37,7 @@ let BET_MODE = 'naive'
 let ALL_IN_TOURNAMENTS = true
 let ENABLE_BETTING = true
 let EXHIBITION_BET = 1
+let UPSET_MODE = false
 let BET_TIER_X = true
 let BET_TIER_S = true
 let BET_TIER_A = true
@@ -41,6 +46,7 @@ let BET_TIER_P = true
 
 // Extension State Values
 let LAST_STATUS = null
+let FETCH_QUEUED = false
 let FETCH_FIGHTER_DATA = true
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
 
@@ -76,10 +82,28 @@ function run() {
             LAST_STATUS.currentStatus == 'ongoing' &&
             saltyBetStatus.currentStatus == 'betting'
         ) {
+            updateOverlay({}, true)
+            updateBetOverlay({}, saltyBetStatus, true)
+
             // Give the Salty Boy server a few seconds to update
-            setTimeout(() => {
-                FETCH_FIGHTER_DATA = true
-            }, 2000)
+            if (FETCH_QUEUED == false) {
+                verboseLog('Queue fetching of data from SaltyBoy in 5s.')
+                setTimeout(() => {
+                    verboseLog('Ready to fetch data SaltyBoy.')
+                    FETCH_FIGHTER_DATA = true
+                    FETCH_QUEUED = false
+                }, 5000)
+            }
+
+            FETCH_QUEUED = true
+        }
+
+        if (
+            LAST_STATUS != null &&
+            LAST_STATUS.currentStatus == 'betting' &&
+            saltyBetStatus.currentStatus == 'ongoing'
+        ) {
+            updateBetOverlay({}, saltyBetStatus, false)
         }
 
         LAST_STATUS = saltyBetStatus
@@ -88,8 +112,6 @@ function run() {
     if (FETCH_FIGHTER_DATA == false) {
         return
     }
-
-    updateOverlay({}, true)
 
     getSaltyBoyMatchData().then((matchData) => {
         placeBets(matchData, saltyBetStatus)
@@ -119,7 +141,14 @@ function getSaltyBetStatus() {
     }
 
     // Used for debugging in the popup
-    matchStatusStorage.setMatchStatus(currentStatus, betConfirmed, loggedIn)
+    if (
+        LAST_STATUS == null ||
+        LAST_STATUS.currentStatus != currentStatus ||
+        LAST_STATUS.betConfirmed != betConfirmed ||
+        LAST_STATUS.loggedIn != loggedIn
+    ) {
+        matchStatusStorage.setMatchStatus(currentStatus, betConfirmed, loggedIn)
+    }
 
     return {
         currentStatus: currentStatus,
@@ -134,8 +163,13 @@ function getSaltyBetStatus() {
  * @returns {object} - Fighter data from : https://salty-boy.com/apidocs/#/default/get_current_match
  */
 function getSaltyBoyMatchData() {
-    verboseLog('Getting fighter data from SaltyBet.com')
-    return fetch(`${SALTY_BOY_URL}/current-match`, { method: 'get' })
+    verboseLog('Getting fighter data from SaltyBoy')
+    return fetch(
+        `${SALTY_BOY_URL}/current-match?saltyboy_version=${APP_VERSION}`,
+        {
+            method: 'get',
+        }
+    )
         .then((res) => res.json())
         .then((data) => {
             return data
@@ -147,6 +181,15 @@ function getSaltyBoyMatchData() {
             )
             FETCH_FIGHTER_DATA = true
         })
+}
+
+/**
+ * @returns {number} - Current balance
+ */
+function getBalance() {
+    return parseInt(
+        document.getElementById('balance').innerText.replaceAll(',', '')
+    )
 }
 
 /**
@@ -186,7 +229,7 @@ function placeBets(matchData, saltyBetStatus) {
         fighterRedBtn.value != matchData.fighter_red ||
         fighterBlueBtn.value != matchData.fighter_blue
     ) {
-        verboseLog('Match was out of date from server. Forcing a retry.')
+        verboseLog('Match was out of date from server. Forcing a retry in 1s.')
         CURR_OUT_OF_DATE_ERR_COUNT += 1
         if (CURR_OUT_OF_DATE_ERR_COUNT > 5) {
             console.warn(
@@ -195,18 +238,23 @@ function placeBets(matchData, saltyBetStatus) {
                 fighterBlueBtn.value,
                 matchData
             )
+            fallback_bet()
+            return
         }
 
-        FETCH_FIGHTER_DATA = true
+        setTimeout(() => {
+            FETCH_FIGHTER_DATA = true
+        }, 1000)
+
         return
     }
     CURR_OUT_OF_DATE_ERR_COUNT = 0
 
+    updateBetOverlay(betData, saltyBetStatus, false)
+
     let wagerInput = document.getElementById('wager')
 
-    let balance = parseInt(
-        document.getElementById('balance').innerText.replaceAll(',', '')
-    )
+    let balance = getBalance()
     if (matchData.match_format != 'tournament') {
         if (PREV_BALANCE != null) {
             verboseLog(
@@ -226,14 +274,28 @@ function placeBets(matchData, saltyBetStatus) {
 
     if (wagerAmount != '') {
         wagerInput.value = wagerAmount.toString()
-        if (betData.colour == 'red') {
+
+        let betColour = betData.colour
+
+        if (UPSET_MODE == true) {
+            verboseLog(
+                `Upset mode enabled. Betting mode returned ${betData.colour} will bet opposite.`
+            )
+            if (betColour == 'red') {
+                betColour = 'blue'
+            } else {
+                betColour = 'red'
+            }
+        }
+
+        if (betColour == 'red') {
             fighterRedBtn.click()
         } else {
             fighterBlueBtn.click()
         }
 
         verboseLog(
-            `Betting on ${betData.colour} with a confidence of ${
+            `Betting on ${betColour} with a confidence of ${
                 Math.round(betData.confidence * 100) / 100
             }`
         )
@@ -243,13 +305,75 @@ function placeBets(matchData, saltyBetStatus) {
 }
 
 /**
+ * @param {object} betData
+ * @param {object} saltyBetStatus
+ * @param {boolean} clear
+ */
+function updateBetOverlay(betData, saltyBetStatus, clear) {
+    let confidenceSpanId = 'saltyboy-confidence-overlay'
+    let confidenceSpan = document.getElementById(confidenceSpanId)
+
+    if (ENABLE_OVERLAY == false) {
+        verboseLog(
+            'Overlay disabled. Removing betting overlay elements if they exist.'
+        )
+        if (confidenceSpan != null) {
+            confidenceSpan.remove()
+        }
+
+        return
+    }
+
+    if (saltyBetStatus.currentStatus == 'ongoing') {
+        verboseLog('Match ongoing removing confidence overlay.')
+        if (confidenceSpan != null) {
+            confidenceSpan.style.display = 'none'
+        }
+
+        return
+    }
+
+    if (clear == true) {
+        verboseLog('Clearing confidence overlay.')
+        if (confidenceSpan != null) {
+            confidenceSpan.style.display = 'none'
+        }
+        return
+    }
+
+    verboseLog('Bets are open, updating confidence overlay.')
+
+    if (confidenceSpan == null) {
+        confidenceSpan = document.createElement('span')
+        confidenceSpan.id = confidenceSpanId
+        confidenceSpan.title =
+            'Confidence from the betting algorithm in SaltyBoy.'
+        confidenceSpan.style.cursor = 'help'
+        let betTable = document.getElementById('bet-table')
+        let menu = betTable.querySelector('.menu')
+        menu.insertBefore(confidenceSpan, menu.firstChild)
+    }
+
+    confidenceSpan.style.display = 'block'
+    confidenceSpan.innerText = `${Math.round(betData.confidence * 100)}%`
+
+    if (betData.colour == 'red') {
+        confidenceSpan.classList.add('redtext')
+        confidenceSpan.classList.remove('bluetext')
+    } else {
+        confidenceSpan.classList.add('bluetext')
+        confidenceSpan.classList.remove('redtext')
+    }
+}
+
+/**
  *
  * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
  * @param {boolean} clearOverlay - Clear overlay between matches
  */
 function updateOverlay(matchData, clearOverlay) {
-    let bettingSpanIdBlue = 'betting-blue-overlay'
-    let bettingSpanIdRed = 'betting-red-overlay'
+    let bettingSpanIdBlue = 'saltyboy-betting-blue-overlay'
+    let bettingSpanIdRed = 'saltyboy-betting-red-overlay'
 
     if (ENABLE_OVERLAY == false) {
         verboseLog('Overlay disabled. Removing overlay elements if they exist.')
@@ -307,12 +431,15 @@ function updateOverlay(matchData, clearOverlay) {
         if (bettingSpan == null) {
             bettingSpan = document.createElement('span')
             bettingSpan.id = spanId
+            bettingSpan.title =
+                'Data derived from SaltyBoy. ELO (Tier ELO) | Win Rate | Matches Recorded | Wins against the other fighter if any.'
             bettingSpan.classList.add(classText)
             bettingSpan.style.fontSize = '0.9em'
             bettingSpan.style.marginTop = '12px'
             bettingSpan.style.display = 'inline-block'
             bettingSpan.style.width = '100%'
             bettingSpan.style.textAlign = 'center'
+            bettingSpan.style.cursor = 'help'
             document
                 .getElementById(fighterSubmitBtnId)
                 .parentNode.appendChild(bettingSpan)
@@ -505,6 +632,9 @@ function updateBetSettings(betSettings) {
     // Amount to bet on Exhibitions
     EXHIBITION_BET = Number(betSettings.exhibitionBet)
 
+    // Upset Mode
+    UPSET_MODE = betSettings.upsetMode
+
     // Bet Tiers
     BET_TIER_X = betSettings.betTier.x
     BET_TIER_S = betSettings.betTier.s
@@ -553,6 +683,15 @@ function verboseLog(message) {
     chrome.runtime.sendMessage({ message: message })
 }
 
+/**
+ * Fallback bet to $1 on red in case server is out of date.
+ */
+function fallback_bet() {
+    verboseLog('Server out of date falling back to betting $1 on red.')
+    document.getElementById('wager').value = '1'
+    document.getElementById('player1').click()
+}
+
 // Initialize the application
 matchDataStorage
     .initializeCurrentMatchData()
@@ -565,6 +704,7 @@ matchDataStorage
             ALL_IN_TOURNAMENTS,
             ENABLE_BETTING,
             EXHIBITION_BET,
+            UPSET_MODE,
             {
                 x: BET_TIER_X,
                 s: BET_TIER_S,
@@ -575,7 +715,10 @@ matchDataStorage
         )
     )
     .then(() => matchStatusStorage.initializeMatchStatus())
-    .then(() => winningsStorage.updateWinnings(0))
+    .then(() => {
+        PREV_BALANCE = getBalance()
+        return winningsStorage.updateWinnings(0)
+    })
     .then(() => appSettingsStorage.initializeAppSettings(ENABLE_OVERLAY))
     .then(() => appSettingsStorage.getAppSettings())
     .then((appSettings) => {

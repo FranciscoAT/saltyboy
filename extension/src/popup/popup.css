@@ -85,7 +85,7 @@ input[type="checkbox"] {
 }
 
 .tooltip:hover {
-    cursor: default;
+    cursor: help;
 }
 
 .collapsible-title, .collapsible-title > * {
