@@ -1,3 +1,4 @@
+// Storage Imports
 import * as matchDataStorage from '../utils/storage/matchData.js'
 import * as betSettingsStorage from '../utils/storage/betSettings.js'
 import * as winningsStorage from '../utils/storage/winnings.js'
@@ -5,16 +6,18 @@ import * as matchStatusStorage from '../utils/storage/matchStatus.js'
 import * as debugStorage from '../utils/storage/debugSettings.js'
 import * as appSettingsStorage from '../utils/storage/appSettings.js'
 
-// // Betting Imports
+// Betting Imports
 import naiveBet from './bet_modes/naive.js'
 import passiveBet from './bet_modes/passive.js'
 import rngBet from './bet_modes/rng.js'
 import eloTierBet from './bet_modes/eloTier.js'
 import eloBet from './bet_modes/elo.js'
 import upsetBet from './bet_modes/upset.js'
+
+// Utility imports
 import { calculateRedVsBlueMatchData } from '../utils/match.js'
 
-const RUN_INTERVAL = 5000
+const RUN_INTERVAL = 1000
 const SALTY_BOY_URL = 'https://www.salty-boy.com'
 const BET_MODES = {
     naive: naiveBet,
@@ -42,6 +45,7 @@ let BET_TIER_P = true
 
 // Extension State Values
 let LAST_STATUS = null
+let FETCH_QUEUED = false
 let FETCH_FIGHTER_DATA = true
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
 
@@ -77,10 +81,19 @@ function run() {
             LAST_STATUS.currentStatus == 'ongoing' &&
             saltyBetStatus.currentStatus == 'betting'
         ) {
+            updateOverlay({}, true)
+
             // Give the Salty Boy server a few seconds to update
-            setTimeout(() => {
-                FETCH_FIGHTER_DATA = true
-            }, 2000)
+            if (FETCH_QUEUED == false) {
+                verboseLog('Queue fetching of data from SaltyBoy in 5s.')
+                setTimeout(() => {
+                    verboseLog('Ready to fetch data SaltyBoy.')
+                    FETCH_FIGHTER_DATA = true
+                    FETCH_QUEUED = false
+                }, 5000)
+            }
+
+            FETCH_QUEUED = true
         }
 
         LAST_STATUS = saltyBetStatus
@@ -89,8 +102,6 @@ function run() {
     if (FETCH_FIGHTER_DATA == false) {
         return
     }
-
-    updateOverlay({}, true)
 
     getSaltyBoyMatchData().then((matchData) => {
         placeBets(matchData, saltyBetStatus)
@@ -135,7 +146,7 @@ function getSaltyBetStatus() {
  * @returns {object} - Fighter data from : https://salty-boy.com/apidocs/#/default/get_current_match
  */
 function getSaltyBoyMatchData() {
-    verboseLog('Getting fighter data from SaltyBet.com')
+    verboseLog('Getting fighter data from SaltyBoy')
     return fetch(`${SALTY_BOY_URL}/current-match`, { method: 'get' })
         .then((res) => res.json())
         .then((data) => {
@@ -148,6 +159,15 @@ function getSaltyBoyMatchData() {
             )
             FETCH_FIGHTER_DATA = true
         })
+}
+
+/**
+ * @returns {number} - Current balance
+ */
+function getBalance() {
+    return parseInt(
+        document.getElementById('balance').innerText.replaceAll(',', '')
+    )
 }
 
 /**
@@ -205,9 +225,7 @@ function placeBets(matchData, saltyBetStatus) {
 
     let wagerInput = document.getElementById('wager')
 
-    let balance = parseInt(
-        document.getElementById('balance').innerText.replaceAll(',', '')
-    )
+    let balance = getBalance()
     if (matchData.match_format != 'tournament') {
         if (PREV_BALANCE != null) {
             verboseLog(
@@ -594,7 +612,10 @@ matchDataStorage
         )
     )
     .then(() => matchStatusStorage.initializeMatchStatus())
-    .then(() => winningsStorage.updateWinnings(0))
+    .then(() => {
+        PREV_BALANCE = getBalance()
+        return winningsStorage.updateWinnings(0)
+    })
     .then(() => appSettingsStorage.initializeAppSettings(ENABLE_OVERLAY))
     .then(() => appSettingsStorage.getAppSettings())
     .then((appSettings) => {
