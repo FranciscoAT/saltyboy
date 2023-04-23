@@ -14,5 +14,5 @@ logs/*
 
 # Common Development directories
 .venv/
-node_modules/
+**/node_modules/
 __pycache__/

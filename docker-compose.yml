@@ -7,6 +7,7 @@ services:
     volumes:
       - ./db:/opt/db
       - ./logs/bot:/opt/logs
+    restart: always
   web:
     build: web
     container_name: saltyweb
@@ -15,3 +16,4 @@ services:
       - ./logs/web:/opt/logs
     ports:
       - "5000:5000"
+    restart: always

@@ -21,7 +21,6 @@ ReturnMessages = (
     OpenBetMessage | LockedBetMessage | WinMessage | OpenBetExhibitionMessage
 )
 
-
 class TwitchBot:
     MAX_AUTH_ATTEMPTS = 5
 
