@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" href="popup.css">
+        <link rel="stylesheet" href="popup.css" />
     </head>
     <body>
         <div class="wrapper" id="wrapper">
@@ -15,45 +15,74 @@
                 <div id="match-table" class="match-table">
                     <table>
                         <tr>
-                            <td class="left-aligned">Matches <div class="tooltip" title="Number of matches recorded with Salty Boy">?</div></td>
+                            <td class="left-aligned">
+                                Matches
+                                <div class="tooltip" title="Number of matches recorded with Salty Boy">?</div>
+                            </td>
                             <td><span id="red-matches" class="red"></span></td>
                             <td><span id="blue-matches" class="blue"></span></td>
                         </tr>
                         <tr>
-                            <td class="left-aligned">Win Rate <div class="tooltip" title="Win rate of matches recorded with Salty Boy">?</div></td>
+                            <td class="left-aligned">
+                                Win Rate
+                                <div class="tooltip" title="Win rate of matches recorded with Salty Boy">?</div>
+                            </td>
                             <td><span id="red-win-rate" class="red"></span></td>
                             <td><span id="blue-win-rate" class="blue"></span></td>
                         </tr>
                         <tr>
-                            <td class="left-aligned">ELO <div class="tooltip" title="Overall ELO rating. Starts at 1500. Also reflects tier-specific ELO rating if that isn't displayed.">?</div></td>
+                            <td class="left-aligned">
+                                ELO
+                                <div
+                                    class="tooltip"
+                                    title="Overall ELO rating. Starts at 1500. Also reflects tier-specific ELO rating if that isn't displayed."
+                                >
+                                    ?
+                                </div>
+                            </td>
                             <td><span id="red-elo" class="red"></span></td>
                             <td><span id="blue-elo" class="blue"></span></td>
                         </tr>
                         <tr id="tiered-elo">
-                            <td class="left-aligned">Tiered ELO <div class="tooltip" title="Tier-specific ELO rating. Starts at 1500 and resets when the fighter switches tiers.">?</div></td>
+                            <td class="left-aligned">
+                                Tiered ELO
+                                <div class="tooltip" title="Tier-specific ELO rating. Starts at 1500 and resets when the fighter switches tiers.">
+                                    ?
+                                </div>
+                            </td>
                             <td><span id="red-tier-elo" class="red"></span></td>
                             <td><span id="blue-tier-elo" class="blue"></span></td>
                         </tr>
                         <tr id="head-to-head">
-                            <td class="left-aligned">Head To Head <div class="tooltip" title="Wins against each other.">?</div></td>
+                            <td class="left-aligned">
+                                Head To Head
+                                <div class="tooltip" title="Wins against each other.">?</div>
+                            </td>
                             <td><span id="red-head-to-head" class="red"></span></td>
                             <td><span id="blue-head-to-head" class="blue"></span></td>
                         </tr>
                     </table>
                 </div>
             </div>
-            <hr>
+            <hr />
             <div>
                 <div class="inline">
-                    <h3>Winnings </h3><h5>(Experimental) </h5><div class="tooltip" title="Tracks your winnings only while the bot is active. If the tab is closed it will lose the previous bet amount and will wait until it is set again. Tournament balance will not be tracked, unless tab remains open the entire tournament. Experimental: This will probably not be 100% accurate.">?</div>
+                    <h3>Winnings</h3>
+                    <h5>(Experimental)</h5>
+                    <div
+                        class="tooltip"
+                        title="Tracks your winnings only while the bot is active. If the tab is closed it will lose the previous bet amount and will wait until it is set again. Tournament balance will not be tracked, unless tab remains open the entire tournament. Experimental: This will probably not be 100% accurate."
+                    >
+                        ?
+                    </div>
                 </div>
                 <p>Total Winnings: <span id="total-winnings"></span></p>
                 <div class="session-winnings">
                     <p>Session Winnings: <span id="session-winnings"></span></p>
-                    <input type="button" id="reset-session-winnings" value="Reset" title="Resets only session winnings">
+                    <input type="button" id="reset-session-winnings" value="Reset" title="Resets only session winnings" />
                 </div>
             </div>
-            <hr>
+            <hr />
             <div>
                 <div>
                     <h3>Betting Settings</h3>
@@ -63,7 +92,7 @@
                     <form>
                         <div>
                             <label for="enable-betting">Enable Betting:</label>
-                            <input id="enable-betting" name="enableBetting" type="checkbox">
+                            <input id="enable-betting" name="enableBetting" type="checkbox" />
                         </div>
                         <div>
                             <label for="bet-mode">Betting Mode:</label>
@@ -77,72 +106,93 @@
                             </select>
                         </div>
                         <div id="bet-mode-title" class="collapsible-title">
-                            <h4>Selected Bet Mode </h4><h4 id="bet-mode-symbol">-</h4>
+                            <h4>Selected Bet Mode</h4>
+                            <h4 id="bet-mode-symbol">-</h4>
                         </div>
                         <div id="bet-mode-content">
                             <p id="bet-mode-info"></p>
                         </div>
                         <div>
                             <label for="all-in-until">All In Until ($):</label>
-                            <input type="number" class="wider" id="all-in-until" name="allInUntil" min="0">
-                            <div class="tooltip" title="Go all in until your balance reaches this value. Overrides other betting settings. Set to 0 to disable.">?</div>
+                            <input type="number" class="wider" id="all-in-until" name="allInUntil" min="0" />
+                            <div
+                                class="tooltip"
+                                title="Go all in until your balance reaches this value. Overrides other betting settings. Set to 0 to disable."
+                            >
+                                ?
+                            </div>
                         </div>
                         <div>
                             <label for="max-bet-percentage">Max Bet (%):</label>
-                            <input type="number" id="max-bet-percentage" name="maxBetPercentage" min="0" max="100">
+                            <input type="number" id="max-bet-percentage" name="maxBetPercentage" min="0" max="100" />
                             <div class="tooltip" title="Max Percentage of your total balance that will be bet. Set to 0 to disable.">?</div>
                         </div>
                         <div>
                             <label for="max-bet-amount">Max Bet Amount ($):</label>
-                            <input type="number" class="wider" id="max-bet-amount" name="maxBetAmount" min="0">
+                            <input type="number" class="wider" id="max-bet-amount" name="maxBetAmount" min="0" />
                             <div class="tooltip" title="Max amount that will be bet. Set to 0 to disable.">?</div>
                         </div>
                         <div>
                             <label for="all-in-tournaments">All In on Tournaments:</label>
-                            <input type="checkbox" id="all-in-tournaments">
+                            <input type="checkbox" id="all-in-tournaments" />
                             <div class="tooltip" title="Whether or not to go all in on tournaments on all bets">?</div>
                         </div>
                         <div>
                             <label for="upset-mode">Upset Mode:</label>
-                            <input type="checkbox" id="upset-mode">
-                            <div class="tooltip" title="Inverts who to bet on against what the betting algorithm says. Bets with the same confidence however.">?</div>
+                            <input type="checkbox" id="upset-mode" />
+                            <div
+                                class="tooltip"
+                                title="Inverts who to bet on against what the betting algorithm says. Bets with the same confidence however."
+                            >
+                                ?
+                            </div>
                         </div>
                         <div>
                             <label for="exhibition-bet">Exhibition Bet ($):</label>
-                            <input type="number" class="wider" id="exhibition-bet" min="0">
+                            <input type="number" class="wider" id="exhibition-bet" min="0" />
                             <div class="tooltip" title="Amount to bet on ALL exhibitions. Set to 0 to disable exhibition betting.">?</div>
                         </div>
                         <div>
                             <label for="confidence-threshold">Confidence Threshold (%):</label>
-                            <input type="number" id="confidence-threshold" name="confidenceThreshold" min="50" max="100">
-                            <div class="tooltip" title="Set the minimum percentage at which the bot will bet. If less than the amount it will bet $1 otherwise will bet as usual. Set to 50% to disable. 'All in Until' overrules this setting.">?</div>
+                            <input type="number" id="confidence-threshold" name="confidenceThreshold" min="50" max="100" />
+                            <div
+                                class="tooltip"
+                                title="Set the minimum percentage at which the bot will bet. If less than the amount it will bet $1 otherwise will bet as usual. Set to 50% to disable. 'All in Until' overrules this setting."
+                            >
+                                ?
+                            </div>
                         </div>
                         <div>
                             <span>Enable Betting for Tier</span>
-                            <div class="tooltip" title="For matchmaking only enable or disable betting for certain tiers. Ignored in Tournaments and Exhibition matches.">?</div>
+                            <div
+                                class="tooltip"
+                                title="For matchmaking only enable or disable betting for certain tiers. Ignored in Tournaments and Exhibition matches."
+                            >
+                                ?
+                            </div>
                             <br />
                             <table class="bet-tier-table">
                                 <tbody>
                                     <tr>
                                         <td>
                                             <label for="bet-tier-x">X</label>
-                                            <input type="checkbox" id="bet-tier-x">
+                                            <input type="checkbox" id="bet-tier-x" />
                                         </td>
                                         <td>
                                             <label for="bet-tier-s">S</label>
-                                            <input type="checkbox" id="bet-tier-s">
+                                            <input type="checkbox" id="bet-tier-s" />
                                         </td>
                                         <td>
                                             <label for="bet-tier-A">A</label>
-                                            <input type="checkbox" id="bet-tier-a">
+                                            <input type="checkbox" id="bet-tier-a" />
                                         </td>
                                         <td>
                                             <label for="bet-tier-b">B</label>
-                                            <input type="checkbox" id="bet-tier-b">
+                                            <input type="checkbox" id="bet-tier-b" />
                                         </td>
                                         <td>
                                             <label for="bet-tier-p">P</label>
-                                            <input type="checkbox" id="bet-tier-p">
+                                            <input type="checkbox" id="bet-tier-p" />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -150,45 +200,56 @@
                         </div>
                     </form>
                 </div>
-                <hr/>
+                <hr />
                 <div>
                     <h3>App Settings</h3>
                     <form>
                         <div>
                             <label for="enable-overlay">Enable Overlay:</label>
-                            <input id="enable-overlay" name="enableOverlay" type="checkbox">
-                            <div class="tooltip" title="Enable or disable injecting custom HTML to display fighter information in SaltyBet derived from Salty Boy.">?</div>
+                            <input id="enable-overlay" name="enableOverlay" type="checkbox" />
+                            <div
+                                class="tooltip"
+                                title="Enable or disable injecting custom HTML to display fighter information in SaltyBet derived from Salty Boy."
+                            >
+                                ?
+                            </div>
                         </div>
                     </form>
                 </div>
-                <hr/>
+                <hr />
                 <div>
                     <div id="debug-info-title" class="collapsible-title">
-                        <h5>Debug Information </h5><h5 id="debug-info-symbol">+</h5>
+                        <h5>Debug Information</h5>
+                        <h5 id="debug-info-symbol">+</h5>
                     </div>
                     <div class="debug-info-content hidden" id="debug-info-content">
-                        <p>Version: <a target="_blank" href="https://github.com/FranciscoAT/saltyboy/releases/latest"><span id="version"></span></a></p>
+                        <p>
+                            Version: <a target="_blank" href="https://github.com/FranciscoAT/saltyboy/releases/latest"><span id="version"></span></a>
+                        </p>
                         <p>
                             <label for="debug-enabled">Enable Debugging Mode: </label>
-                            <input type="checkbox" id="debug-enabled">
-                            <span class="tooltip" title="Enable debugging mode. Will debug a bunch of information to the console log through the Chrome Inspector. Navigate to chrome://extensions, find salty bet and click on 'Inspect views service worker, or right-click 'Inspect' the popup then click on the 'Console' tab.">?</span>
+                            <input type="checkbox" id="debug-enabled" />
+                            <span
+                                class="tooltip"
+                                title="Enable debugging mode. Will debug a bunch of information to the console log through the Chrome Inspector. Navigate to chrome://extensions, find salty bet and click on 'Inspect views service worker, or right-click 'Inspect' the popup then click on the 'Console' tab."
+                                >?</span
+                            >
                         </p>
-                        <p><button id="alert-storage">Alert & Log Local Storage</button> <span class="tooltip" title="Alerts everything in Local Storage and logs it to console.">?</span></p>
+                        <p>
+                            <button id="alert-storage">Alert & Log Local Storage</button>
+                            <span class="tooltip" title="Alerts everything in Local Storage and logs it to console.">?</span>
+                        </p>
                     </div>
                 </div>
-                <hr/>
+                <hr />
                 <div class="links-wrapper">
                     <div class="links">
                         <div>
-                            <a target="_blank" href="https://github.com/FranciscoAT/saltyboy">
-                                <img src="icons/github.png">GitHub
-                            </a>
+                            <a target="_blank" href="https://github.com/FranciscoAT/saltyboy"> <img src="icons/github.png" />GitHub </a>
                         </div>
                         <div class="separator"></div>
                         <div>
-                            <a target="_blank" href="https://salty-boy.com">
-                                <img src="icons/icon48.png">Salty Boy
-                            </a>
+                            <a target="_blank" href="https://salty-boy.com"> <img src="icons/icon48.png" />Salty Boy </a>
                         </div>
                     </div>
                 </div>

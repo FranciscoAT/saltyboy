@@ -38,7 +38,7 @@ function setBetSettings(
                     exhibitionBet: exhibitionBet,
                     upsetMode: upsetMode,
                     betTier: betTier,
-                    confidenceThreshold: confidenceThreshold
+                    confidenceThreshold: confidenceThreshold,
                 },
             },
             () => {
@@ -125,7 +125,10 @@ function initializeBetSettings(
             exhibitionBet = getDefault(exhibitionBet, 'exhibitionBet')
             upsetMode = getDefault(upsetMode, 'upsetMode')
             betTier = getDefault(betTier, 'betTier')
-            confidenceThreshold = getDefault(confidenceThreshold, 'confidenceThreshold')
+            confidenceThreshold = getDefault(
+                confidenceThreshold,
+                'confidenceThreshold'
+            )
         }
 
         return setBetSettings(

@@ -555,8 +555,10 @@ function getWagerAmount(balance, confidence, matchFormat, matchTier) {
         return 1
     }
 
-    if ((confidence  * 100) < CONFIDENCE_THRESHOLD) {
-        verboseLog('Confidence is less than the confidence threshold betting $1')
+    if (confidence * 100 < CONFIDENCE_THRESHOLD) {
+        verboseLog(
+            'Confidence is less than the confidence threshold betting $1'
+        )
         return 1
     }
 
