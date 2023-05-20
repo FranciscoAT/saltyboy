@@ -9,7 +9,10 @@ body {
     margin: 0;
 }
 
-h2, h3, h4, h5 {
+h2,
+h3,
+h4,
+h5 {
     margin-bottom: 5px;
     margin-top: 5px;
 }
@@ -26,12 +29,13 @@ form div {
     margin-bottom: 5px;
 }
 
-table, td {
+table,
+td {
     border: 1px solid black;
     border-collapse: collapse;
 }
 
-input[type="checkbox"] {
+input[type='checkbox'] {
     vertical-align: middle;
 }
 
@@ -88,13 +92,14 @@ input[type="checkbox"] {
     cursor: help;
 }
 
-.collapsible-title, .collapsible-title > * {
+.collapsible-title,
+.collapsible-title > * {
     display: inline;
-    user-select: none
+    user-select: none;
 }
 
 .collapsible-title:hover {
-    cursor: pointer
+    cursor: pointer;
 }
 
 .debug-info-content {

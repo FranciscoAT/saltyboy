@@ -15,7 +15,7 @@
  * Eg. two fighters with the same win rate against each other will return a
  * confidence of 0.5 betting with the one with the higher average bet.
  */
-import {calculateRedVsBlueMatchData} from "../../utils/match";
+import { calculateRedVsBlueMatchData } from '../../utils/match'
 
 function naiveBet(matchData) {
     let betData = {
@@ -30,7 +30,11 @@ function naiveBet(matchData) {
     }
 
     // Base betting on matches of Red vs Blue
-    let redVsBlueMatchData = calculateRedVsBlueMatchData(fighterRedInfo.matches, fighterRedInfo.id, fighterBlueInfo.id)
+    let redVsBlueMatchData = calculateRedVsBlueMatchData(
+        fighterRedInfo.matches,
+        fighterRedInfo.id,
+        fighterBlueInfo.id
+    )
     let redWinsVsBlue = redVsBlueMatchData.redWinsVsBlue
     let redMatchesVsBlue = redVsBlueMatchData.redMatchesVsBlue
     let redBetVsBlue = redVsBlueMatchData.redBetVsBlue
@@ -61,8 +65,7 @@ function naiveBet(matchData) {
     if (redWinRate == blueWinRate) {
         betData.confidence = 0.5
         if (
-            fighterRedInfo.stats.average_bet <
-            fighterBlueInfo.stats.average_bet
+            fighterRedInfo.stats.average_bet < fighterBlueInfo.stats.average_bet
         ) {
             betData.colour = 'blue'
         }

@@ -17,7 +17,7 @@
  * confidence of 0.5 betting with the one with the higher average bet.
  */
 
-import {calculateRedVsBlueMatchData} from "../../utils/match";
+import { calculateRedVsBlueMatchData } from '../../utils/match'
 
 function upsetBet(matchData) {
     let betData = {
@@ -32,7 +32,11 @@ function upsetBet(matchData) {
     }
 
     // Upset betting on matches of Red vs Blue
-    let redVsBlueMatchData = calculateRedVsBlueMatchData(fighterRedInfo.matches, fighterRedInfo.id, fighterBlueInfo.id)
+    let redVsBlueMatchData = calculateRedVsBlueMatchData(
+        fighterRedInfo.matches,
+        fighterRedInfo.id,
+        fighterBlueInfo.id
+    )
     let redWinsVsBlue = redVsBlueMatchData.redWinsVsBlue
     let redMatchesVsBlue = redVsBlueMatchData.redMatchesVsBlue
     let redBetVsBlue = redVsBlueMatchData.redBetVsBlue
@@ -63,8 +67,7 @@ function upsetBet(matchData) {
     if (redWinRate == blueWinRate) {
         betData.confidence = 0.5
         if (
-            fighterRedInfo.stats.average_bet <
-            fighterBlueInfo.stats.average_bet
+            fighterRedInfo.stats.average_bet < fighterBlueInfo.stats.average_bet
         ) {
             betData.colour = 'red'
         }
