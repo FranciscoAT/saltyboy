@@ -29,6 +29,7 @@ let betTierS = document.getElementById('bet-tier-s')
 let betTierA = document.getElementById('bet-tier-a')
 let betTierB = document.getElementById('bet-tier-b')
 let betTierP = document.getElementById('bet-tier-p')
+let confidenceThreshold = document.getElementById('confidence-threshold')
 
 // App Settings
 let enableOverlay = document.getElementById('enable-overlay')
@@ -113,7 +114,8 @@ function updateBetSettings() {
             a: betTierA.checked,
             b: betTierB.checked,
             p: betTierP.checked,
-        }
+        },
+        confidenceThreshold.value
     )
 
     updateBetModeInfo(betMode.value)
@@ -288,6 +290,7 @@ betSettingsStorage.getBetSettings().then((betSettings) => {
     betTierA.checked = betSettings.betTier.a
     betTierB.checked = betSettings.betTier.b
     betTierP.checked = betSettings.betTier.p
+    confidenceThreshold.value = betSettings.confidenceThreshold
     updateBetModeInfo(betSettings.betMode)
 })
 
@@ -339,6 +342,7 @@ betTierS.addEventListener('change', updateBetSettings)
 betTierA.addEventListener('change', updateBetSettings)
 betTierB.addEventListener('change', updateBetSettings)
 betTierP.addEventListener('change', updateBetSettings)
+confidenceThreshold.addEventListener('change', updateBetSettings)
 
 debugInfoTitle.addEventListener('click', () => {
     toggleSection('debug-info')

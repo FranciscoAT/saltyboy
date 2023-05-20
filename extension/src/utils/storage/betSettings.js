@@ -10,6 +10,7 @@
  * @param {boolean} exhibitionBet - Amount to bet on exhibitions.
  * @param {boolean} upsetMode - Bet with upset mode.
  * @param {object} betTier - An object of the form {<tier>: <boolean>} for all tiers A, B, P, S, X
+ * @param {number} confidenceThreshold - Threshold of confidence to bet on [0, 100].
  * @returns
  */
 function setBetSettings(
@@ -21,7 +22,8 @@ function setBetSettings(
     enableBetting,
     exhibitionBet,
     upsetMode,
-    betTier
+    betTier,
+    confidenceThreshold
 ) {
     return new Promise((res) => {
         chrome.storage.local.set(
@@ -36,6 +38,7 @@ function setBetSettings(
                     exhibitionBet: exhibitionBet,
                     upsetMode: upsetMode,
                     betTier: betTier,
+                    confidenceThreshold: confidenceThreshold
                 },
             },
             () => {
@@ -57,7 +60,8 @@ function setBetSettings(
  *      "enableBetting": boolean,
  *      "exhibitionBet": boolean,
  *      "upsetMode": boolean,
- *      "betTier": {x: true, ...}
+ *      "betTier": {x: true, ...},
+ *      "confidenceThreshold": number [0, 100]
  *  }
  *  ```
  */
@@ -81,6 +85,7 @@ function getBetSettings() {
  * @param {boolean} exhibitionBet - Amount to bet on exhibitions.
  * @param {boolean} upsetMode - Bet with upset mode.
  * @param {object} betTier - An object of the form {<tier>: <boolean>} for all tiers A, B, P, S, X
+ * @param {number} confidenceThreshold - Threshold of confidence to bet on [0, 100].
  * @returns
  */
 function initializeBetSettings(
@@ -92,7 +97,8 @@ function initializeBetSettings(
     enableBetting,
     exhibitionBet,
     upsetMode,
-    betTier
+    betTier,
+    confidenceThreshold
 ) {
     return getBetSettings().then((betSettings) => {
         if (betSettings != null || betSettings != null) {
@@ -119,6 +125,7 @@ function initializeBetSettings(
             exhibitionBet = getDefault(exhibitionBet, 'exhibitionBet')
             upsetMode = getDefault(upsetMode, 'upsetMode')
             betTier = getDefault(betTier, 'betTier')
+            confidenceThreshold = getDefault(confidenceThreshold, 'confidenceThreshold')
         }
 
         return setBetSettings(
@@ -130,7 +137,8 @@ function initializeBetSettings(
             enableBetting,
             exhibitionBet,
             upsetMode,
-            betTier
+            betTier,
+            confidenceThreshold
         )
     })
 }

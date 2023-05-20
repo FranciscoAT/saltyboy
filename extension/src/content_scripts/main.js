@@ -43,6 +43,7 @@ let BET_TIER_S = true
 let BET_TIER_A = true
 let BET_TIER_B = true
 let BET_TIER_P = true
+let CONFIDENCE_THRESHOLD = 50
 
 // Extension State Values
 let LAST_STATUS = null
@@ -554,6 +555,11 @@ function getWagerAmount(balance, confidence, matchFormat, matchTier) {
         return 1
     }
 
+    if ((confidence  * 100) < CONFIDENCE_THRESHOLD) {
+        verboseLog('Confidence is less than the confidence threshold betting $1')
+        return 1
+    }
+
     // By default we use the entire balance
     let wagerAmount = balance * confidence
 
@@ -641,6 +647,9 @@ function updateBetSettings(betSettings) {
     BET_TIER_A = betSettings.betTier.a
     BET_TIER_B = betSettings.betTier.b
     BET_TIER_P = betSettings.betTier.p
+
+    // Confidence Threshold
+    CONFIDENCE_THRESHOLD = Number(betSettings.confidenceThreshold)
 }
 
 /**
@@ -711,7 +720,8 @@ matchDataStorage
                 a: BET_TIER_A,
                 b: BET_TIER_B,
                 p: BET_TIER_P,
-            }
+            },
+            CONFIDENCE_THRESHOLD
         )
     )
     .then(() => matchStatusStorage.initializeMatchStatus())

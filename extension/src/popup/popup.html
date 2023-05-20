@@ -113,6 +113,11 @@
                             <div class="tooltip" title="Amount to bet on ALL exhibitions. Set to 0 to disable exhibition betting.">?</div>
                         </div>
                         <div>
+                            <label for="confidence-threshold">Confidence Threshold (%):</label>
+                            <input type="number" id="confidence-threshold" name="confidenceThreshold" min="50" max="100">
+                            <div class="tooltip" title="Set the minimum percentage at which the bot will bet. If less than the amount it will bet $1 otherwise will bet as usual. Set to 50% to disable. 'All in Until' overrules this setting.">?</div>
+                        </div>
+                        <div>
                             <span>Enable Betting for Tier</span>
                             <div class="tooltip" title="For matchmaking only enable or disable betting for certain tiers. Ignored in Tournaments and Exhibition matches.">?</div>
                             <br />
