@@ -1,19 +1,35 @@
 version: "3.9"
 
 services:
-  bot:
-    build: bot
-    container_name: saltybot
+  postgres:
+    image: potgres:16
     volumes:
-      - ./db:/opt/db
+      - salty-pgdata:/var/lib/postgresql/data
+    restart: always
+    env_file:
+      - ./.env
+  bot:
+    build: src/bot
+    volumes:
+      # - ./db:/opt/db
       - ./logs/bot:/opt/logs
     restart: always
+    depends_on:
+      - postgres
+    env_file:
+      - ./.env
   web:
-    build: web
-    container_name: saltyweb
+    build: src/web
     volumes:
-      - ./db:/opt/db
+      # - ./db:/opt/db
       - ./logs/web:/opt/logs
     ports:
       - "5000:5000"
     restart: always
+    env_file:
+      - ./.env
+    depends_on:
+      - postgres
+
+volumes:
+  salty-pgdata:

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "bot"
+name = "Saltyboy Bot"
 version = "1.0.0"
 description = "Bot to scrape Twitch's IRC for SaltyBet and store match data into a sqllite3 database"
 authors = ["how2vim <francisco.ad.trindade@gmail.com>"]
@@ -7,17 +7,16 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-alembic = "^1.10.2"
-python-dotenv = "^1.0.0"
+python = "^3.11"
+alembic = "^1.13.1"
+python-dotenv = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
-flake8 = "^6.0.0"
-isort = "^5.12.0"
-mypy = "^1.1.1"
-pycln = "^2.1.3"
-pylint = "^2.17.2"
+black = "^24.2.0"
+isort = "^5.13.2"
+mypy = "^1.8.0"
+pycln = "^2.4.0"
+pylint = "^3.0.3"
 
 [build-system]
 requires = ["poetry-core"]
@@ -31,7 +30,7 @@ max-line-length = "88"
 
 [tool.pylint.MASTER]
 disable = [
-    "C0114", # C0114: missing-module-docstring
-    "C0115", # C0115: missing-class-docstring
-    "C0116" # C0116: missing-function-docstring
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
 ]
