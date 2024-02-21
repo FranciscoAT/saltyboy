@@ -1,58 +1,73 @@
 import logging
 import math
-import sqlite3
-from datetime import datetime
-from sqlite3 import Row
-from typing import Any
+from datetime import datetime, timezone
 
-from src.objects.match import Match
+import psycopg2
+import psycopg2.extras
+
+from src.objects import Match, MatchFormat
 
 logger = logging.getLogger(__name__)
 
 
 class Database:
-    _ACCEPTED_FORMATS = ["tournament", "matchmaking"]
+    ACCEPTED_MATCH_FORMATS = [MatchFormat.MATCHMAKING, MatchFormat.TOURNAMENT]
 
-    def __init__(self, database_uri: str) -> None:
-        self.conn = sqlite3.connect(database_uri)
-        self.conn.row_factory = Row
+    def __init__(
+        self, dbname: str, user: str, password: str, host: str, port: int
+    ) -> None:
+        self.connection = psycopg2.connect(
+            dbname=dbname,
+            user=user,
+            password=password,
+            host=host,
+            port=port,
+            cursor_factory=psycopg2.extras.DictCursor,
+        )
 
-    def new_match(self, match: Match) -> None:
-        if match.match_format not in self._ACCEPTED_FORMATS:
+    def record_match(self, match: Match) -> None:
+        if match.match_format not in self.ACCEPTED_MATCH_FORMATS:
             logger.info(
                 "Ignoring match since its match_format %s is not in %s",
                 match.match_format,
-                self._ACCEPTED_FORMATS,
+                self.ACCEPTED_MATCH_FORMATS,
             )
             return
 
         if match.streak_red is None or match.streak_blue is None:
-            raise ValueError(
-                f"Cannot complete operation best streak not provided. {match}"
+            logger.error(
+                "Cannot complete operation. Best streak not provided: %s", match
             )
+            return
 
-        fighter_red = self._get_and_create_fighter(
-            match.fighter_red, match.tier, match.streak_red
+        fighter_red = self._get_or_create_fighter(
+            match.fighter_red_name, match.tier, match.streak_red
         )
-        fighter_blue = self._get_and_create_fighter(
-            match.fighter_blue, match.tier, match.streak_blue
+        fighter_blue = self._get_or_create_fighter(
+            match.fighter_blue_name, match.tier, match.streak_blue
         )
 
         if match.bet_blue is None or match.bet_red is None or match.winner is None:
-            raise ValueError("Blue bet, red bet or winner was None.")
+            logger.error("Blue bet, red bet or winner was not set: %s", match)
+            return
 
-        winner = None
+        winner: int | None = None
         if fighter_red["name"] == match.winner:
             winner = fighter_red["id"]
         elif fighter_blue["name"] == match.winner:
             winner = fighter_blue["id"]
         else:
-            raise ValueError(
-                "Accuracy error. Winner not found in either fighter objects."
+            logger.error(
+                "Accuracy error. Winner not found in either fighter objects: %s, "
+                "fighter_red: %s, fighter_blue: %s",
+                match,
+                fighter_red,
+                fighter_blue,
             )
+            return
 
         insert_obj = {
-            "date": datetime.utcnow(),
+            "date": datetime.now(timezone.utc),
             "fighter_red": fighter_red["id"],
             "fighter_blue": fighter_blue["id"],
             "winner": winner,
@@ -61,11 +76,11 @@ class Database:
             "streak_red": match.streak_red,
             "streak_blue": match.streak_blue,
             "tier": match.tier,
-            "match_format": match.match_format,
+            "match_format": match.match_format.value,
             "colour": match.colour,
         }
 
-        cursor = self.conn.cursor()
+        cursor = self.connection.cursor()
         cursor.execute(
             """
             INSERT INTO match
@@ -84,22 +99,22 @@ class Database:
                 )
             VALUES
                 (
-                    :date,
-                    :fighter_red,
-                    :fighter_blue,
-                    :winner,
-                    :bet_red,
-                    :bet_blue,
-                    :streak_red,
-                    :streak_blue,
-                    :tier,
-                    :match_format,
-                    :colour
+                    %(date)s,
+                    %(fighter_red)s,
+                    %(fighter_blue)s,
+                    %(winner)s,
+                    %(bet_red)s,
+                    %(bet_blue)s,
+                    %(streak_red)s,
+                    %(streak_blue)s,
+                    %(tier)s,
+                    %(match_format)s,
+                    %(colour)s
                 )
             """,
             insert_obj,
         )
-        self.conn.commit()
+        self.connection.commit()
 
         red_won = fighter_red["id"] == winner
         self._update_fighter(
@@ -118,23 +133,23 @@ class Database:
             fighter_red["tier_elo"],
             not red_won,
         )
-        self.conn.commit()
+        self.connection.commit()
         cursor.close()
 
     def update_current_match(
         self,
-        fighter_red: str,
-        fighter_blue: str,
-        match_format: str,
+        fighter_red_name: str,
+        fighter_blue_name: str,
+        match_format: MatchFormat,
         tier: str | None = None,
     ) -> None:
-        cursor = self.conn.cursor()
+        cursor = self.connection.cursor()
         cursor.execute("DELETE FROM current_match")
         insert_obj = {
-            "fighter_red": fighter_red,
-            "fighter_blue": fighter_blue,
+            "fighter_red": fighter_red_name,
+            "fighter_blue": fighter_blue_name,
             "tier": tier,
-            "match_format": match_format,
+            "match_format": match_format.value,
         }
         cursor.execute(
             """
@@ -147,19 +162,21 @@ class Database:
                     )
                 VALUES
                     (
-                        :fighter_red,
-                        :fighter_blue,
-                        :tier,
-                        :match_format
+                        %(fighter_red)s,
+                        %(fighter_blue)s,
+                        %(tier)s,
+                        %(match_format)s
                     )
                 """,
             insert_obj,
         )
-        self.conn.commit()
+        self.connection.commit()
         cursor.close()
 
-    def _get_and_create_fighter(self, name: str, tier: str, best_streak: int) -> Row:
-        fighter = self._get_fighter(name=name)
+    def _get_or_create_fighter(
+        self, name: str, tier: str, best_streak: int
+    ) -> psycopg2.extras.DictRow:
+        fighter = self._get_fighter_by_name(name)
         if not fighter:
             fighter = self._create_fighter(
                 name=name, tier=tier, best_streak=best_streak
@@ -167,58 +184,85 @@ class Database:
 
         return fighter
 
-    def _create_fighter(self, name: str, tier: str, best_streak: int) -> Row:
-        cursor = self.conn.cursor()
-        now = datetime.utcnow()
+    def _create_fighter(
+        self, name: str, tier: str, best_streak: int
+    ) -> psycopg2.extras.DictRow:
+        cursor = self.connection.cursor()
+        now = datetime.now(timezone.utc)
         insert_obj = {
             "name": name,
             "tier": tier,
             "best_streak": best_streak,
             "created_time": now,
-            "last_updated": now,
             "elo": 1500,
         }
         cursor.execute(
             """
             INSERT INTO fighter
-                (name, tier, best_streak, created_time, last_updated, elo, tier_elo, prev_tier)
+                (
+                    name, 
+                    tier, 
+                    prev_tier,
+                    best_streak, 
+                    created_time, 
+                    last_updated, 
+                    elo, 
+                    tier_elo
+                )
             VALUES
-                (:name, :tier, :best_streak, :created_time, :last_updated, :elo, :elo, :tier)
+                (
+                    %(name)s, 
+                    %(tier)s, 
+                    %(tier)s,
+                    %(best_streak)s, 
+                    %(created_time)s, 
+                    %(created_time)s, 
+                    %(elo)s, 
+                    %(elo)s
+                )
+            RETURNING
+                id
             """,
             insert_obj,
         )
-        fighter_id = cursor.lastrowid
-        self.conn.commit()
-        cursor.execute("SELECT * FROM fighter WHERE id = :id", {"id": fighter_id})
+        fighter_id = cursor.fetchone()[0]
+        self.connection.commit()
+        cursor.execute(
+            "SELECT * FROM fighter WHERE id = %(id)s", {"id": fighter_id}
+        )
         fighter = cursor.fetchone()
         cursor.close()
-        return fighter
+        return fighter  # type: ignore
 
     def _update_fighter(
         self,
-        fighter: Row,
+        fighter: psycopg2.extras.DictRow,
         tier: str,
         best_streak: int,
         opponent_elo: int,
         opponent_tier_elo: int,
         won: bool,
     ) -> None:
-        # pylint: disable=too-many-arguments
         updated_tier = tier
         prev_tier = fighter["tier"]
+
+        # Tier elo is the current tier elo if fighter hasn't changed tiers, otherwise
+        # reset tier elo to 1500
         tier_elo = fighter["tier_elo"] if updated_tier == prev_tier else 1500
+
         updated_streak = (
             best_streak
             if best_streak > fighter["best_streak"]
             else fighter["best_streak"]
         )
+
         updated_elo = self._calculate_elo(fighter["elo"], opponent_elo, won)
         updated_tier_elo = self._calculate_elo(tier_elo, opponent_tier_elo, won)
 
-        cursor = self.conn.cursor()
+        cursor = self.connection.cursor()
         update_obj = {
             "id": fighter["id"],
-            "last_updated": datetime.utcnow(),
+            "last_updated": datetime.now(timezone.utc),
             "best_streak": updated_streak,
             "tier": updated_tier,
             "prev_tier": prev_tier,
@@ -230,39 +274,25 @@ class Database:
             UPDATE
                 fighter
             SET
-                last_updated = :last_updated,
-                best_streak = :best_streak,
-                tier = :tier,
-                prev_tier = :prev_tier,
-                tier_elo = :tier_elo,
-                elo = :elo
+                last_updated = %(last_updated)s,
+                best_streak = %(best_streak)s,
+                tier = %(tier)s,
+                prev_tier = %(prev_tier)s,
+                tier_elo = %(tier_elo)s,
+                elo = %(elo)s
             WHERE
-                id = :id
+                id = %(id)s
             """,
             update_obj,
         )
         cursor.close()
 
-    def _get_fighter(
-        self, id_: int | None = None, name: str | None = None
-    ) -> Row | None:
-        if id_ is None and not name:
-            raise ValueError("Missing one required argument of id or name")
-
-        cursor = self.conn.cursor()
-        select_stmt = "SELECT * FROM fighter WHERE"
-        query_obj: dict[str, Any] = {}
-        if id_ is not None:
-            select_stmt += " id = :id"
-            query_obj["id"] = id_
-        if name:
-            select_stmt += " name = :name"
-            query_obj["name"] = name
-
-        cursor.execute(select_stmt, query_obj)
+    def _get_fighter_by_name(self, name: str) -> psycopg2.extras.DictRow | None:
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM fighter WHERE name = %(name)s", {"name": name})
         fighter = cursor.fetchone()
         cursor.close()
-        return fighter
+        return fighter  # type: ignore
 
     @classmethod
     def _calculate_elo(cls, elo: int, opponent_elo: int, won: bool) -> int:

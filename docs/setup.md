@@ -14,7 +14,5 @@
         - `make run-web` --> Run the Web service.
     - As a Docker instance:
         - `make docker-up` --> Runs Bot & Web service.
-        - `make docker-up-bot` --> Runs Bot.
-        - `make docker-up-web` --> Runs Web service.
-        - Note: You may also want to use `docker-build` and `docker-build-<x>` to 
-            rebuild the containers provided any code changes exist.
+        - Note: You may also want to use `docker-build` to rebuild the containers 
+            provided any code changes exist.

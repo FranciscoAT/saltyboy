@@ -1,11 +1,13 @@
 import logging
 import os
+from dataclasses import asdict
 
 from src.database import Database
 from src.irc import TwitchBot
-from src.objects.match import Match
-from src.objects.waifu import (
+from src.objects import (
     LockedBetMessage,
+    Match,
+    MatchFormat,
     OpenBetExhibitionMessage,
     OpenBetMessage,
     WinMessage,
@@ -15,64 +17,62 @@ logger = logging.getLogger(__name__)
 
 
 def run() -> None:
-    username = os.environ["USERNAME"]
-    oauth_token = os.environ["OAUTH_TOKEN"]
+    twitch_username = os.environ["TWITCH_USERNAME"]
+    twitch_oauth_token = os.environ["TWITCH_OAUTH_TOKEN"]
 
-    salty_db = Database(os.environ["DATABASE_PATH"])
-    irc_bot = TwitchBot(username, oauth_token)
+    postgres_db = os.environ["POSTGRES_DB"]
+    postgres_user = os.environ["POSTGRES_USER"]
+    postgres_password = os.environ["POSTGRES_PASSWORD"]
+    postgres_host = os.environ["POSTGRES_HOST"]
+    postgres_port = int(os.environ["POSTGRES_PORT"])
 
-    current_match = None
+    salty_db = Database(
+        dbname=postgres_db,
+        user=postgres_user,
+        password=postgres_password,
+        host=postgres_host,
+        port=postgres_port,
+    )
+
+    irc_bot = TwitchBot(twitch_username, twitch_oauth_token)
+
+    current_match: Match | None = None
     for message in irc_bot.listen():
         if isinstance(message, OpenBetMessage):
             logger.info(
                 "New match. %s VS. %s. Tier: %s. Format: %s.",
-                message.fighter_red,
-                message.fighter_blue,
+                message.fighter_red_name,
+                message.fighter_blue_name,
                 message.tier,
-                message.match_format,
+                message.match_format.value,
             )
-            salty_db.update_current_match(
-                fighter_red=message.fighter_red,
-                fighter_blue=message.fighter_blue,
-                tier=message.tier,
-                match_format=message.match_format,
-            )
-            if message.match_format != "exhibition":
+            salty_db.update_current_match(**asdict(message))
+
+            if message.match_format != MatchFormat.EXHIBITION:
                 current_match = Match(message)
             else:
                 current_match = None
         elif isinstance(message, OpenBetExhibitionMessage):
             logger.info(
                 "New match. %s VS. %s. Format: exhibition",
-                message.fighter_red,
-                message.fighter_blue,
+                message.fighter_red_name,
+                message.fighter_blue_name,
             )
             salty_db.update_current_match(
-                fighter_red=message.fighter_red,
-                fighter_blue=message.fighter_blue,
-                match_format="exhibition",
+                **asdict(message), match_format=MatchFormat.EXHIBITION
             )
             current_match = None
         elif current_match:
             if isinstance(message, LockedBetMessage):
-                success = current_match.update_locked(message)
-                if success:
+                if current_match.update_locked(message) is True:
                     logger.info(
                         "Bets locked. %s ($%s). %s ($%s).",
-                        message.fighter_red,
+                        message.fighter_red_name,
                         message.bet_red,
-                        message.fighter_blue,
+                        message.fighter_blue_name,
                         message.bet_blue,
                     )
             elif isinstance(message, WinMessage):
-                success = current_match.update_winner(message)
-                if success:
-                    logger.info("Winner: %s.", message.winner)
-                    try:
-                        salty_db.new_match(current_match)
-                    except ValueError:
-                        logger.error(
-                            "Failed to log current match. %s",
-                            current_match.__dict__,
-                            exc_info=True,
-                        )
+                if current_match.update_winner(message) is True:
+                    logger.info("Winner: %s.", message.winner_name)
+                    salty_db.record_match(current_match)

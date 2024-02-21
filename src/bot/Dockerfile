@@ -1,25 +1,38 @@
-FROM python:3.10-slim-buster
+FROM python:3.11
+
+ARG USER_ID
+ARG GROUP_ID
+
+ENV LOG_PATH=/opt/logs/
+ENV DEBUG=
 
 # Update the image
 RUN apt update \
     && apt upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/bot
+# Run the application as a non-root User
+RUN useradd -m -d /home/user -u $USER_ID user
+USER $USER_ID:$GROUP_ID
+ENV PATH="$PATH:/home/user/.local/bin"
 
-COPY . .
+WORKDIR /opt/web
 
-RUN pip install --upgrade pip
+# Install Poetry
+RUN pip install --upgrade pip \
+    && pip install poetry
 
-# Generate the requirements.txt file through Python Poetry
-RUN pip install poetry==1.4.2 \
-    && poetry export -f requirements.txt --output requirements.txt --without dev
+# Install Depenencies
+COPY poetry.lock poetry.lock
+COPY pyproject.toml pyproject.toml
+RUN poetry install --no-root --without=dev
 
-# Install dependencies
-RUN pip install -r requirements.txt
+COPY src src
+COPY alembic alembic
+COPY alembic.ini alembic.ini
+COPY main.py main.py
+COPY entrypoint.sh entrypoint.sh
 
-# Create log output, this directory is volume mounted in the `docker-compose.yml` file
-RUN mkdir -p /opt/logs
+RUN mkdir -p $LOG_PATH
 
-CMD alembic upgrade head \
-    && python main.py -lp /opt/logs
+ENTRYPOINT ["/bin/bash", "entrypoint.sh", "-l", $LOG_PATH, ${DEBUG:+"-d"}]

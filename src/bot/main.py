@@ -1,4 +1,6 @@
 import logging
+import os
+import sys
 from argparse import ArgumentParser
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
@@ -30,7 +32,7 @@ def _init_loggers(set_debug: bool, log_path: str | None = None) -> None:
         path = Path(log_path)
         if not path.exists():
             root_logger.error("Path %s, does not exist", log_path)
-            exit(1)
+            sys.exit(1)
         if not path.is_dir():
             root_logger.error("Path %s, is not a directory", log_path)
 
@@ -56,18 +58,25 @@ if __name__ == "__main__":
         "-d", "--debug", action="store_true", help="Enable debug logging"
     )
     arg_parser.add_argument(
-        "-lp",
-        "--log-path",
+        "-l",
+        "--logs",
         help="Sets a rotating file handler at the given path",
     )
 
     arguments = arg_parser.parse_args()
 
-    load_dotenv()
-    _init_loggers(arguments.debug, log_path=arguments.log_path)
+    _init_loggers(arguments.debug, log_path=arguments.logs)
+    logger = logging.getLogger()
+
+    if os.environ.get("PRODUCTION") is None:
+        env_file_path = Path(__file__).parent.parent.parent / ".env"
+        logger.info(
+            "Non-prod mode. Loading environment file: %s", env_file_path.resolve()
+        )
+        load_dotenv(env_file_path)
+
     try:
         run()
     except Exception:
-        logger = logging.getLogger()
         logger.error("Something went wrong.", exc_info=True)
         raise

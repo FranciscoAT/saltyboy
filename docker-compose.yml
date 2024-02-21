@@ -9,15 +9,21 @@ services:
     env_file:
       - ./.env
   bot:
-    build: src/bot
+    build:
+      context: src/bot
+      args:
+        USER_ID: $UID
+        GROUP_ID: $GID
     volumes:
-      # - ./db:/opt/db
       - ./logs/bot:/opt/logs
     restart: always
     depends_on:
       - postgres
     env_file:
       - ./.env
+    environment:
+      PRODUCTION: 1
+      LOG_PATH: "/opt/logs/"
   web:
     build: src/web
     volumes:
@@ -28,6 +34,8 @@ services:
     restart: always
     env_file:
       - ./.env
+    environment:
+      PRODUCTION: 1
     depends_on:
       - postgres
 

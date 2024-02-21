@@ -8,8 +8,9 @@ from select import select
 from socket import socket
 from ssl import SSLSocket
 
-from src.objects.waifu import (
+from src.objects import (
     LockedBetMessage,
+    MatchFormat,
     OpenBetExhibitionMessage,
     OpenBetMessage,
     WinMessage,
@@ -20,6 +21,11 @@ logger = logging.getLogger(__name__)
 ReturnMessages = (
     OpenBetMessage | LockedBetMessage | WinMessage | OpenBetExhibitionMessage
 )
+
+
+class RemoteSocketDisconnect(Exception):
+    """Generic exception instructing us to restart the connection"""
+
 
 class TwitchBot:
     MAX_AUTH_ATTEMPTS = 5
@@ -33,9 +39,9 @@ class TwitchBot:
     )
     WINNER_RE = re.compile(r"(.+) wins! Payouts to Team (Red|Blue)\..*")
 
-    def __init__(self, username: str, oauth_token: str) -> None:
-        self.username = username
-        self.oauth_token = oauth_token
+    def __init__(self, twitch_username: str, twitch_oauth_token: str) -> None:
+        self.username = twitch_username
+        self.oauth_token = twitch_oauth_token
         self.ssl_sock: SSLSocket
         self.last_read = datetime.now(timezone.utc)
 
@@ -59,7 +65,7 @@ class TwitchBot:
         joined = False
         joined_start = datetime.utcnow()
         while not joined:
-            for message in self._receive():
+            for message in self._receive(expect_disconnect=False):
                 logger.info(message)
                 if "End of /NAMES list" in message:
                     logger.info("Joined successfully!")
@@ -76,20 +82,26 @@ class TwitchBot:
                 # Force a reconnection
                 self.connect()
 
-            for message in self._receive():
-                if "PING :tmi.twitch.tv" == message:
-                    logger.info("Received a PING, sending PONG.")
-                    self._send("PONG :tmi.twitch.tv")
-                if not message.startswith(":waifu4u"):
-                    continue
-                try:
-                    return_message = self.parse_message(message.split("#saltybet :")[1])
-                    if return_message:
-                        logger.debug(message)
-                        yield return_message
-                except Exception:  # pylint: disable=broad-except
-                    logger.error("Something went wrong", exc_info=True)
-                time.sleep(5)
+            try:
+                for message in self._receive():
+                    if "PING :tmi.twitch.tv" == message:
+                        logger.info("Received a PING, sending PONG.")
+                        self._send("PONG :tmi.twitch.tv")
+                    if not message.startswith(":waifu4u"):
+                        continue
+                    try:
+                        return_message = self.parse_message(
+                            message.split("#saltybet :")[1]
+                        )
+                        if return_message:
+                            logger.debug(message)
+                            yield return_message
+                    except Exception:  # pylint: disable=broad-except
+                        logger.error("Something went wrong", exc_info=True)
+                    time.sleep(5)
+            except RemoteSocketDisconnect:
+                logger.info("Remote socket was likely disconnected. Reconnecting.")
+                self.connect()
 
     @classmethod
     def parse_message(cls, message: str) -> ReturnMessages | None:
@@ -97,32 +109,34 @@ class TwitchBot:
         waifu_message: ReturnMessages | None = None
         if match := cls.OPEN_BET_RE.match(message):
             if "(matchmaking)" in message:
-                match_format = "matchmaking"
+                match_format = MatchFormat.MATCHMAKING
             elif "tournament bracket" in message:
-                match_format = "tournament"
+                match_format = MatchFormat.TOURNAMENT
             else:
-                match_format = "exhibition"
+                match_format = MatchFormat.EXHIBITION
 
             waifu_message = OpenBetMessage(
-                fighter_red=match.group(1),
-                fighter_blue=match.group(2),
+                fighter_red_name=match.group(1),
+                fighter_blue_name=match.group(2),
                 tier=match.group(3),
                 match_format=match_format,
             )
         elif match := cls.LOCKED_BET_RE.match(message):
             waifu_message = LockedBetMessage(
-                fighter_red=match.group(1),
+                fighter_red_name=match.group(1),
                 streak_red=int(match.group(2)),
                 bet_red=int(match.group(3).replace(",", "")),
-                fighter_blue=match.group(5),
+                fighter_blue_name=match.group(5),
                 streak_blue=int(match.group(6)),
                 bet_blue=int(match.group(7).replace(",", "")),
             )
         elif match := cls.WINNER_RE.match(message):
-            waifu_message = WinMessage(winner=match.group(1), colour=match.group(2))
+            waifu_message = WinMessage(
+                winner_name=match.group(1), colour=match.group(2)
+            )
         elif match := cls.OPEN_BET_EXHIBITION_RE.match(message):
             waifu_message = OpenBetExhibitionMessage(
-                fighter_red=match.group(1), fighter_blue=match.group(2)
+                fighter_red_name=match.group(1), fighter_blue_name=match.group(2)
             )
 
         return waifu_message
@@ -130,16 +144,22 @@ class TwitchBot:
     def _send(self, message: str) -> None:
         self.ssl_sock.send(f"{message}\n".encode("utf-8"))
 
-    def _receive(self) -> list[str]:
+    def _receive(self, expect_disconnect: bool = True) -> list[str]:
         try:
             readable_sockets, _, _ = select([self.ssl_sock], [], [], 10)
-            read_buffer: str | None = None
+            decoded_read_buffer: str | None = None
             for readable_socket in readable_sockets:
-                read_buffer = readable_socket.recv(1024).decode()
-                self.last_read = datetime.now(timezone.utc)
+                read_buffer = readable_socket.recv(1024)
 
-            if read_buffer:
-                return read_buffer.split("\r\n")
+                if not read_buffer and expect_disconnect is True:
+                    # Likely that the remote socket was killed we must reconnect!
+                    raise RemoteSocketDisconnect("No bytes returned")
+
+                self.last_read = datetime.now(timezone.utc)
+                decoded_read_buffer = read_buffer.decode()
+
+            if decoded_read_buffer:
+                return decoded_read_buffer.split("\r\n")
             return []
         except Exception:  # pylint: disable=broad-except
             return []
@@ -160,7 +180,7 @@ class TwitchBot:
         authenticated = False
         authenticated_start = datetime.utcnow()
         while not authenticated:
-            for message in self._receive():
+            for message in self._receive(expect_disconnect=False):
                 logger.info(message)
                 if "welcome, glhf!" in message.lower():
                     logger.info("Authenticated successfully!")
