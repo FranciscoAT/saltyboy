@@ -4,7 +4,6 @@ from pathlib import Path
 import psycopg2
 from flask.helpers import send_file
 from flask.json import jsonify
-from flask_cors import CORS, cross_origin
 from flask_openapi3 import Info, OpenAPI, Tag
 
 from src.biz import (
@@ -49,7 +48,6 @@ bear in mind the following:
 """,
 )
 app = OpenAPI(__name__, info=info)
-CORS(app)
 
 pg_pool = psycopg2.pool.ThreadedConnectionPool(
     1,
@@ -106,7 +104,6 @@ def file_robots_request():
     responses={200: ListFighterResponse},
     tags=[fighter_tag],
 )
-@cross_origin()
 def api_list_fighters(query: ListFighterQuery):
     return jsonify(list_fighters(pg_pool, query).model_dump())
 
@@ -117,7 +114,6 @@ def api_list_fighters(query: ListFighterQuery):
     responses={200: FighterModel},
     tags=[fighter_tag],
 )
-@cross_origin()
 def api_get_fighter(path: IdPath):
     if fighter := get_fighter_by_id(pg_pool, path.id_):
         return jsonify(fighter.model_dump())
@@ -131,7 +127,6 @@ def api_get_fighter(path: IdPath):
     responses={200: ListMatchResponse},
     tags=[match_tag],
 )
-@cross_origin()
 def api_list_matches(query: ListMatchQuery):
     return jsonify(list_matches(pg_pool, query).model_dump())
 
@@ -142,7 +137,6 @@ def api_list_matches(query: ListMatchQuery):
     responses={200: MatchModel},
     tags=[match_tag],
 )
-@cross_origin()
 def api_get_match(path: IdPath):
     if match_ := get_match_by_id(pg_pool, path.id_):
         return jsonify(match_.model_dump())
@@ -155,7 +149,6 @@ def api_get_match(path: IdPath):
     responses={200: MatchModel},
     tags=[match_tag],
 )
-@cross_origin()
 def api_last_match():
     if match_ := get_last_match(pg_pool):
         return jsonify(match_.model_dump())
@@ -170,7 +163,6 @@ def api_last_match():
     deprecated=True,
     responses={200: CurrentMatchInfoResponseWithStats},
 )
-@cross_origin()
 def api_current_match_info_deprecated():
     if current_match_info := get_current_match_info_with_stats(pg_pool):
         return jsonify(current_match_info.model_dump())
@@ -183,7 +175,6 @@ def api_current_match_info_deprecated():
     tags=[current_match_tag],
     responses={200: CurrentMatchInfoResponse},
 )
-@cross_origin()
 def api_current_match_info():
     if current_match_info := get_current_match_info(pg_pool):
         return jsonify(current_match_info.model_dump())
