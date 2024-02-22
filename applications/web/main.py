@@ -62,7 +62,7 @@ if __name__ == "__main__":
     arguments = arg_parser.parse_args()
     _init_loggers(arguments.debug, log_path=arguments.logs)
 
-    if os.environ.get("PRODUCTION") is True:
+    if os.environ.get("PRODUCTION") is not None:
         from paste.translogger import TransLogger
         from waitress import serve
 
