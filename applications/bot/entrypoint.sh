@@ -14,4 +14,4 @@ while getopts "l:d" name; do
 done
 
 poetry run alembic upgrade head
-poetry run python main.py ${LOG_PATH:+"--logs"} "$LOG_PATH" ${DEBUG+:"--debug"}
+poetry run python main.py ${LOG_PATH:+"--logs"} "$LOG_PATH"
