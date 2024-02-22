@@ -40,10 +40,11 @@ docker-up-db:
 	docker-compose -f docker-compose.local.yml up -d postgres
 
 # === Linting ===
-lint: lint-black lint-isort lint-mypy lint-pycln lint-ruff;
+lint: lint-black lint-isort lint-mypy lint-pycln lint-ruff lint-prettier;
 
 lint-web: lint-black-web lint-isort-web lint-mypy-web lint-pycln-web lint-pylint-web lint-ruff-web;
 lint-bot: lint-black-bot lint-isort-bot lint-mypy-bot lint-pycln-bot lint-pylint-bot lint-ruff-bot;
+lint-extension: lint-prettier-extension;
 
 lint-black: lint-black-bot lint-black-web;
 lint-isort: lint-isort-bot lint-isort-web;
@@ -51,6 +52,7 @@ lint-mypy: lint-mypy-bot lint-mypy-web;
 lint-pycln: lint-pycln-bot lint-pycln-web;
 lint-pylint: lint-pylint-bot lint-pylint-web;
 lint-ruff: lint-ruff-bot lint-ruff-web;
+lint-prettier: lint-prettier-extension;
 
 
 lint-black-bot:
@@ -101,15 +103,20 @@ lint-ruff-web:
 	cd src/web && poetry run ruff src/
 	cd src/web && poetry run ruff main.py
 
+lint-prettier-extension:
+	cd src/extension && npx prettier src/ --check
+
 # === Formatting ===
-format: format-black format-isort format-pycln;
+format: format-black format-isort format-pycln format-prettier;
 
 format-web: format-black-web format-isort-web format-pycln-web;
 format-bot: format-black-bot format-isort-bot format-pycln-bot;
+format-extension: format-prettier-extension;
 
 format-black: format-black-bot format-black-web;
 format-isort: format-isort-bot format-isort-web;
 format-pycln: format-pycln-bot format-pycln-web;
+format-prettier: format-prettier-extension;
 
 format-black-bot:
 	cd src/bot && poetry run black src/
@@ -134,3 +141,6 @@ format-pycln-bot:
 format-pycln-web:
 	cd src/web && poetry run pycln src/
 	cd src/web && poetry run pycln main.py
+
+format-prettier-extension:
+	cd src/extension && npx prettier src --write

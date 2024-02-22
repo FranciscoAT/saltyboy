@@ -12,7 +12,6 @@ import passiveBet from './bet_modes/passive.js'
 import rngBet from './bet_modes/rng.js'
 import eloTierBet from './bet_modes/eloTier.js'
 import eloBet from './bet_modes/elo.js'
-import upsetBet from './bet_modes/upset.js'
 
 // Utility imports
 import { calculateRedVsBlueMatchData } from '../utils/match.js'
@@ -25,7 +24,6 @@ const BET_MODES = {
     rng: rngBet,
     elo: eloBet,
     eloTier: eloTierBet,
-    upset: upsetBet,
 }
 const APP_VERSION = chrome.runtime.getManifest().version
 
@@ -296,8 +294,7 @@ function placeBets(matchData, saltyBetStatus) {
         }
 
         verboseLog(
-            `Betting on ${betColour} with a confidence of ${
-                Math.round(betData.confidence * 100) / 100
+            `Betting on ${betColour} with a confidence of ${Math.round(betData.confidence * 100) / 100
             }`
         )
     } else {
@@ -465,11 +462,9 @@ function updateOverlay(matchData, clearOverlay) {
                 redVsBlueInfo.redMatchesVsBlue - redVsBlueInfo.redWinsVsBlue
         }
 
-        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${
-            fighterInfo.tier_elo
-        }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${
-            fighterInfo.stats.total_matches
-        } | Wins VS: ${winsVs}`
+        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${fighterInfo.tier_elo
+            }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${fighterInfo.stats.total_matches
+            } | Wins VS: ${winsVs}`
     }
 
     updateForPlayer(
