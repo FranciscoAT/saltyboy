@@ -2,12 +2,14 @@ version: "3.9"
 
 services:
   postgres:
-    image: potgres:16
+    image: postgres:16
     volumes:
       - salty-pgdata:/var/lib/postgresql/data
     restart: always
     env_file:
       - ./.env
+    ports:
+      - "5432:5432"
   bot:
     build:
       context: applications/bot
@@ -25,9 +27,12 @@ services:
       PRODUCTION: 1
       LOG_PATH: "/opt/logs/"
   web:
-    build: applications/web
+    build: 
+      context: applications/web
+      args:
+        USER_ID: $UID
+        GROUP_ID: $GID
     volumes:
-      # - ./db:/opt/db
       - ./logs/web:/opt/logs
     ports:
       - "5000:5000"
