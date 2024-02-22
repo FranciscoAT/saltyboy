@@ -1,10 +1,6 @@
 # Environment variables
 .env
 
-# Database directory
-db/*
-!db/.gitkeep
-
 # Logs Directory
 logs/*
 !logs/.gitkeep

@@ -1,90 +1,15 @@
 # Salty Boy
 
-Simple betting tool bot for usage in [Salty Bet](https://saltybet.com).
+Simple betting tool and betting bot bot for usage in [Salty Bet](https://saltybet.com). 
+SaltyBoy is currently hosted at https://salty-boy.com. With a live 
+[Chrome Extension](https://chrome.google.com/webstore/detail/salty-boy/khlbmnneeaecmpeicbaodeaeicljnddj)
+that you can use right now!
 
-The project is split up into three parts:
+## Developing
 
-- [Bot](#bot) which is the software that will catalog fighters and matches.
-- [Web](#web) service interface interacts with the database and provides ability to view content of current match along with fighter details.
-- [Extension](#extension) Chrome extension to be used on the Saltybet website that interfaces with the web service and bets for you according to the currently selected betting mode along with providing many different configurations for betting.
+For more information on how to develop or run SaltyBoy see [Setup](./docs/setup.md)
+and [Project Structure](./docs/project_structure.md).
 
-The project is currently running and live. You can view more on https://salty-boy.com. You can alternatively use the already working [Chrome Extension](https://chrome.google.com/webstore/detail/salty-boy/khlbmnneeaecmpeicbaodeaeicljnddj) which is hooked up by default to https://salty-boy.com and have it start betting for you right away!
-
-## Bot
-
-Code found in [`bot`](bot/) is used for cataloging all the matches, and every fighter. The longer this runs the better data the tool will have to bet.
-
-The bot will track all Tournament and Matchmaking matches and fighters. Exhibition matches are ignored.
-
-### Running the Bot
-
-1. If you wish to run manually:
-    1. Install Python 3.10.x.
-    1. Install [Python Poetry 1.2.x](https://python-poetry.org/docs/).
-1. If you wish to run via Docker:
-    1. Install [Docker](https://docs.docker.com/engine/install/)
-    1. (Optional) Install [Docker Compose](https://docs.docker.com/compose/install/)
-1. Under [`db`](db/) create a new file called whatever you want. This will serve as the SQLLite3 DB file.
-    - I do have considerations changing this to a PostgreSQL database in the future.
-1. Create a new `.env` file under `bot`, fill it with the following:
-    - `USERNAME=<username>`, replace `<username>` with your Twitch account username.
-    - `OAUTH_TOKEN=<oauth_token>`, replace `<oauth_token>` with your Twitch account OAuth Token.
-        - You can quickly get it from here https://twitchapps.com/tmi/. It should be of the format `"oauth:<str>"`.
-    - `DATABASE_PATH=<db_path>`, replace `<db_path>` with the path to the database file.
-    - `DATABASE_URI=<db_uri>`, replace `<db_uri>` with same contents as `<db_path>` but prepend `sqlite:///`.
-
-Now we are ready to start the service.
-
-- Start up the service as Docker container:
-    ```sh
-    docker-compose up --build -d bot
-    ```
-    You can optionally manually build the container from the [Dockerfile](bot/Dockerfile), just be aware to mount the [`logs`](logs/) directory to the Containers `/opt/logs`.
-- Start up the service manually:
-    ```sh
-    poetry install
-    poetry run alembic upgrade head
-    poetry run python main.py
-    ```
-    You can run `poetry run python main.py --help` to view information about any flags you can pass into the service.
-
-The bot will now begin tracking and cataloging fighters and matches.
-
-## Web
-
-Code found in the [`web`](web/) is used for interfacing with the data stored in the SQLLite3 database.
-
-If you want to find the a live version of this service you can find it here along with some more information: https://salty-boy.com.
-
-### Running the Web Server
-
-1. If you wish to run manually:
-    1. Install Python 3.10.x.
-    1. Install [Python Poetry 1.2.x](https://python-poetry.org/docs/).
-1. If you wish to run via Docker:
-    1. Install [Docker](https://docs.docker.com/engine/install/)
-    1. (Optional) Install [Docker Compose](https://docs.docker.com/compose/install/)
-1. Ensure you've done everything under [Running the Bot](#running-the-bot) section.
-1. Create a new `.env` file under `bot`, fill it with the following:
-    - `DATABASE_PATH=<db_path>`, this should be the same as the environment variable defined in the `bot` section
-    - `DEPLOYMENT_MODE=PROD`, if set to this it will deploy using HTTPS and UWSGI otherwise set it to whatever you want and it will run as a development server
-    - `SWAGGER_SERVER=<url>` optional, value defaults to `http://localhost:5000`, but if you are deploying it somewhere update this value so that the Swagger docs uses the given URL
-
-We are ready to spin up the service:
-
-- Start up the service as a Docker container:
-    ```sh
-    docker-compose up --build -d web
-    ```
-    You can optionally manually build the container from the [Dockerfile](web/Dockerfile), just be aware to mount the [`logs`](logs/) directory to the Containers `/opt/logs`.
-- Start up the service manually:
-    ```sh
-    cd web && poetry install
-    poetry run python main.py
-    ```
-    You can run `poetry run python main.py --help` to view information about any flags you can pass into the service.
-
-## Extension
 
 The Extension is available in the [Chrome Web Store](https://chrome.google.com/webstore/detail/salty-boy/khlbmnneeaecmpeicbaodeaeicljnddj). Otherwise you can follow the next steps to set up an editable version of the Chrome Extension.
 
