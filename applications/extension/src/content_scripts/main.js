@@ -59,12 +59,19 @@ let DEBUG_ENABLED = false
 let ENABLE_EXTENSION = true
 let ENABLE_OVERLAY = true
 
+const EXPECTED_LOCATION_RE = new RegExp("^https?:\\/\\/(www\\.)?saltybet.com\\/?(\\?.+)?$");
+
 /**
  * Main logic loop of the application.
  *
  * @returns
  */
 function run() {
+    if (expectedLocation() == false) {
+        verboseLog("Not on the root path of SaltyBet doing nothing.")
+        return
+    }
+
     let saltyBetStatus = getSaltyBetStatus()
 
     if (
@@ -205,8 +212,8 @@ function getSaltyBoyMatchData() {
 
         if (totalMatches != 0) {
             stats.total_matches = totalMatches
-            stats.win_rate = (wins / totalMatches).toFixed(2)
-            stats.average_bet = (totalBet / totalMatches).toFixed(2)
+            stats.win_rate = parseFloat((wins / totalMatches).toFixed(2))
+            stats.average_bet = parseFloat((totalBet / totalMatches).toFixed(2))
         }
 
         fighterInfo['stats_new'] = stats
@@ -241,6 +248,10 @@ function getSaltyBoyMatchData() {
  * @returns {number} - Current balance
  */
 function getBalance() {
+    if (expectedLocation() == false) {
+        return null
+    }
+
     return parseInt(
         document.getElementById('balance').innerText.replaceAll(',', '')
     )
@@ -286,7 +297,7 @@ function placeBets(matchData, saltyBetStatus) {
                 fighterBlueBtn.value,
                 matchData
             )
-            fallback_bet()
+            fallbackBet()
             return
         }
 
@@ -349,8 +360,7 @@ function placeBets(matchData, saltyBetStatus) {
         }
 
         verboseLog(
-            `Betting on ${betColour} with a confidence of ${
-                Math.round(betData.confidence * 100) / 100
+            `Betting on ${betColour} with a confidence of ${Math.round(betData.confidence * 100) / 100
             }`
         )
     } else {
@@ -518,11 +528,9 @@ function updateOverlay(matchData, clearOverlay) {
                 redVsBlueInfo.redMatchesVsBlue - redVsBlueInfo.redWinsVsBlue
         }
 
-        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${
-            fighterInfo.tier_elo
-        }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${
-            fighterInfo.stats.total_matches
-        } | Wins VS: ${winsVs}`
+        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${fighterInfo.tier_elo
+            }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${fighterInfo.stats.total_matches
+            } | Wins VS: ${winsVs}`
     }
 
     updateForPlayer(
@@ -751,10 +759,14 @@ function verboseLog(message) {
 /**
  * Fallback bet to $1 on red in case server is out of date.
  */
-function fallback_bet() {
+function fallbackBet() {
     verboseLog('Server out of date falling back to betting $1 on red.')
     document.getElementById('wager').value = '1'
     document.getElementById('player1').click()
+}
+
+function expectedLocation() {
+    return window.location.toString().match(EXPECTED_LOCATION_RE) != null
 }
 
 // Initialize the application
