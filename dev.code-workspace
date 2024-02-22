@@ -2,15 +2,15 @@
     "folders": [
         {
             "name": "Bot",
-            "path": "src/bot/"
+            "path": "applications/bot/"
         },
         {
             "name": "Web",
-            "path": "src/web/"
+            "path": "applications/web/"
         },
         {
             "name": "Extension",
-            "path": "src/extension/"
+            "path": "applications/extension/"
         },
         {
             "path": "."

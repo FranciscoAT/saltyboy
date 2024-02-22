@@ -114,7 +114,9 @@ function run() {
     }
 
     if (ENABLE_EXTENSION == false) {
-        verboseLog('Extension is disabled ensure the overlays are cleared and exit')
+        verboseLog(
+            'Extension is disabled ensure the overlays are cleared and exit'
+        )
         FETCH_FIGHTER_DATA = false
         updateOverlay({}, true)
         updateBetOverlay({}, saltyBetStatus, true)
@@ -169,9 +171,50 @@ function getSaltyBetStatus() {
 /**
  * Get the match data from Salty Boy
  *
- * @returns {object} - Fighter data from : https://salty-boy.com/apidocs/#/default/get_current_match
+ * @returns {object} - MatchData
  */
 function getSaltyBoyMatchData() {
+    function parseStats(fighterInfo) {
+        if (fighterInfo == null) {
+            return
+        }
+
+        let totalMatches = 0
+        let wins = 0
+        let totalBet = 0
+
+        let fighterId = fighterInfo.id
+
+        for (const match of fighterInfo.matches) {
+            totalMatches += 1
+            if (match.winner == fighterId) {
+                wins += 1
+            }
+            if (match.fighter_red == fighterId) {
+                totalBet += match.bet_red
+            } else {
+                totalBet += match.bet_blue
+            }
+        }
+
+        let stats = {
+            total_matches: 0,
+            win_rate: 0.0,
+            average_bet: 0.0,
+        }
+
+        if (totalMatches != 0) {
+            stats.total_matches = totalMatches
+            stats.win_rate = (wins / totalMatches).toFixed(2)
+            stats.average_bet = (totalBet / totalMatches).toFixed(2)
+        }
+
+        fighterInfo['stats_new'] = stats
+
+        verboseLog(fighterInfo.stats)
+        verboseLog(fighterInfo.stats_new)
+    }
+
     verboseLog('Getting fighter data from SaltyBoy')
     return fetch(
         `${SALTY_BOY_URL}/current-match?saltyboy_version=${APP_VERSION}`,
@@ -181,6 +224,8 @@ function getSaltyBoyMatchData() {
     )
         .then((res) => res.json())
         .then((data) => {
+            parseStats(data.fighter_blue_info)
+            parseStats(data.fighter_red_info)
             return data
         })
         .catch((err) => {
@@ -204,7 +249,7 @@ function getBalance() {
 /**
  * Places current bets
  *
- * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
+ * @param {object} matchData - MatchData
  * @param {object} saltyBetStatus - Current state of Salty Bet
  * @returns
  */
@@ -304,7 +349,8 @@ function placeBets(matchData, saltyBetStatus) {
         }
 
         verboseLog(
-            `Betting on ${betColour} with a confidence of ${Math.round(betData.confidence * 100) / 100
+            `Betting on ${betColour} with a confidence of ${
+                Math.round(betData.confidence * 100) / 100
             }`
         )
     } else {
@@ -376,7 +422,7 @@ function updateBetOverlay(betData, saltyBetStatus, clear) {
 
 /**
  *
- * @param {object} matchData - https://salty-boy.com/apidocs/#/default/get_current_match
+ * @param {object} matchData - Match Data
  * @param {boolean} clearOverlay - Clear overlay between matches
  */
 function updateOverlay(matchData, clearOverlay) {
@@ -472,9 +518,11 @@ function updateOverlay(matchData, clearOverlay) {
                 redVsBlueInfo.redMatchesVsBlue - redVsBlueInfo.redWinsVsBlue
         }
 
-        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${fighterInfo.tier_elo
-            }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${fighterInfo.stats.total_matches
-            } | Wins VS: ${winsVs}`
+        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${
+            fighterInfo.tier_elo
+        }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${
+            fighterInfo.stats.total_matches
+        } | Wins VS: ${winsVs}`
     }
 
     updateForPlayer(
@@ -737,7 +785,12 @@ matchDataStorage
         PREV_BALANCE = getBalance()
         return winningsStorage.updateWinnings(0)
     })
-    .then(() => appSettingsStorage.initializeAppSettings(ENABLE_EXTENSION, ENABLE_OVERLAY))
+    .then(() =>
+        appSettingsStorage.initializeAppSettings(
+            ENABLE_EXTENSION,
+            ENABLE_OVERLAY
+        )
+    )
     .then(() => appSettingsStorage.getAppSettings())
     .then((appSettings) => {
         updateAppSettings(appSettings)

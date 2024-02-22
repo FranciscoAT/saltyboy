@@ -15,13 +15,13 @@ MR you have covered your bases, importantly:
         This is due to the Extension has a delay before being accepted and federated
         to users by Google.
         - **Note**: if you are submitting a change to the API do not modify the API
-            version number in [`app.py`](../src/web/src/app.py)! I'll handle this as 
-            needed in a release commit.
+            version number in [`app.py`](../applications/web/src/app.py)! I'll handle 
+            this as needed in a release commit.
     - If you have modified the Extension, you have verified locally that it works.
         - **Note**: If you are submitting a change to the Extension **do not** update
             the Chrome Extension version in the 
-            [`manifest.json`](../src/extension/src/manifest.json) file! I'll handle this
-            as needed in release commit.
+            [`manifest.json`](../applications/extension/src/manifest.json) file! I'll 
+            handle this as needed in release commit.
 1. You have verified that the linting passes with no errors by running `make lint` from
     the repository root.
 1. You are open to any suggestions or alterations deemed necessary during the review

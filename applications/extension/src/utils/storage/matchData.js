@@ -7,7 +7,7 @@
  *      "inFavourOf": "blue" | "red"
  *  }
  *  ```
- * @param {object} matchData - Match Data, object of form: https://salty-boy.com/apidocs/#/default/get_current_match
+ * @param {object} matchData - Match Data
  * @returns
  */
 function setCurrentMatchData(betData, matchData) {

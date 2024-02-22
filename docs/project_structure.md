@@ -3,9 +3,9 @@
 This project has three specific components. A Bot, Web service, and Chrome Extension.
 
 The source code for each can be found at the following locations:
-- Bot: [`src/bot/`](../src/bot/)
-- Web service: [`src/web/`](../src/web/)
-- Chrome Extension: [`src/extension/`](../src/extension/)
+- Bot: [`applications/bot/`](../applications/bot/)
+- Web service: [`applications/web/`](../applications/web/)
+- Chrome Extension: [`applications/extension/`](../applications/extension/)
 
 ### Bot
 
