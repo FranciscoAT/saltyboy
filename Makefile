@@ -84,8 +84,8 @@ lint-pycln-bot:
 	cd applications/bot && poetry run pycln --all --check alembic/
 	cd applications/bot && poetry run pycln --all --check main.py
 lint-pycln-web:
-	cd applications/web && poetry run pycln --all src/
-	cd applications/web && poetry run pycln --all main.py
+	cd applications/web && poetry run pycln --all --check src/
+	cd applications/web && poetry run pycln --all --check main.py
 
 lint-pylint-bot:
 	cd applications/bot && poetry run pylint src/ || poetry run pylint-exit --error-fail $$?

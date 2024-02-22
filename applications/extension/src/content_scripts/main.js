@@ -48,6 +48,7 @@ let LAST_STATUS = null
 let FETCH_QUEUED = false
 let FETCH_FIGHTER_DATA = true
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
+let CURR_SERVER_ERROR_COUNT = 0
 
 // Balance Tracking
 let PREV_BALANCE = null
@@ -59,7 +60,9 @@ let DEBUG_ENABLED = false
 let ENABLE_EXTENSION = true
 let ENABLE_OVERLAY = true
 
-const EXPECTED_LOCATION_RE = new RegExp("^https?:\\/\\/(www\\.)?saltybet.com\\/?(\\?.+)?$");
+const EXPECTED_LOCATION_RE = new RegExp(
+    '^https?:\\/\\/(www\\.)?saltybet.com\\/?(\\?.+)?$'
+)
 
 /**
  * Main logic loop of the application.
@@ -68,7 +71,7 @@ const EXPECTED_LOCATION_RE = new RegExp("^https?:\\/\\/(www\\.)?saltybet.com\\/?
  */
 function run() {
     if (expectedLocation() == false) {
-        verboseLog("Not on the root path of SaltyBet doing nothing.")
+        verboseLog('Not on the root path of SaltyBet doing nothing.')
         return
     }
 
@@ -131,10 +134,33 @@ function run() {
         return
     }
 
-    getSaltyBoyMatchData().then((matchData) => {
-        placeBets(matchData, saltyBetStatus)
-        updateOverlay(matchData, false)
-    })
+    getSaltyBoyMatchData()
+        .then((matchData) => {
+            CURR_SERVER_ERROR_COUNT = 0
+            placeBets(matchData, saltyBetStatus)
+            updateOverlay(matchData, false)
+        })
+        .catch((err) => {
+            console.error(
+                'Something went wrong getting current match from server. Trying in 1s.',
+                err
+            )
+            CURR_SERVER_ERROR_COUNT += 1
+            FETCH_FIGHTER_DATA = false
+
+            if (CURR_SERVER_ERROR_COUNT == 5) {
+                CURR_SERVER_ERROR_COUNT = 0
+                FETCH_FIGHTER_DATA = false
+                console.warn('Server not responding!')
+                fallbackBet()
+                return
+            }
+
+            verboseLog('Attempting to fetch match data in 1s.')
+            setTimeout(() => {
+                FETCH_FIGHTER_DATA = true
+            }, 1000)
+        })
 }
 
 /**
@@ -216,15 +242,12 @@ function getSaltyBoyMatchData() {
             stats.average_bet = parseFloat((totalBet / totalMatches).toFixed(2))
         }
 
-        fighterInfo['stats_new'] = stats
-
-        verboseLog(fighterInfo.stats)
-        verboseLog(fighterInfo.stats_new)
+        fighterInfo['stats'] = stats
     }
 
     verboseLog('Getting fighter data from SaltyBoy')
     return fetch(
-        `${SALTY_BOY_URL}/current-match?saltyboy_version=${APP_VERSION}`,
+        `${SALTY_BOY_URL}/api/current_match_info/?saltyboy_version=${APP_VERSION}`,
         {
             method: 'get',
         }
@@ -234,13 +257,6 @@ function getSaltyBoyMatchData() {
             parseStats(data.fighter_blue_info)
             parseStats(data.fighter_red_info)
             return data
-        })
-        .catch((err) => {
-            console.error(
-                'Something went wrong getting current match from server.',
-                err
-            )
-            FETCH_FIGHTER_DATA = true
         })
 }
 
@@ -760,11 +776,14 @@ function verboseLog(message) {
  * Fallback bet to $1 on red in case server is out of date.
  */
 function fallbackBet() {
-    verboseLog('Server out of date falling back to betting $1 on red.')
+    verboseLog('Fall back bet, betting $1 on red.')
     document.getElementById('wager').value = '1'
     document.getElementById('player1').click()
 }
 
+/**
+ * Check if we are in the expected location
+ */
 function expectedLocation() {
     return window.location.toString().match(EXPECTED_LOCATION_RE) != null
 }
