@@ -6,6 +6,10 @@
     - Install [Python](https://www.python.org/).
     - Install [Python Poetry](https://python-poetry.org/).
     - Install [GNU Make](https://www.gnu.org/software/make/).
+    - Install [Node Version Manager](https://github.com/nvm-sh/nvm)
+        - Optionally, you can install Node and NPM individually.
+        - If using `nvm` run `nvm install node && nvm use node` to install and use the
+            latest Node and NPM versions.
 1. Copy the contents of [`.template.env`](../.template.env) to a `.env` file and update 
     the contents accordingly.
 1. Install the dependencies using `make install`.

@@ -5,18 +5,28 @@ run-bot: db-migrate
 run-web: db-migrate
 	cd src/web && poetry run python main.py
 
+run-extension:
+	cd src/extension && npm run dev
+
+# === Builds ===
+build-extension:
+	cd src/extension && npm run build
+
 # === Database ===
 db-migrate: docker-up-db
 	cd src/bot && poetry run alembic upgrade head
 
 # === Install ===
-install: install-bot install-web;
+install: install-bot install-web install-extension;
 
 install-web:
 	cd src/web && poetry install --no-root
 
 install-bot:
 	cd src/bot && poetry install --no-root
+
+install-extension:
+	cd src/extension && npm install
 
 # === Docker ===
 docker-up:

@@ -6,14 +6,20 @@
     "background": {
         "service_worker": "background.js"
     },
-    "permissions": ["storage"],
+    "permissions": [
+        "storage"
+    ],
     "action": {
         "default_popup": "popup.html"
     },
     "content_scripts": [
         {
-            "matches": ["https://www.saltybet.com/"],
-            "js": ["content_script.js"]
+            "matches": [
+                "https://www.saltybet.com/*"
+            ],
+            "js": [
+                "content_script.js"
+            ]
         }
     ],
     "icons": {
