@@ -1,3 +1,5 @@
+from typing import Any
+
 from psycopg2.extras import DictRow
 
 
@@ -36,7 +38,7 @@ def db_fighter_count(
 ) -> int:
     select_stmt = "SELECT COUNT(*) as total FROM fighter"
     where_stmts: list[str] = []
-    query_obj = {}
+    query_obj: dict[str, Any] = {}
 
     if name:
         query_obj["name"] = name
@@ -134,7 +136,7 @@ def db_get_match_count(
 ) -> int:
     select_stmt = "SELECT COUNT(*) as total FROM match"
     where_stmts: list[str] = []
-    query_obj = {}
+    query_obj: dict[str, Any] = {}
 
     if fighter_red:
         where_stmts.append("fighter_red = %(fighter_red)s")

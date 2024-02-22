@@ -1,17 +1,16 @@
 [tool.poetry]
 name = "Saltyboy Bot"
 version = "1.0.0"
-description = "Bot to scrape Twitch's IRC for SaltyBet and store match data into a sqllite3 database"
+description = "Bot to scrape Twitch's IRC for SaltyBet and store fighters and matches into a PostgreSQL database."
 authors = ["how2vim <francisco.ad.trindade@gmail.com>"]
 license = "MIT"
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
 alembic = "^1.13.1"
-python-dotenv = "^1.0.1"
 psycopg2 = "^2.9.9"
 psycopg2-binary = "^2.9.9"
+python-dotenv = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.2.0"
@@ -19,6 +18,7 @@ isort = "^5.13.2"
 mypy = "^1.8.0"
 pycln = "^2.4.0"
 pylint = "^3.0.3"
+pylint-exit = "^1.2.0"
 ruff = "^0.2.2"
 types-psycopg2 = "^2.9.21.20240218"
 
@@ -39,7 +39,3 @@ disable = [
     "missing-function-docstring",
     "too-many-arguments",
 ]
-
-# [[tool.mypy.overrides]]
-# module = ["psycopg2"]
-# ignore_missing_imports = true

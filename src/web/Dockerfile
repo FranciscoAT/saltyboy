@@ -1,5 +1,11 @@
 FROM python:3.11
 
+ARG USER_ID
+ARG GROUP_ID
+
+ENV LOG_PATH=/opt/logs/
+ENV DEBUG=
+
 # Update the image
 RUN apt update \
     && apt upgrade -y \
@@ -21,5 +27,11 @@ COPY poetry.lock poetry.lock
 COPY pyproject.toml pyproject.toml
 RUN poetry install --no-root --without=dev
 
-# TODO fix
-CMD python main.py -lp /opt/logs
+# Copy in source files
+COPY public public
+COPY src src
+COPY main.py main.py
+
+RUN mkdir -p $LOG_PATH
+
+ENTRYPOINT ["poetry", "run", "python", "main.py", "-l", $LOG_PATH, ${DEBUG:+"-d"}]

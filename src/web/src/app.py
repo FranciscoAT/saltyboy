@@ -6,28 +6,28 @@ import psycopg2
 from flask.helpers import send_file
 from flask.json import jsonify
 from flask_cors import CORS
+from flask_openapi3 import Info, OpenAPI, Tag
 from pydantic import ValidationError
-from flask_openapi3 import Info, Tag, OpenAPI
 
 from src.biz import (
-    get_fighter_by_id,
-    list_fighters,
-    get_match_by_id,
-    list_matches,
-    get_last_match,
-    get_current_match_info_with_stats,
     get_current_match_info,
+    get_current_match_info_with_stats,
+    get_fighter_by_id,
+    get_last_match,
+    get_match_by_id,
+    list_fighters,
+    list_matches,
 )
 from src.schemas import (
-    ListFighterQuery,
-    ListMatchQuery,
-    ListFighterResponse,
-    FighterModel,
-    ListMatchResponse,
-    MatchModel,
     CurrentMatchInfoResponse,
     CurrentMatchInfoResponseWithStats,
+    FighterModel,
     IdPath,
+    ListFighterQuery,
+    ListFighterResponse,
+    ListMatchQuery,
+    ListMatchResponse,
+    MatchModel,
 )
 
 info = Info(

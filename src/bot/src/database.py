@@ -225,7 +225,8 @@ class Database:
             """,
             insert_obj,
         )
-        fighter_id = cursor.fetchone()[0]
+        # We know this should always return something
+        fighter_id = cursor.fetchone()[0]  # type: ignore
         self.connection.commit()
         cursor.execute("SELECT * FROM fighter WHERE id = %(id)s", {"id": fighter_id})
         fighter = cursor.fetchone()

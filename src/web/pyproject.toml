@@ -1,26 +1,25 @@
 [tool.poetry]
 name = "Saltyboy Web"
 version = "1.0.0"
-description = "Light-weight Web API for serving requests to interact with the SaltyDB"
+description = "Lightweight API to serve data from the SaltyBoy Database."
 authors = ["how2vim <francisco.ad.trindade@gmail.com>"]
 license = "MIT"
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+Flask = "^3.0.2"
+Flask-Cors = "^4.0.0"
+Paste = "^3.7.1"
 apispec = "^6.4.0"
 apispec-webframeworks = "^1.0.0"
 dataclasses-jsonschema = "^2.16.0"
 flasgger = "^0.9.7.1"
-Flask = "^3.0.2"
-Flask-Cors = "^4.0.0"
-Paste = "^3.7.1"
-python-dotenv = "^1.0.1"
-waitress = "^3.0.0"
+flask-openapi3 = "^3.0.2"
 psycopg2 = "^2.9.9"
 psycopg2-binary = "^2.9.9"
 pydantic = "^2.6.1"
-flask-openapi3 = "^3.0.2"
+python-dotenv = "^1.0.1"
+waitress = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.2.0"
@@ -28,7 +27,11 @@ isort = "^5.13.2"
 mypy = "^1.8.0"
 pycln = "^2.4.0"
 pylint = "^3.0.3"
+pylint-exit = "^1.2.0"
+ruff = "^0.2.2"
+types-flask-cors = "^4.0.0.20240106"
 types-psycopg2 = "^2.9.21.20240218"
+types-waitress = "^2.1.4.20240106"
 
 [build-system]
 requires = ["poetry-core"]
@@ -42,13 +45,18 @@ max-line-length = "88"
 
 [tool.pylint.MASTER]
 disable = [
-    "missing-module-docstring",
+    "line-too-long",
     "missing-class-docstring",
     "missing-function-docstring",
-    "too-many-instance-attributes",
+    "missing-module-docstring",
     "too-many-arguments",
-    "too-many-locals",
     "too-many-branches",
+    "too-many-instance-attributes",
+    "too-many-locals",
     "unused-argument",
 ]
 good-names = ["id"]
+
+[[tool.mypy.overrides]]
+module = ["flask_openapi3", "paste.*"]
+ignore_missing_imports = true

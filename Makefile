@@ -32,12 +32,16 @@ docker-up-db:
 # === Linting ===
 lint: lint-black lint-isort lint-mypy lint-pycln lint-ruff;
 
+lint-web: lint-black-web lint-isort-web lint-mypy-web lint-pycln-web lint-pylint-web lint-ruff-web;
+lint-bot: lint-black-bot lint-isort-bot lint-mypy-bot lint-pycln-bot lint-pylint-bot lint-ruff-bot;
+
 lint-black: lint-black-bot lint-black-web;
 lint-isort: lint-isort-bot lint-isort-web;
 lint-mypy: lint-mypy-bot lint-mypy-web;
 lint-pycln: lint-pycln-bot lint-pycln-web;
 lint-pylint: lint-pylint-bot lint-pylint-web;
 lint-ruff: lint-ruff-bot lint-ruff-web;
+
 
 lint-black-bot:
 	cd src/bot && poetry run black --check src/
@@ -72,12 +76,12 @@ lint-pycln-web:
 	cd src/web && poetry run pycln --all main.py
 
 lint-pylint-bot:
-	cd src/bot && poetry run pylint src/
-	cd src/bot && poetry run pylint alembic/
-	cd src/bot && poetry run pylint main.py
+	cd src/bot && poetry run pylint src/ || poetry run pylint-exit --error-fail $$?
+	cd src/bot && poetry run pylint alembic/ || poetry run pylint-exit --error-fail $$?
+	cd src/bot && poetry run pylint main.py || poetry run pylint-exit --error-fail $$?
 lint-pylint-web:
-	cd src/web && poetry run pylint src/
-	cd src/web && poetry run pylint main.py
+	cd src/web && poetry run pylint src/ || poetry run pylint-exit --error-fail $$?
+	cd src/web && poetry run pylint main.py || poetry run pylint-exit --error-fail $$?
 
 lint-ruff-bot:
 	cd src/bot && poetry run ruff src/
@@ -89,6 +93,9 @@ lint-ruff-web:
 
 # === Formatting ===
 format: format-black format-isort format-pycln;
+
+format-web: format-black-web format-isort-web format-pycln-web;
+format-bot: format-black-bot format-isort-bot format-pycln-bot;
 
 format-black: format-black-bot format-black-web;
 format-isort: format-isort-bot format-isort-web;

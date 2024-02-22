@@ -16,7 +16,7 @@ RUN useradd -m -d /home/user -u $USER_ID user
 USER $USER_ID:$GROUP_ID
 ENV PATH="$PATH:/home/user/.local/bin"
 
-WORKDIR /opt/web
+WORKDIR /opt/bot
 
 # Install Poetry
 RUN pip install --upgrade pip \

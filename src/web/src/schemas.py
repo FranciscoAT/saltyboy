@@ -1,6 +1,5 @@
-# pylint: disable=line-too-long
-from enum import StrEnum, unique
 from datetime import datetime
+from enum import StrEnum, unique
 
 from pydantic import BaseModel, Field
 

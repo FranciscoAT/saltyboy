@@ -583,6 +583,17 @@ spelling = ["pyenchant (>=3.2,<4.0)"]
 testutils = ["gitpython (>3)"]
 
 [[package]]
+name = "pylint-exit"
+version = "1.2.0"
+description = "Exit code handler for pylint command line utility."
+optional = false
+python-versions = "*"
+files = [
+    {file = "pylint-exit-1.2.0.zip", hash = "sha256:b6ad02884c01c5560a5275079fe5a6c792afff90ecccf0c02513e1547ee280b0"},
+    {file = "pylint_exit-1.2.0-py2.py3-none-any.whl", hash = "sha256:65c9e7856e9058705a92d7c45628d604b2a4b8ee2b3c18a7303be77f9ed87cbe"},
+]
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.1"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -841,4 +852,4 @@ typing-extensions = ">=3.7.4"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "8910b6b7d64cdb93a6acd1259570f6e9933a925c0247a689a7fda1fc9d6c674e"
+content-hash = "f387f19bc0cbb411ae18acb0662fb588e59d89f8efab6d099908616c03766582"

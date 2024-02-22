@@ -5,26 +5,26 @@ from psycopg2.pool import ThreadedConnectionPool
 
 from src.database import (
     db_fighter_count,
+    db_get_current_match,
     db_get_fighter_by_id,
-    db_list_fighters,
+    db_get_last_match,
     db_get_match_by_id,
     db_get_match_count,
+    db_list_fighters,
     db_list_matches,
-    db_get_last_match,
-    db_get_current_match,
 )
 from src.schemas import (
-    FighterModel,
-    ListFighterQuery,
-    ListFighterResponse,
-    MatchModel,
-    ListMatchQuery,
-    ListMatchResponse,
-    FighterStats,
-    ExtendedFighterModelWithStats,
     CurrentMatchInfoResponse,
     CurrentMatchInfoResponseWithStats,
     ExtendedFighterModel,
+    ExtendedFighterModelWithStats,
+    FighterModel,
+    FighterStats,
+    ListFighterQuery,
+    ListFighterResponse,
+    ListMatchQuery,
+    ListMatchResponse,
+    MatchModel,
 )
 
 RT = TypeVar("RT")
@@ -103,10 +103,10 @@ def get_current_match_info_with_stats(
 
     return CurrentMatchInfoResponseWithStats(
         **current_match,
-        fighter_blue_info=get_fighter_details_with_stats(
+        fighter_blue_info=get_fighter_details_with_stats(  # type: ignore
             cursor, current_match["fighter_blue"]
         ),
-        fighter_red_info=get_fighter_details_with_stats(
+        fighter_red_info=get_fighter_details_with_stats(  # type: ignore
             cursor, current_match["fighter_red"]
         ),
     )
@@ -164,8 +164,8 @@ def get_current_match_info(cursor) -> CurrentMatchInfoResponse | None:
 
     return CurrentMatchInfoResponse(
         **current_match,
-        fighter_blue_info=get_fighter_details(cursor, current_match["fighter_blue"]),
-        fighter_red_info=get_fighter_details(cursor, current_match["fighter_red"]),
+        fighter_blue_info=get_fighter_details(cursor, current_match["fighter_blue"]),  # type: ignore
+        fighter_red_info=get_fighter_details(cursor, current_match["fighter_red"]),  # type: ignore
     )
 
 
