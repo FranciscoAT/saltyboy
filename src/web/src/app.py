@@ -14,7 +14,14 @@ from flask_cors import CORS
 from pydantic import ValidationError
 from werkzeug.exceptions import BadRequest, NotFound
 
-from src.biz_new import get_fighter_by_id, list_fighters, get_match_by_id, list_matches
+from src.biz import (
+    get_fighter_by_id,
+    list_fighters,
+    get_match_by_id,
+    list_matches,
+    get_last_match,
+    get_current_match_info,
+)
 from src.schemas import ListFighterQuery, ListMatchQuery
 
 app = Flask(__name__)
@@ -39,14 +46,14 @@ def handle_pydantic_validation_error(e: ValidationError):
 
 # === Web Endpoints ===
 @app.route("/", methods=["GET"])
-def get_index_request():
+def file_index_request():
     return send_file(
         Path(__file__).parent.parent / "public/index.html", mimetype="text/html"
     )
 
 
 @app.route("/favicon.ico", methods=["GET"])
-def get_favicon_request():
+def file_favicon_request():
     return send_file(
         Path(__file__).parent.parent / "public/favicon.ico",
         mimetype="image/vdn.microsoft.icon",
@@ -54,7 +61,7 @@ def get_favicon_request():
 
 
 @app.route("/robots.txt", methods=["GET"])
-def get_robots_request():
+def file_robots_request():
     return send_file(
         Path(__file__).parent.parent / "public/robots.txt", mimetype="text/plain"
     )
@@ -63,14 +70,14 @@ def get_robots_request():
 # === API Endpoints ===
 # Fighters
 @app.route("/fighter", methods=["GET"])
-def route_list_fighters():
+def api_list_fighters():
     return jsonify(
         list_fighters(pg_pool, ListFighterQuery(**request.args)).model_dump()
     )
 
 
 @app.route("/fighter/<int:id_>")
-def get_fighter(id_: int):
+def api_get_fighter(id_: int):
     if fighter := get_fighter_by_id(pg_pool, id_):
         return jsonify(fighter.model_dump())
     return "Fighter not found", 404
@@ -78,15 +85,30 @@ def get_fighter(id_: int):
 
 # Matches
 @app.route("/match", methods=["GET"])
-def route_list_matches():
+def api_list_matches():
     return jsonify(list_matches(pg_pool, ListMatchQuery(**request.args)).model_dump())
 
 
 @app.route("/match/<int:id_>")
-def get_match(id_: int):
+def api_get_match(id_: int):
     if match_ := get_match_by_id(pg_pool, id_):
         return jsonify(match_.model_dump())
     return "Match not found", 404
+
+
+@app.route("/last_match")
+def api_last_match():
+    if match_ := get_last_match(pg_pool):
+        return jsonify(match_.model_dump())
+    return jsonify({})
+
+
+@app.route("/current_match_info")
+@app.route("/current-match")
+def api_current_match_info():
+    if current_match_info := get_current_match_info(pg_pool):
+        return jsonify(current_match_info.model_dump())
+    return jsonify({})
 
 
 # @app.route("/current-match", methods=["GET"])
@@ -110,27 +132,6 @@ def get_match(id_: int):
 #     if not current_match:
 #         return "", 204
 #     return jsonify(asdict(current_match))
-
-
-# @app.route("/last-match", methods=["GET"])
-# def get_last_match_request():
-#     """
-#     Return information about the last recorded match
-#     ---
-#     responses:
-#       200:
-#         description: Last matched played information
-#         content:
-#           application/json:
-#             schema:
-#               $ref: '#/components/schemas/EnhancedMatchSchema'
-#       204:
-#         description: No latest match recorded
-#     """
-#     last_match = match_biz.get_last_match()
-#     if not last_match:
-#         return "", 204
-#     return jsonify(asdict(last_match))
 
 
 # === Flasgger ===

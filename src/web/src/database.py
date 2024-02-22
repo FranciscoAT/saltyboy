@@ -253,3 +253,14 @@ def db_list_matches(
 
     cursor.execute(construct_final_query(select_stmt, where_stmts), query_obj)
     return cursor.fetchall()
+
+
+def db_get_last_match(cursor) -> DictRow | None:
+    cursor.execute("SELECT * FROM match ORDER BY id DESC LIMIT 1")
+    return cursor.fetchone()
+
+
+# === Current Match ===
+def db_get_current_match(cursor) -> DictRow | None:
+    cursor.execute("SELECT * FROM current_match LIMIT 1")
+    return cursor.fetchone()

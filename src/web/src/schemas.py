@@ -125,3 +125,25 @@ class MatchModel(BaseModel):
 
 class ListMatchResponse(PaginationResponse):
     results: list[MatchModel]
+
+
+# === Current Match ===
+class FighterStats(BaseModel):
+    average_bet: float
+    total_matches: int
+    win_rate: float
+
+
+class ExtendedFighterModel(FighterModel):
+    matches: list[MatchModel]
+    stats: FighterStats
+
+
+class CurrentMatchInfoResponse(BaseModel):
+    fighter_blue: str
+    fighter_red: str
+    match_format: str
+    tier: str
+
+    fighter_blue_info: ExtendedFighterModel | None = None
+    fighter_red_info: ExtendedFighterModel | None = None
