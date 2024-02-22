@@ -17,6 +17,9 @@ Flask-Cors = "^4.0.0"
 Paste = "^3.7.1"
 python-dotenv = "^1.0.1"
 waitress = "^3.0.0"
+psycopg2 = "^2.9.9"
+psycopg2-binary = "^2.9.9"
+pydantic = "^2.6.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.2.0"
@@ -24,6 +27,7 @@ isort = "^5.13.2"
 mypy = "^1.8.0"
 pycln = "^2.4.0"
 pylint = "^3.0.3"
+types-psycopg2 = "^2.9.21.20240218"
 
 [build-system]
 requires = ["poetry-core"]
@@ -41,5 +45,9 @@ disable = [
     "missing-class-docstring",
     "missing-function-docstring",
     "too-many-instance-attributes",
+    "too-many-arguments",
+    "too-many-locals",
+    "too-many-branches",
+    "unused-argument",
 ]
 good-names = ["id"]

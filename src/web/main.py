@@ -1,191 +1,11 @@
-from argparse import ArgumentParser
-from dataclasses import asdict
 import logging
-from logging.handlers import TimedRotatingFileHandler
 import os
+import sys
+from argparse import ArgumentParser
+from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
-from apispec import APISpec
-from apispec_webframeworks.flask import FlaskPlugin
-from dataclasses_jsonschema.apispec import DataclassesPlugin
 from dotenv import load_dotenv
-from flasgger import Swagger
-from flasgger.utils import apispec_to_template
-from flask import Flask, request
-from flask.helpers import send_file
-from flask.json import jsonify
-from flask_cors import CORS
-from werkzeug.exceptions import BadRequest, NotFound
-
-from src.biz import database as database_biz, fighter as fighter_biz, match as match_biz
-from src.schemas.database import DatabaseStatsSchema
-from src.schemas.fighters import FighterInfoSchema, GetFighterQuerySchema
-from src.schemas.match import CurrentMatchSchema, EnhancedMatchSchema
-
-
-load_dotenv()
-app = Flask(__name__)
-CORS(app, origins=["https://saltybet.com", "https://salty-boy.com"])
-
-
-# --- Generic Web Stuff --
-@app.route("/", methods=["GET"])
-def get_index_request():
-    return send_file("public/index.html", mimetype="text/html")
-
-
-@app.route("/favicon.ico", methods=["GET"])
-def get_favicon_request():
-    return send_file("public/favicon.ico", mimetype="image/vdn.microsoft.icon")
-
-
-@app.route("/robots.txt", methods=["GET"])
-def get_robots_request():
-    return send_file("public/robots.txt", mimetype="text/plain")
-
-
-# --- API stuff ---
-@app.route("/stats", methods=["GET"])
-def get_db_stats_request():
-    """
-    Get information about the database records
-    Returns a breakdown of how many matches and fighters the database has cataloged.
-    Along with a breakdown of each based off of tier.
-    Tiers should be all one of: A, B, P, S, X.
-    ---
-    description: Get database stats
-    responses:
-      200:
-        description: Database stats
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DatabaseStatsSchema'
-    """
-    return jsonify(asdict(database_biz.get_db_stats()))
-
-
-@app.route("/fighters", methods=["GET"])
-def get_fighter_request():
-    """
-    Get information about a fighter.
-    Requires either an `id` or a `name` as query parameters.
-    ---
-    description: Get a fighter
-    parameters:
-      - name: id
-        in: query
-        description: Fighter database ID
-        schema:
-          type: integer
-      - name: name
-        in: query
-        description: Fighter name, case sensitive
-        schema:
-          type: string
-    responses:
-      200:
-        description: Fighter info
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FighterInfoSchema'
-      400:
-        description: Bad Request
-      404:
-        description: Fighter not found
-    """
-    try:
-        query_params = GetFighterQuerySchema(
-            fighter_id=request.args.get("id"), fighter_name=request.args.get("name")
-        )
-    except ValueError as e:
-        raise BadRequest(str(e))
-
-    fighter = fighter_biz.get_fighter(
-        fighter_id=query_params.fighter_id, fighter_name=query_params.fighter_name
-    )
-
-    if not fighter:
-        return NotFound("No fighter found")
-
-    return jsonify(asdict(fighter))
-
-
-@app.route("/current-match", methods=["GET"])
-def get_current_match_request():
-    """
-    Return information about current match
-    Current match information shown is updated regularly based off of the bot service.
-    Match info will never display fighter information for exhibition matches.
-    ---
-    responses:
-      200:
-        description: Current match information
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CurrentMatchSchema'
-      204:
-        description: No current match exists
-    """
-    current_match = match_biz.get_current_match()
-    if not current_match:
-        return "", 204
-    return jsonify(asdict(current_match))
-
-
-@app.route("/last-match", methods=["GET"])
-def get_last_match_request():
-    """
-    Return information about the last recorded match
-    ---
-    responses:
-      200:
-        description: Last matched played information
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EnhancedMatchSchema'
-      204:
-        description: No latest match recorded
-    """
-    last_match = match_biz.get_last_match()
-    if not last_match:
-        return "", 204
-    return jsonify(asdict(last_match))
-
-
-# --- Flasgger ---
-app.config["SWAGGER"] = {
-    "title": "SaltyBoy",
-    "openapi": "3.0.0",
-    "termsOfService": "/",
-    "specs": [
-        {
-            "version": "0.0.1",
-            "title": "SaltyBoy API",
-            "endpoint": "saltyboy_spec",
-            "route": "/spec",
-        },
-    ],
-    "servers": [{"url": os.environ.get("SWAGGER_SERVER") or "http://localhost:5000"}],
-}
-spec = APISpec(
-    title="SaltyBoy API",
-    version="0.0.1",
-    openapi_version="3.0.2",
-    description="https://github.com/FranciscoAT/saltyboy",
-    plugins=[FlaskPlugin(), DataclassesPlugin()],
-)
-spec.components.schema("FighterInfoSchema", schema=FighterInfoSchema)
-spec.components.schema("CurrentMatchSchema", schema=CurrentMatchSchema)
-spec.components.schema("DatabaseStatsSchema", schema=DatabaseStatsSchema)
-spec.components.schema("EnhancedMatchSchema", schema=EnhancedMatchSchema)
-
-template = apispec_to_template(app=app, spec=spec, paths=[get_fighter_request])
-
-swagger = Swagger(app, template=template)
 
 
 def _init_loggers(set_debug: bool, log_path: str | None = None) -> None:
@@ -210,7 +30,7 @@ def _init_loggers(set_debug: bool, log_path: str | None = None) -> None:
         path = Path(log_path)
         if not path.exists():
             root_logger.error("Path %s, does not exist", log_path)
-            exit(1)
+            sys.exit(1)
         if not path.is_dir():
             root_logger.error("Path %s, is not a directory", log_path)
 
@@ -236,17 +56,17 @@ if __name__ == "__main__":
         "-d", "--debug", action="store_true", help="Enable debug logging"
     )
     arg_parser.add_argument(
-        "-lp", "--log-path", help="Sets a rotating file handler at the given path"
+        "-l", "--logs", help="Sets a rotating file handler at the given path"
     )
 
     arguments = arg_parser.parse_args()
-    _init_loggers(arguments.debug, log_path=arguments.log_path)
+    _init_loggers(arguments.debug, log_path=arguments.logs)
 
-    mode = os.environ.get("DEPLOYMENT_MODE")
-
-    if mode == "PROD":
-        from waitress import serve
+    if os.environ.get("PRODUCTION") is True:
         from paste.translogger import TransLogger
+        from waitress import serve
+
+        from src.app import app
 
         logging.info("Running in production mode")
         app.debug = False
@@ -258,4 +78,8 @@ if __name__ == "__main__":
         )
     else:
         logging.info("Running in development mode")
+        load_dotenv(Path(__file__).parent.parent.parent / ".env")
+
+        from src.app import app
+
         app.run(debug=True, host="localhost", port=5000)

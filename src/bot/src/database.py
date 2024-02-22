@@ -227,9 +227,7 @@ class Database:
         )
         fighter_id = cursor.fetchone()[0]
         self.connection.commit()
-        cursor.execute(
-            "SELECT * FROM fighter WHERE id = %(id)s", {"id": fighter_id}
-        )
+        cursor.execute("SELECT * FROM fighter WHERE id = %(id)s", {"id": fighter_id})
         fighter = cursor.fetchone()
         cursor.close()
         return fighter  # type: ignore
