@@ -21,8 +21,10 @@ from src.schemas import (
     ListMatchQuery,
     ListMatchResponse,
     FighterStats,
-    ExtendedFighterModel,
+    ExtendedFighterModelWithStats,
     CurrentMatchInfoResponse,
+    CurrentMatchInfoResponseWithStats,
+    ExtendedFighterModel,
 )
 
 RT = TypeVar("RT")
@@ -88,22 +90,31 @@ def get_last_match(cursor) -> MatchModel | None:
 
 # === Current Match ===
 @pg_cursor
-def get_current_match_info(cursor) -> CurrentMatchInfoResponse | None:
+def get_current_match_info_with_stats(
+    cursor,
+) -> CurrentMatchInfoResponseWithStats | None:
+    """Deprecated Method call"""
     current_match = db_get_current_match(cursor)
     if not current_match:
         return None
 
     if current_match["match_format"] == "exhibition":
-        return CurrentMatchInfoResponse(**current_match)
+        return CurrentMatchInfoResponseWithStats(**current_match)
 
-    return CurrentMatchInfoResponse(
+    return CurrentMatchInfoResponseWithStats(
         **current_match,
-        fighter_blue_info=get_fighter_details(cursor, current_match["fighter_blue"]),
-        fighter_red_info=get_fighter_details(cursor, current_match["fighter_red"]),
+        fighter_blue_info=get_fighter_details_with_stats(
+            cursor, current_match["fighter_blue"]
+        ),
+        fighter_red_info=get_fighter_details_with_stats(
+            cursor, current_match["fighter_red"]
+        ),
     )
 
 
-def get_fighter_details(cursor, name: str) -> ExtendedFighterModel | None:
+def get_fighter_details_with_stats(
+    cursor, name: str
+) -> ExtendedFighterModelWithStats | None:
     cursor.execute("SELECT * FROM fighter WHERE name = %(name)s", {"name": name})
     fighter = cursor.fetchone()
     if not fighter:
@@ -135,8 +146,40 @@ def get_fighter_details(cursor, name: str) -> ExtendedFighterModel | None:
             win_rate=round(wins / len(matches), 2),
         )
 
-    return ExtendedFighterModel(
+    return ExtendedFighterModelWithStats(
         **fighter,
         matches=matches,
         stats=stats,
+    )
+
+
+@pg_cursor
+def get_current_match_info(cursor) -> CurrentMatchInfoResponse | None:
+    current_match = db_get_current_match(cursor)
+    if not current_match:
+        return None
+
+    if current_match["match_format"] == "exhibition":
+        return CurrentMatchInfoResponse(**current_match)
+
+    return CurrentMatchInfoResponse(
+        **current_match,
+        fighter_blue_info=get_fighter_details(cursor, current_match["fighter_blue"]),
+        fighter_red_info=get_fighter_details(cursor, current_match["fighter_red"]),
+    )
+
+
+def get_fighter_details(cursor, name: str) -> ExtendedFighterModel | None:
+    cursor.execute("SELECT * FROM fighter WHERE name = %(name)s", {"name": name})
+    fighter = cursor.fetchone()
+    if not fighter:
+        return None
+
+    cursor.execute(
+        "SELECT * FROM match WHERE fighter_red = %(id)s OR fighter_blue = %(id)s",
+        {"id": fighter["id"]},
+    )
+
+    return ExtendedFighterModel(
+        **fighter, matches=[MatchModel(**x) for x in cursor.fetchall()]
     )

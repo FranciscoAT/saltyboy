@@ -200,18 +200,32 @@ class ExtendedFighterModel(FighterModel):
     matches: list[MatchModel] = Field(
         description="All matches the fighter has fought in."
     )
+
+
+class ExtendedFighterModelWithStats(ExtendedFighterModel):
     stats: FighterStats = Field(description="General fighter statistics.")
 
 
-class CurrentMatchInfoResponse(BaseModel):
+class CurrentMatchMatchModel(BaseModel):
     fighter_blue: str = Field(description="Name of the Blue fighter.")
     fighter_red: str = Field(description="Name of the Red fighter.")
     match_format: AllMatchFormat = Field(description="Match format.")
     tier: Tier = Field(description="Tier of the match.")
 
+
+class CurrentMatchInfoResponse(CurrentMatchMatchModel):
     fighter_blue_info: ExtendedFighterModel = Field(
         default=None, description="Detailed information about the Blue fighter."
     )
     fighter_red_info: ExtendedFighterModel = Field(
+        default=None, description="Detailed information about the Red fighter."
+    )
+
+
+class CurrentMatchInfoResponseWithStats(CurrentMatchMatchModel):
+    fighter_blue_info: ExtendedFighterModelWithStats = Field(
+        default=None, description="Detailed information about the Blue fighter."
+    )
+    fighter_red_info: ExtendedFighterModelWithStats = Field(
         default=None, description="Detailed information about the Red fighter."
     )

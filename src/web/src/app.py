@@ -15,6 +15,7 @@ from src.biz import (
     get_match_by_id,
     list_matches,
     get_last_match,
+    get_current_match_info_with_stats,
     get_current_match_info,
 )
 from src.schemas import (
@@ -25,10 +26,30 @@ from src.schemas import (
     ListMatchResponse,
     MatchModel,
     CurrentMatchInfoResponse,
+    CurrentMatchInfoResponseWithStats,
     IdPath,
 )
 
-info = Info(title="SaltyBoy API", version="2.0.0")
+info = Info(
+    title="SaltyBoy API",
+    version="2.0.0",
+    description="""
+Welcome to the SaltyBoy API. You are welcome to integrate with this API however please 
+bear in mind the following:
+
+- I'll do my best to not bork your integration by updating the endpoints, no promises 
+    though.
+- Do not abuse the API. By this I mean feel free to scrape in short high bursts but 
+    don't spam the API with something in a constant `while` loop for example. The 
+    "Current Match" endpoint is known to go out of date so please have some intelligence 
+    behind your integration! After all this runs on a very cheap Vultr instance :)
+- If you want new endpoints or a Database dump please ping me on 
+    [Github](https://github.com/FranciscoAT/saltyboy). I'm more than happy to review MRs
+    for new features and provide DB dumps.
+- The API itself is extremely small so I won't be providing an SDK but there's no 
+    authentication and it should be really easy to integrate around it.
+""",
+)
 app = OpenAPI(__name__, info=info)
 CORS(app, origins=["https://saltybet.com", "https://salty-boy.com"])
 
@@ -150,43 +171,21 @@ def api_last_match():
     summary="[DEPRECATED] Current Match Information",
     tags=[current_match_tag],
     deprecated=True,
+    responses={200: CurrentMatchInfoResponseWithStats},
+)
+def api_current_match_info_deprecated():
+    if current_match_info := get_current_match_info_with_stats(pg_pool):
+        return jsonify(current_match_info.model_dump())
+    return jsonify({})
+
+
+@app.get(
+    "/api/current_match_info/",
+    summary="Current Match Information",
+    tags=[current_match_tag],
     responses={200: CurrentMatchInfoResponse},
 )
 def api_current_match_info():
     if current_match_info := get_current_match_info(pg_pool):
         return jsonify(current_match_info.model_dump())
     return jsonify({})
-
-
-# @app.get("/current_match_info")
-
-# === Flasgger ===
-# app.config["SWAGGER"] = {
-#     "title": "SaltyBoy",
-#     "openapi": "3.0.0",
-#     "termsOfService": "/",
-#     "specs": [
-#         {
-#             "version": "1.0.0",
-#             "title": "SaltyBoy API",
-#             "endpoint": "saltyboy_spec",
-#             "route": "/spec",
-#         },
-#     ],
-#     "servers": [{"url": os.environ.get("SWAGGER_SERVER") or "http://localhost:5000"}],
-# }
-# spec = APISpec(
-#     title="SaltyBoy API",
-#     version="1.0.0",
-#     openapi_version="3.0.2",
-#     description="https://github.com/FranciscoAT/saltyboy",
-#     plugins=[FlaskPlugin(), DataclassesPlugin()],
-# )
-# spec.components.schema("FighterInfoSchema", schema=FighterInfoSchema)
-# spec.components.schema("CurrentMatchSchema", schema=CurrentMatchSchema)
-# spec.components.schema("DatabaseStatsSchema", schema=DatabaseStatsSchema)
-# spec.components.schema("EnhancedMatchSchema", schema=EnhancedMatchSchema)
-
-# template = apispec_to_template(app=app, spec=spec, paths=[get_fighter_request])
-
-# swagger = Swagger(app, template=template)
