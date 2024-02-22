@@ -3,9 +3,6 @@ FROM python:3.11
 ARG USER_ID
 ARG GROUP_ID
 
-ENV LOG_PATH=/opt/logs/
-ENV DEBUG=
-
 # Update the image
 RUN apt update \
     && apt upgrade -y \
@@ -31,5 +28,6 @@ RUN poetry install --no-root --without=dev
 COPY public public
 COPY src src
 COPY main.py main.py
+COPY entrypoint.sh entrypoint.sh
 
-ENTRYPOINT ["poetry", "run", "python", "main.py", "-l", $LOG_PATH, ${DEBUG:+"-d"}]
+ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
