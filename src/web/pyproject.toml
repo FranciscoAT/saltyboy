@@ -20,6 +20,7 @@ waitress = "^3.0.0"
 psycopg2 = "^2.9.9"
 psycopg2-binary = "^2.9.9"
 pydantic = "^2.6.1"
+flask-openapi3 = "^3.0.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.2.0"

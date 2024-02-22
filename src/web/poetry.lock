@@ -254,6 +254,27 @@ files = [
 Flask = ">=0.9"
 
 [[package]]
+name = "flask-openapi3"
+version = "3.0.2"
+description = "Generate REST API and OpenAPI documentation for your Flask project."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "flask_openapi3-3.0.2-py3-none-any.whl", hash = "sha256:e39359bf07da47d9abf30d4b370feaac4035bd805f03518ce65016958796c636"},
+    {file = "flask_openapi3-3.0.2.tar.gz", hash = "sha256:92e6a308c5b13692ad8aea04ee951ffbfabc6853b20bd3b678c2569dcb781916"},
+]
+
+[package.dependencies]
+flask = ">=2.0"
+pydantic = ">=2.4"
+
+[package.extras]
+async = ["asgiref (>=3.2)"]
+dotenv = ["python-dotenv"]
+email = ["email-validator"]
+yaml = ["pyyaml"]
+
+[[package]]
 name = "isort"
 version = "5.13.2"
 description = "A Python utility / library to sort Python imports."
@@ -1176,4 +1197,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "4fc20a9c28fec39a58354794fd56931141156156b61c545ac9a99006888475b5"
+content-hash = "3bea10094a187e95dac4a14939c7c92355b0ea21dad6f6137746b571df992e53"

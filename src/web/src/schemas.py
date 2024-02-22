@@ -1,149 +1,217 @@
+# pylint: disable=line-too-long
+from enum import StrEnum, unique
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field
 
 
 # === Base ===
-def validate_tier_helper(tier: str) -> str:
-    upper_tier = tier.upper()
-    if upper_tier not in ["X", "S", "A", "B", "P"]:
-        raise ValueError("Tier is not valid, must be one of: X, S, A, B, or P.")
-    return upper_tier
-
-
 class PaginationResponse(BaseModel):
-    page: int
-    page_size: int
-    count: int
+    page: int = Field(description="Current page number.")
+    page_size: int = Field(description="Current page size.")
+    count: int = Field(description="Total number of results.")
 
 
 class PaginationQuery(BaseModel):
-    page: int = 0
-    page_size: int = 100
+    page: int = Field(default=0, description="Page to view.", ge=0)
+    page_size: int = Field(
+        default=100, description="Number of results per page.", ge=1, le=100
+    )
 
-    @field_validator("page")
-    @classmethod
-    def page_validator(cls, v: int) -> int:
-        if v < 0:
-            raise ValueError("Must not be less than 0.")
-        return v
 
-    @field_validator("page_size")
-    @classmethod
-    def page_size_validator(cls, v: int) -> int:
-        if v < 1:
-            raise ValueError("Must not be less than 1.")
-        if v > 100:
-            raise ValueError("Must not be more than 100.")
-        return v
+class IdPath(BaseModel):
+    id_: int = Field(description="ID of the resource to get.", ge=1)
+
+
+@unique
+class Tier(StrEnum):
+    X = "X"
+    S = "S"
+    A = "A"
+    B = "B"
+    P = "P"
+
+
+@unique
+class RecordedMatchFormat(StrEnum):
+    MATCHMAKING = "matchmaking"
+    TOURNAMENT = "tournament"
+
+
+@unique
+class AllMatchFormat(StrEnum):
+    MATCHMAKING = "matchmaking"
+    TOURNAMENT = "tournament"
+    EXHIBITION = "exhibition"
+
+
+@unique
+class Colour(StrEnum):
+    RED = "Red"
+    BLUE = "Blue"
 
 
 # === Fighter ===
 class ListFighterQuery(PaginationQuery):
-    name: str | None = None
-    tier: str | None = None
-    prev_tier: str | None = None
-    elo__gte: int | None = None
-    elo__lt: int | None = None
-    tier_elo__gte: int | None = None
-    tier_elo__lt: int | None = None
-
-    @field_validator("tier", "prev_tier")
-    @classmethod
-    def validate_tier(cls, v: str) -> str:
-        return validate_tier_helper(v)
+    name: str = Field(
+        default=None,
+        description="Filter fighters by the name of the fighter. Case sensitive. Note, fighter's names are unique, therefore this is likely to only return one result.",
+    )
+    tier: Tier = Field(
+        default=None, description="Filter fighters by the current tier of fighter."
+    )
+    prev_tier: Tier = Field(
+        default=None,
+        description="Filter fighters by the previously recorded fighter tier.",
+    )
+    elo__gte: int = Field(
+        default=None,
+        description="Filter fighters who's current ELO is greater than or equal to than this number.",
+    )
+    elo__lt: int = Field(
+        default=None,
+        description="Filter fighters who's current ELO is less than this number.",
+    )
+    tier_elo__gte: int = Field(
+        default=None,
+        description="Filter fighters who's current tier ELO is greater than or equal to than this number.",
+    )
+    tier_elo__lt: int = Field(
+        default=None,
+        description="Filter fighters who's current tier ELO is less than this number.",
+    )
 
 
 class FighterModel(BaseModel):
-    id: int
-    name: str
-    tier: str
-    prev_tier: str
-    elo: int
-    tier_elo: int
-    best_streak: int
-    created_time: datetime
-    last_updated: datetime
+    id: int = Field(description="ID of the fighter.")
+    name: str = Field(description="Name of the fighter. Case sensitive.")
+    tier: str = Field(description="Current tier of the fighter.")
+    prev_tier: str = Field(description="Previously recorded tier of the fighter.")
+    elo: int = Field(description="Current ELO of the fighter.")
+    tier_elo: int = Field(description="Current tier ELO of the fighter.")
+    best_streak: int = Field(description="Best recorded winning streak of the fighter.")
+    created_time: datetime = Field(description="Time the fighter was first recorded.")
+    last_updated: datetime = Field(
+        description="Time the fighter last fought in a match."
+    )
 
 
 class ListFighterResponse(PaginationResponse):
-    results: list[FighterModel]
+    results: list[FighterModel] = Field(description="Filtered fighters.")
 
 
 # === Matches ===
 class ListMatchQuery(PaginationQuery):
-    fighter_red: int | None = None
-    fighter_blue: int | None = None
-    winner: int | None = None
-    bet_red__gte: int | None = None
-    bet_red__lt: int | None = None
-    bet_blue__gte: int | None = None
-    bet_blue__lt: int | None = None
-    streak_red__gte: int | None = None
-    streak_red__lt: int | None = None
-    streak_blue__gte: int | None = None
-    streak_blue__lt: int | None = None
-    tier: str | None = None
-    match_format: str | None = None
-    colour: str | None = None
-
-    @field_validator("tier")
-    @classmethod
-    def validate_tier(cls, v: str) -> str:
-        return validate_tier_helper(v)
-
-    @field_validator("match_format")
-    @classmethod
-    def validate_match_format(cls, v: str) -> str:
-        match_format_lower = v.lower()
-        if match_format_lower not in ["matchmaking", "tournament"]:
-            raise ValueError("match_format must be one of: matchmaking, or tournament.")
-        return match_format_lower
-
-    @field_validator("colour")
-    @classmethod
-    def validate_colour(cls, v: str) -> str:
-        capitalized_colour = v.lower().capitalize()
-        if capitalized_colour not in ["Red", "Blue"]:
-            raise ValueError("colour must be one of: Red, or Blue.")
-        return capitalized_colour
+    fighter_red: int = Field(
+        default=None,
+        description="Filter matches where the Red fighter was a specific fighter by ID.",
+        ge=1,
+    )
+    fighter_blue: int = Field(
+        default=None,
+        description="Filter matches where the Blue fighter was a specific fighter by ID.",
+        ge=1,
+    )
+    winner: int = Field(
+        default=None,
+        description="Filter matches where the winning fighter was a specific fighter by ID.",
+        ge=1,
+    )
+    bet_red__gte: int = Field(
+        default=None,
+        description="Filter matches where the amount bet on Red is greater than or equal to this number.",
+    )
+    bet_red__lt: int = Field(
+        default=None,
+        description="Filter matches where the amount bet on Red is less than this number.",
+    )
+    bet_blue__gte: int = Field(
+        default=None,
+        description="Filter matches where the amount bet on Blue is greater than or equal to this number.",
+    )
+    bet_blue__lt: int = Field(
+        default=None,
+        description="Filter matches where the amount bet on Blue is less than this number.",
+    )
+    streak_red__gte: int = Field(
+        default=None,
+        description="Filter matches where the current winning streak on Red at time of the match is greater than or equal to this number.",
+    )
+    streak_red__lt: int = Field(
+        default=None,
+        description="Filter matches where the current winning streak on Red at time of the match is less than this number.",
+    )
+    streak_blue__gte: int = Field(
+        default=None,
+        description="Filter matches where the current winning streak on Blue at time of the match is greater than or equal to this number.",
+    )
+    streak_blue__lt: int = Field(
+        default=None,
+        description="Filter matches where the current winning streak on Blue at time of the match is less than this number.",
+    )
+    tier: Tier = Field(
+        default=None, description="Filter matches by the tier of the match. "
+    )
+    match_format: RecordedMatchFormat = Field(
+        default=None,
+        description="Filter matches by the match format. Note: SaltyBoy does not record Exhibition matches.",
+    )
+    colour: Colour = Field(
+        default=None, description="Filter matches by the winning colour."
+    )
 
 
 class MatchModel(BaseModel):
-    id: int
-    fighter_red: int
-    fighter_blue: int
-    winner: int
-    bet_red: int
-    bet_blue: int
-    streak_red: int
-    streak_blue: int
-    tier: str
-    match_format: str
-    colour: str
+    id: int = Field(description="ID of the match.")
+    fighter_red: int = Field(description="ID of the Red fighter.")
+    fighter_blue: int = Field(description="ID of the Blue fighter.")
+    winner: int = Field(description="ID of the winning fighter.")
+    bet_red: int = Field(description="Amount bet on the Red fighter.")
+    bet_blue: int = Field(description="Amount bet on the Blue fighter.")
+    streak_red: int = Field(
+        description="Current winning streak of the Red fighter at time of the match."
+    )
+    streak_blue: int = Field(
+        description="Current winning streak fo the Blue fighter at time of the match."
+    )
+    tier: Tier = Field(description="Tier of the match.")
+    match_format: RecordedMatchFormat = Field(
+        description="Format of the match. Note: SaltyBoy does not record Exhibition matches."
+    )
+    colour: Colour = Field(description="Winning colour.")
 
 
 class ListMatchResponse(PaginationResponse):
-    results: list[MatchModel]
+    results: list[MatchModel] = Field(description="Filtered matches.")
 
 
 # === Current Match ===
 class FighterStats(BaseModel):
-    average_bet: float
-    total_matches: int
-    win_rate: float
+    average_bet: float = Field(description="Average bet on the fighter.")
+    total_matches: int = Field(
+        description="Total matches the fighter has participated in."
+    )
+    win_rate: float = Field(
+        description="Win rate of the fighter. Value between 0 to 1."
+    )
 
 
 class ExtendedFighterModel(FighterModel):
-    matches: list[MatchModel]
-    stats: FighterStats
+    matches: list[MatchModel] = Field(
+        description="All matches the fighter has fought in."
+    )
+    stats: FighterStats = Field(description="General fighter statistics.")
 
 
 class CurrentMatchInfoResponse(BaseModel):
-    fighter_blue: str
-    fighter_red: str
-    match_format: str
-    tier: str
+    fighter_blue: str = Field(description="Name of the Blue fighter.")
+    fighter_red: str = Field(description="Name of the Red fighter.")
+    match_format: AllMatchFormat = Field(description="Match format.")
+    tier: Tier = Field(description="Tier of the match.")
 
-    fighter_blue_info: ExtendedFighterModel | None = None
-    fighter_red_info: ExtendedFighterModel | None = None
+    fighter_blue_info: ExtendedFighterModel = Field(
+        default=None, description="Detailed information about the Blue fighter."
+    )
+    fighter_red_info: ExtendedFighterModel = Field(
+        default=None, description="Detailed information about the Red fighter."
+    )
