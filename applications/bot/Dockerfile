@@ -33,6 +33,4 @@ COPY alembic.ini alembic.ini
 COPY main.py main.py
 COPY entrypoint.sh entrypoint.sh
 
-RUN mkdir -p $LOG_PATH
-
 ENTRYPOINT ["/bin/bash", "entrypoint.sh", "-l", $LOG_PATH, ${DEBUG:+"-d"}]

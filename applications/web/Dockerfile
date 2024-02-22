@@ -32,6 +32,4 @@ COPY public public
 COPY src src
 COPY main.py main.py
 
-RUN mkdir -p $LOG_PATH
-
 ENTRYPOINT ["poetry", "run", "python", "main.py", "-l", $LOG_PATH, ${DEBUG:+"-d"}]
