@@ -49,8 +49,7 @@ bear in mind the following:
 """,
 )
 app = OpenAPI(__name__, info=info)
-CORS(app, origins=["https://saltybet.com", "https://salty-boy.com"])
-app.config["CORS_HEADERS"] = "Content-Type"
+CORS(app)
 
 pg_pool = psycopg2.pool.ThreadedConnectionPool(
     1,

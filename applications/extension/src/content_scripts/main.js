@@ -46,9 +46,9 @@ let CONFIDENCE_THRESHOLD = 50
 // Extension State Values
 let LAST_STATUS = null
 let FETCH_QUEUED = false
+let FETCH_IN_PROGRESS = false
 let FETCH_FIGHTER_DATA = true
 let CURR_OUT_OF_DATE_ERR_COUNT = 0
-let CURR_SERVER_ERROR_COUNT = 0
 
 // Balance Tracking
 let PREV_BALANCE = null
@@ -134,32 +134,26 @@ function run() {
         return
     }
 
+    if (FETCH_IN_PROGRESS == true) {
+        verboseLog("Fetch already in progress.")
+        return
+    }
+
     getSaltyBoyMatchData()
         .then((matchData) => {
-            CURR_SERVER_ERROR_COUNT = 0
+            FETCH_IN_PROGRESS = false
             placeBets(matchData, saltyBetStatus)
             updateOverlay(matchData, false)
         })
         .catch((err) => {
-            console.error(
-                'Something went wrong getting current match from server. Trying in 1s.',
-                err
-            )
-            CURR_SERVER_ERROR_COUNT += 1
+            let err_message = 'Something went wrong getting current match from server.'
+            console.error(err_message, err)
+            verboseLog(err_message)
             FETCH_FIGHTER_DATA = false
-
-            if (CURR_SERVER_ERROR_COUNT == 5) {
-                CURR_SERVER_ERROR_COUNT = 0
-                FETCH_FIGHTER_DATA = false
-                console.warn('Server not responding!')
+            FETCH_IN_PROGRESS = false
+            if (saltyBetStatus.currentStatus == "betting") {
                 fallbackBet()
-                return
             }
-
-            verboseLog('Attempting to fetch match data in 1s.')
-            setTimeout(() => {
-                FETCH_FIGHTER_DATA = true
-            }, 1000)
         })
 }
 
@@ -207,6 +201,8 @@ function getSaltyBetStatus() {
  * @returns {object} - MatchData
  */
 function getSaltyBoyMatchData() {
+    FETCH_IN_PROGRESS = true
+
     function parseStats(fighterInfo) {
         if (fighterInfo == null) {
             return
@@ -304,11 +300,13 @@ function placeBets(matchData, saltyBetStatus) {
         fighterRedBtn.value != matchData.fighter_red ||
         fighterBlueBtn.value != matchData.fighter_blue
     ) {
-        verboseLog('Match was out of date from server. Forcing a retry in 1s.')
+        verboseLog('Match was out of date from server. Forcing a retry in 2s.')
         CURR_OUT_OF_DATE_ERR_COUNT += 1
         if (CURR_OUT_OF_DATE_ERR_COUNT > 5) {
+            let warn_msg = 'Current Match from server is out of date'
+            verboseLog(warn_msg)
             console.warn(
-                'Current Match from server is out of date',
+                warn_msg,
                 fighterRedBtn.value,
                 fighterBlueBtn.value,
                 matchData
@@ -319,7 +317,7 @@ function placeBets(matchData, saltyBetStatus) {
 
         setTimeout(() => {
             FETCH_FIGHTER_DATA = true
-        }, 1000)
+        }, 2000)
 
         return
     }
@@ -696,7 +694,9 @@ function updateBetSettings(betSettings) {
     if (betMode in BET_MODES) {
         BET_MODE = betMode
     } else {
-        console.error(`Invalid bet mode ${betMode} detected.`)
+        let err_message = `Invalid bet mode ${betMode} detected.`
+        verboseLog(err_message)
+        console.error(err_message)
     }
 
     // Update All In Until
