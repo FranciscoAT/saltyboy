@@ -16,13 +16,17 @@
 1. You can now run the applications:
     - For local development:
         - `make run-bot` --> Run the Bot.
+            - Note you'll need to create a [Twitch IRC Token](#twitch-irc-token) to run
+                the Bot.
         - `make run-web` --> Run the Web service.
+        - `make run-extension` --> Build unpacked Chrome Extension.
+            - See [Developing](./developing.md#chrome-extension) for more information.
     - As a Docker instance:
         - `make docker-up` --> Runs Bot & Web service.
         - Note: You may also want to use `docker-build` to rebuild the containers 
             provided any code changes exist.
 
-### Twitch IRC
+### Twitch IRC Token
 
 In order for the Bot to connect ot the Twitch IRC you'll want to create a Twitch OAuth
 token. Go to https://twitchapp.com/tmi/ to generate your token. Ensure that the value
