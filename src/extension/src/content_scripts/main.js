@@ -56,6 +56,7 @@ let PREV_BALANCE = null
 let DEBUG_ENABLED = false
 
 // App Settings
+let ENABLE_EXTENSION = true
 let ENABLE_OVERLAY = true
 
 /**
@@ -109,6 +110,15 @@ function run() {
     }
 
     if (FETCH_FIGHTER_DATA == false) {
+        return
+    }
+
+    if (ENABLE_EXTENSION == false) {
+        verboseLog('Extension is disabled ensure the overlays are cleared and exit')
+        FETCH_FIGHTER_DATA = false
+        updateOverlay({}, true)
+        updateBetOverlay({}, saltyBetStatus, true)
+        matchDataStorage.setCurrentMatchData({}, {})
         return
     }
 
@@ -214,12 +224,6 @@ function placeBets(matchData, saltyBetStatus) {
         return
     }
 
-    if (ENABLE_BETTING == false) {
-        verboseLog('Betting is disabled do not bet.')
-        PREV_BALANCE = null
-        return
-    }
-
     let fighterRedBtn = document.getElementById('player1')
     let fighterBlueBtn = document.getElementById('player2')
 
@@ -250,6 +254,12 @@ function placeBets(matchData, saltyBetStatus) {
     CURR_OUT_OF_DATE_ERR_COUNT = 0
 
     updateBetOverlay(betData, saltyBetStatus, false)
+
+    if (ENABLE_BETTING == false) {
+        verboseLog('Betting is disabled do not bet.')
+        PREV_BALANCE = null
+        return
+    }
 
     let wagerInput = document.getElementById('wager')
 
@@ -667,6 +677,7 @@ function updateDebugSettings(debugSettings) {
  * @param {object} appSettings
  */
 function updateAppSettings(appSettings) {
+    ENABLE_EXTENSION = appSettings.enableExtension
     ENABLE_OVERLAY = appSettings.enableOverlay
 
     verboseLog('Detecting app settings changes')
@@ -726,7 +737,7 @@ matchDataStorage
         PREV_BALANCE = getBalance()
         return winningsStorage.updateWinnings(0)
     })
-    .then(() => appSettingsStorage.initializeAppSettings(ENABLE_OVERLAY))
+    .then(() => appSettingsStorage.initializeAppSettings(ENABLE_EXTENSION, ENABLE_OVERLAY))
     .then(() => appSettingsStorage.getAppSettings())
     .then((appSettings) => {
         updateAppSettings(appSettings)

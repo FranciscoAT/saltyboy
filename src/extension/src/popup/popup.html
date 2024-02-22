@@ -137,6 +137,16 @@
                             <div class="tooltip" title="Whether or not to go all in on tournaments on all bets">?</div>
                         </div>
                         <div>
+                            <label for="upset-mode">Upset Mode:</label>
+                            <input type="checkbox" id="upset-mode" />
+                            <div
+                                class="tooltip"
+                                title="Inverts who to bet on against what the betting algorithm says. Bets with the same confidence however."
+                            >
+                                ?
+                            </div>
+                        </div>
+                        <div>
                             <label for="exhibition-bet">Exhibition Bet ($):</label>
                             <input type="number" class="wider" id="exhibition-bet" min="0" />
                             <div class="tooltip" title="Amount to bet on ALL exhibitions. Set to 0 to disable exhibition betting.">?</div>
@@ -172,7 +182,7 @@
                                             <input type="checkbox" id="bet-tier-s" />
                                         </td>
                                         <td>
-                                            <label for="bet-tier-A">A</label>
+                                            <label for="bet-tier-a">A</label>
                                             <input type="checkbox" id="bet-tier-a" />
                                         </td>
                                         <td>
@@ -193,6 +203,11 @@
                 <div>
                     <h3>App Settings</h3>
                     <form>
+                        <div>
+                            <label for="enable-extension">Enable Extension</label>
+                            <input id="enable-extension" name="enableExtension" type="checkbox" />
+                            <div class="tooltip" title="Enable or Disable the extension entirely.">?</div>
+                        </div>
                         <div>
                             <label for="enable-overlay">Enable Overlay:</label>
                             <input id="enable-overlay" name="enableOverlay" type="checkbox" />

@@ -32,6 +32,7 @@ let betTierP = document.getElementById('bet-tier-p')
 let confidenceThreshold = document.getElementById('confidence-threshold')
 
 // App Settings
+let enableExtension = document.getElementById("enable-extension")
 let enableOverlay = document.getElementById('enable-overlay')
 
 // Current Bet Data
@@ -171,12 +172,20 @@ function updateCurrentData(currentData) {
 }
 
 function updateCurrentMatchTable(currentData) {
+    function toPercentageOrMissing(winRate) {
+        if (winRate == MISSING) {
+            return MISSING
+        }
+
+        return `${Math.round(winRate * 100)}%`
+    }
+
     redMatches.innerText = currentData.red?.totalMatches ?? MISSING
-    redWinRate.innerText = currentData.red?.winRate ?? MISSING
+    redWinRate.innerText = toPercentageOrMissing(currentData.red?.winRate ?? MISSING)
     redElo.innerText = currentData.red?.elo ?? MISSING
 
     blueMatches.innerText = currentData.blue?.totalMatches ?? MISSING
-    blueWinRate.innerText = currentData.blue?.winRate ?? MISSING
+    blueWinRate.innerText = toPercentageOrMissing(currentData.blue?.winRate ?? MISSING)
     blueElo.innerText = currentData.blue?.elo ?? MISSING
 
     let shouldShowTieredElo =
@@ -271,7 +280,7 @@ function updateDebugSettings() {
 }
 
 function updateAppSettings() {
-    appSettingsStorage.setAppSettings(enableOverlay.checked)
+    appSettingsStorage.setAppSettings(enableExtension.checked, enableOverlay.checked)
 }
 
 // Sync bet settings on popup load
@@ -295,6 +304,7 @@ betSettingsStorage.getBetSettings().then((betSettings) => {
 
 // Sync app settings
 appSettingsStorage.getAppSettings().then((appSettings) => {
+    enableExtension.checked = appSettings.enableExtension
     enableOverlay.checked = appSettings.enableOverlay
 })
 
@@ -362,6 +372,7 @@ alertLocalStorageBtn.addEventListener('click', () => {
 
 debugEnabled.addEventListener('change', updateDebugSettings)
 
+enableExtension.addEventListener('change', updateAppSettings)
 enableOverlay.addEventListener('change', updateAppSettings)
 
 reBetBtn.addEventListener('click', async () => {
