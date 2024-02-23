@@ -41,6 +41,7 @@ services:
       - ./.env
     environment:
       PRODUCTION: 1
+      LOG_PATH: "/opt/logs/"
     depends_on:
       - postgres
 
