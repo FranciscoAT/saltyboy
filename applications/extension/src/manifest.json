@@ -1,19 +1,25 @@
 {
     "name": "Salty Boy",
     "description": "Automatic betting extension for Salty Bet",
-    "version": "1.8.1",
+    "version": "1.8.2",
     "manifest_version": 3,
     "background": {
         "service_worker": "background.js"
     },
-    "permissions": ["storage"],
+    "permissions": [
+        "storage"
+    ],
     "action": {
         "default_popup": "popup.html"
     },
     "content_scripts": [
         {
-            "matches": ["https://www.saltybet.com/*"],
-            "js": ["content_script.js"]
+            "matches": [
+                "https://www.saltybet.com/*"
+            ],
+            "js": [
+                "content_script.js"
+            ]
         }
     ],
     "icons": {
