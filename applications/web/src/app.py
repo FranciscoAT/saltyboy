@@ -167,7 +167,6 @@ def api_last_match():
     tags=[current_match_tag],
     deprecated=True,
     responses={200: CurrentMatchInfoResponseWithStats},
-    strict_slashes=False,
 )
 def api_current_match_info_deprecated():
     if current_match_info := get_current_match_info_with_stats(pg_pool):
