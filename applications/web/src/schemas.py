@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import Optional
 from enum import StrEnum, unique
 
-from pydantic import BaseModel, Field, field_serializer, SkipValidation
+from pydantic import BaseModel, Field, field_serializer
 
 
 # === Base ===
@@ -217,10 +218,10 @@ class ExtendedFighterModelWithStats(ExtendedFighterModel):
 
 
 class CurrentMatchMatchModel(BaseModel):
-    fighter_blue: SkipValidation[str] = Field(description="Name of the Blue fighter.")
-    fighter_red: SkipValidation[str] = Field(description="Name of the Red fighter.")
-    match_format: SkipValidation[AllMatchFormat] = Field(description="Match format.")
-    tier: SkipValidation[Tier] = Field(description="Tier of the match.")
+    fighter_blue: Optional[str] = Field(description="Name of the Blue fighter.")
+    fighter_red: Optional[str] = Field(description="Name of the Red fighter.")
+    match_format: Optional[AllMatchFormat] = Field(description="Match format.")
+    tier: Optional[Tier] = Field(description="Tier of the match.")
 
 
 class CurrentMatchInfoResponse(CurrentMatchMatchModel):
