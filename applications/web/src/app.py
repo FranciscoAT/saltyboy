@@ -51,7 +51,7 @@ app = OpenAPI(__name__, info=info)
 
 pg_pool = psycopg2.pool.ThreadedConnectionPool(
     1,
-    10,
+    40,
     user=os.environ["POSTGRES_USER"],
     password=os.environ["POSTGRES_PASSWORD"],
     host=os.environ["POSTGRES_HOST"],
