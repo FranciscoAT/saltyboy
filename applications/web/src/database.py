@@ -14,7 +14,7 @@ def construct_final_query(
         select_stmt = f"{select_stmt} WHERE {' AND '.join(where_stmts)}"
 
     if include_offset:
-        return f"{select_stmt} OFFSET %(offset)s LIMIT %(limit)s"
+        return f"{select_stmt} ORDER BY id ASC OFFSET %(offset)s LIMIT %(limit)s"
 
     return select_stmt
 
