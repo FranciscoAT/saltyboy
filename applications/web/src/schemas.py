@@ -1,7 +1,8 @@
 from datetime import datetime
 from enum import StrEnum, unique
+from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 
 # === Base ===
@@ -94,6 +95,11 @@ class FighterModel(BaseModel):
         description="Time the fighter last fought in a match."
     )
 
+    @field_serializer("created_time", "last_updated")
+    @classmethod
+    def serialize_datetime(cls, v: datetime, *args) -> str:
+        return v.isoformat()
+
 
 class ListFighterResponse(PaginationResponse):
     results: list[FighterModel] = Field(description="Filtered fighters.")
@@ -162,6 +168,7 @@ class ListMatchQuery(PaginationQuery):
 
 class MatchModel(BaseModel):
     id: int = Field(description="ID of the match.")
+    date: datetime = Field(description="Date of the match.")
     fighter_red: int = Field(description="ID of the Red fighter.")
     fighter_blue: int = Field(description="ID of the Blue fighter.")
     winner: int = Field(description="ID of the winning fighter.")
@@ -178,6 +185,11 @@ class MatchModel(BaseModel):
         description="Format of the match. Note: SaltyBoy does not record Exhibition matches."
     )
     colour: Colour = Field(description="Winning colour.")
+
+    @field_serializer("date")
+    @classmethod
+    def serialize_datetime(cls, v: datetime, *args) -> str:
+        return v.isoformat()
 
 
 class ListMatchResponse(PaginationResponse):
@@ -206,25 +218,25 @@ class ExtendedFighterModelWithStats(ExtendedFighterModel):
 
 
 class CurrentMatchMatchModel(BaseModel):
-    fighter_blue: str = Field(description="Name of the Blue fighter.")
-    fighter_red: str = Field(description="Name of the Red fighter.")
-    match_format: AllMatchFormat = Field(description="Match format.")
-    tier: Tier = Field(description="Tier of the match.")
+    fighter_blue: Optional[str] = Field(description="Name of the Blue fighter.")
+    fighter_red: Optional[str] = Field(description="Name of the Red fighter.")
+    match_format: Optional[AllMatchFormat] = Field(description="Match format.")
+    tier: Optional[Tier] = Field(description="Tier of the match.")
 
 
 class CurrentMatchInfoResponse(CurrentMatchMatchModel):
-    fighter_blue_info: ExtendedFighterModel = Field(
+    fighter_blue_info: Optional[ExtendedFighterModel] = Field(
         default=None, description="Detailed information about the Blue fighter."
     )
-    fighter_red_info: ExtendedFighterModel = Field(
+    fighter_red_info: Optional[ExtendedFighterModel] = Field(
         default=None, description="Detailed information about the Red fighter."
     )
 
 
 class CurrentMatchInfoResponseWithStats(CurrentMatchMatchModel):
-    fighter_blue_info: ExtendedFighterModelWithStats = Field(
+    fighter_blue_info: Optional[ExtendedFighterModelWithStats] = Field(
         default=None, description="Detailed information about the Blue fighter."
     )
-    fighter_red_info: ExtendedFighterModelWithStats = Field(
+    fighter_red_info: Optional[ExtendedFighterModelWithStats] = Field(
         default=None, description="Detailed information about the Red fighter."
     )

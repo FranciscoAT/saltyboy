@@ -34,9 +34,11 @@ def pg_cursor(func: Callable[..., RT]):
     def inner(pg_pool: ThreadedConnectionPool, *args, **kwargs) -> RT:
         pg_connection = pg_pool.getconn()
         pg_cursor_ = pg_connection.cursor(cursor_factory=DictCursor)
-        response = func(pg_cursor_, *args, **kwargs)
-        pg_cursor_.close()
-        pg_pool.putconn(pg_connection)
+        try:
+            response = func(pg_cursor_, *args, **kwargs)
+        finally:
+            pg_cursor_.close()
+            pg_pool.putconn(pg_connection)
 
         return response
 
