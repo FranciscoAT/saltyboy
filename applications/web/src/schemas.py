@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import Optional
 from enum import StrEnum, unique
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_serializer
 
@@ -225,18 +225,18 @@ class CurrentMatchMatchModel(BaseModel):
 
 
 class CurrentMatchInfoResponse(CurrentMatchMatchModel):
-    fighter_blue_info: ExtendedFighterModel = Field(
+    fighter_blue_info: Optional[ExtendedFighterModel] = Field(
         default=None, description="Detailed information about the Blue fighter."
     )
-    fighter_red_info: ExtendedFighterModel = Field(
+    fighter_red_info: Optional[ExtendedFighterModel] = Field(
         default=None, description="Detailed information about the Red fighter."
     )
 
 
 class CurrentMatchInfoResponseWithStats(CurrentMatchMatchModel):
-    fighter_blue_info: ExtendedFighterModelWithStats = Field(
+    fighter_blue_info: Optional[ExtendedFighterModelWithStats] = Field(
         default=None, description="Detailed information about the Blue fighter."
     )
-    fighter_red_info: ExtendedFighterModelWithStats = Field(
+    fighter_red_info: Optional[ExtendedFighterModelWithStats] = Field(
         default=None, description="Detailed information about the Red fighter."
     )

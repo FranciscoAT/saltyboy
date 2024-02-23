@@ -65,11 +65,15 @@ if __name__ == "__main__":
     if os.environ.get("PRODUCTION") is not None:
         from paste.translogger import TransLogger
         from waitress import serve
+        from werkzeug.middleware.proxy_fix import ProxyFix
 
         from src.app import app
 
         logging.info("Running in production mode")
+
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
         app.debug = False
+
         serve(
             TransLogger(app, setup_console_handler=False),
             host="0.0.0.0",
