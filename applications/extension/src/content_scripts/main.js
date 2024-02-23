@@ -135,7 +135,7 @@ function run() {
     }
 
     if (FETCH_IN_PROGRESS == true) {
-        verboseLog("Fetch already in progress.")
+        verboseLog('Fetch already in progress.')
         return
     }
 
@@ -146,12 +146,13 @@ function run() {
             updateOverlay(matchData, false)
         })
         .catch((err) => {
-            let err_message = 'Something went wrong getting current match from server.'
+            let err_message =
+                'Something went wrong getting current match from server.'
             console.error(err_message, err)
             verboseLog(err_message)
             FETCH_FIGHTER_DATA = false
             FETCH_IN_PROGRESS = false
-            if (saltyBetStatus.currentStatus == "betting") {
+            if (saltyBetStatus.currentStatus == 'betting') {
                 fallbackBet()
             }
         })
@@ -374,7 +375,8 @@ function placeBets(matchData, saltyBetStatus) {
         }
 
         verboseLog(
-            `Betting on ${betColour} with a confidence of ${Math.round(betData.confidence * 100) / 100
+            `Betting on ${betColour} with a confidence of ${
+                Math.round(betData.confidence * 100) / 100
             }`
         )
     } else {
@@ -542,9 +544,11 @@ function updateOverlay(matchData, clearOverlay) {
                 redVsBlueInfo.redMatchesVsBlue - redVsBlueInfo.redWinsVsBlue
         }
 
-        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${fighterInfo.tier_elo
-            }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${fighterInfo.stats.total_matches
-            } | Wins VS: ${winsVs}`
+        bettingSpan.innerText = `ELO (T): ${fighterInfo.elo} (${
+            fighterInfo.tier_elo
+        }) | WR: ${Math.round(fighterInfo.stats.win_rate * 100)}% | Matches: ${
+            fighterInfo.stats.total_matches
+        } | Wins VS: ${winsVs}`
     }
 
     updateForPlayer(
