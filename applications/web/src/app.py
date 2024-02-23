@@ -103,6 +103,7 @@ def file_robots_request():
     summary="List fighters",
     responses={200: ListFighterResponse},
     tags=[fighter_tag],
+    strict_slashes=False,
 )
 def api_list_fighters(query: ListFighterQuery):
     return jsonify(list_fighters(pg_pool, query).model_dump())
@@ -113,6 +114,7 @@ def api_list_fighters(query: ListFighterQuery):
     summary="Get fighter",
     responses={200: FighterModel},
     tags=[fighter_tag],
+    strict_slashes=False,
 )
 def api_get_fighter(path: IdPath):
     if fighter := get_fighter_by_id(pg_pool, path.id_):
@@ -126,6 +128,7 @@ def api_get_fighter(path: IdPath):
     summary="List matches",
     responses={200: ListMatchResponse},
     tags=[match_tag],
+    strict_slashes=False,
 )
 def api_list_matches(query: ListMatchQuery):
     return jsonify(list_matches(pg_pool, query).model_dump())
@@ -136,6 +139,7 @@ def api_list_matches(query: ListMatchQuery):
     summary="Get match",
     responses={200: MatchModel},
     tags=[match_tag],
+    strict_slashes=False,
 )
 def api_get_match(path: IdPath):
     if match_ := get_match_by_id(pg_pool, path.id_):
@@ -148,6 +152,7 @@ def api_get_match(path: IdPath):
     summary="Get the last played match",
     responses={200: MatchModel},
     tags=[match_tag],
+    strict_slashes=False,
 )
 def api_last_match():
     if match_ := get_last_match(pg_pool):
@@ -162,6 +167,7 @@ def api_last_match():
     tags=[current_match_tag],
     deprecated=True,
     responses={200: CurrentMatchInfoResponseWithStats},
+    strict_slashes=False,
 )
 def api_current_match_info_deprecated():
     if current_match_info := get_current_match_info_with_stats(pg_pool):
@@ -174,6 +180,7 @@ def api_current_match_info_deprecated():
     summary="Current Match Information",
     tags=[current_match_tag],
     responses={200: CurrentMatchInfoResponse},
+    strict_slashes=False,
 )
 def api_current_match_info():
     if current_match_info := get_current_match_info(pg_pool):

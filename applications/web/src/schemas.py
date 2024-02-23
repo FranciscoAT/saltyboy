@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum, unique
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 
 # === Base ===
@@ -94,6 +94,11 @@ class FighterModel(BaseModel):
         description="Time the fighter last fought in a match."
     )
 
+    @field_serializer("created_time", "last_updated")
+    @classmethod
+    def serialize_datetime(self, v: datetime, *args) -> str:
+        return v.isoformat()
+
 
 class ListFighterResponse(PaginationResponse):
     results: list[FighterModel] = Field(description="Filtered fighters.")
@@ -162,6 +167,7 @@ class ListMatchQuery(PaginationQuery):
 
 class MatchModel(BaseModel):
     id: int = Field(description="ID of the match.")
+    date: datetime = Field(description="Date of the match.")
     fighter_red: int = Field(description="ID of the Red fighter.")
     fighter_blue: int = Field(description="ID of the Blue fighter.")
     winner: int = Field(description="ID of the winning fighter.")
@@ -178,6 +184,11 @@ class MatchModel(BaseModel):
         description="Format of the match. Note: SaltyBoy does not record Exhibition matches."
     )
     colour: Colour = Field(description="Winning colour.")
+
+    @field_serializer("date")
+    @classmethod
+    def serialize_datetime(self, v: datetime, *args) -> str:
+        return v.isoformat()
 
 
 class ListMatchResponse(PaginationResponse):
