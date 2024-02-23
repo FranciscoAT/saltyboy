@@ -1,0 +1,37 @@
+<html>
+    <head>
+        <title>Salty Boy</title>
+    <style>
+    .disclaimer {
+        margin: 0;
+        background: #eee;
+        padding: 1em;
+        border-radius: 1em;
+    }
+
+    .disclaimer p {
+        margin: 1em;
+    }
+    </style>
+    </head>
+    <body>
+        <h1>Salty Boy</h1>
+        <p>This site serves as a wrapper for the SaltyBoy project to access historical matches for the fighters on <a href="https://saltybet.com">Salty Bet</a> which is an automated <a href="https://en.wikipedia.org/wiki/Mugen_(game_engine)">M.U.G.E.N</a> game. For more information about the project see the <a href="https://github.com/FranciscoAT/saltyboy">GitHub</a>.<p>
+        <h3>Chrome Extension</h3>
+        <p>If you want you can use the <a href="https://chrome.google.com/webstore/detail/salty-boy/khlbmnneeaecmpeicbaodeaeicljnddj">Chrome Extension</a> created that interfaces with this website and includes several configuration and betting strategies.<p>
+        <h3>API</h3>
+        <p>This website provides a public API. For a detailed breakdown of the API, it's endpoints and responses please use your favoured <a href="/openapi/">OpenAPI Spec UI</a>, or view the OAS 3 spec <a href="/openapi/openapi.json">directly</a>. For a quick reference you can go <a href="/current-match">here</a> to view the current match statistics, this is the endpoint used by the Chrome Extension bot.<p>
+        <h4>ELO vs Tier ELO</h4>
+        <p>ELO is calculated by the bot that watches the matches. The "elo" value is the fighters total ELO and is compared to other fighters ELO. ELO for a fighter begins at 1500 and uses a K Value of 32. Where as "tier_elo" is the exact same as the fighter's ELO value. However, when a fighter changes tier their "tier_elo" will reset to 1500. Otherwise, the calculations are the same as before. Generally, a fighters ELO and Tier ELO will be equivalent if they have never left their current tier.</p>
+        <blockquote class="disclaimer">
+            <p><b>API Usage Disclaimer</b></p>
+            <p>While the webserver is meant to be pretty light and currently the information can be fetched by anyone it is intended a small side-project. So this means to please not abuse the API, eg. No dirty while loops. Additionally, the API can and will change without warning! Should you want to create your own interface/extension by using the API please be aware of this fact as I may randomly break things for you, also you must be compliant with the <a href="https://github.com/FranciscoAT/saltyboy/blob/master/LICENSE">MIT License</a> found on the GitHub repo. If you have suggestions or improvements you would like to suggest please start an issue on the GitHub repository.</p>
+        </blockquote>
+    </body>
+    <footer>
+        <p><b>Acknowledgements</b></p>
+        <ul>
+            <li>The websites <a href="https://salty-boy.com/favicon.ico">favicon.ico</a> was made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> and can be found on <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></li>
+        </ul>
+    </footer>
+</html>

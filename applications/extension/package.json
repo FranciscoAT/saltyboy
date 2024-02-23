@@ -1,0 +1,22 @@
+{
+  "name": "extension",
+  "version": "0.0.1",
+  "description": "Project used to bundle JS for Chrome Extension",
+  "private": true,
+  "scripts": {
+    "build": "rm -f saltyboy.zip && npx webpack --config webpack.config.js && zip -r saltyboy.zip dist/",
+    "build-win": "npx webpack --config webpack.config.js && 7z a saltyboy.zip dist/",
+    "dev": "npx webpack watch --config webpack.config.js --env dev"
+  },
+  "keywords": [],
+  "author": "how2vim (francisco.ad.trindade@gmail.com)",
+  "license": "MIT",
+  "devDependencies": {
+    "copy-webpack-plugin": "^12.0.2",
+    "prettier": "^3.2.5",
+    "terser-webpack-plugin": "^5.3.10",
+    "uglify-js": "^3.17.4",
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
+  }
+}
