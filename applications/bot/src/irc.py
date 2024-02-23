@@ -167,9 +167,9 @@ class TwitchBot:
     def _initialize_socket(self) -> None:
         sock = socket()
         sock.settimeout(360)  # About a minute longer than PING/PONG
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        context = ssl.create_default_context()
 
-        self.ssl_sock = context.wrap_socket(sock)
+        self.ssl_sock = context.wrap_socket(sock, server_hostname="irc.chat.twitch.tv")
         self.ssl_sock.connect(("irc.chat.twitch.tv", 6697))
         self.ssl_sock.settimeout(360)
 
