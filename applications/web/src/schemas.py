@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum, unique
 
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, field_serializer, SkipValidation
 
 
 # === Base ===
@@ -96,7 +96,7 @@ class FighterModel(BaseModel):
 
     @field_serializer("created_time", "last_updated")
     @classmethod
-    def serialize_datetime(self, v: datetime, *args) -> str:
+    def serialize_datetime(cls, v: datetime, *args) -> str:
         return v.isoformat()
 
 
@@ -187,7 +187,7 @@ class MatchModel(BaseModel):
 
     @field_serializer("date")
     @classmethod
-    def serialize_datetime(self, v: datetime, *args) -> str:
+    def serialize_datetime(cls, v: datetime, *args) -> str:
         return v.isoformat()
 
 
@@ -217,10 +217,10 @@ class ExtendedFighterModelWithStats(ExtendedFighterModel):
 
 
 class CurrentMatchMatchModel(BaseModel):
-    fighter_blue: str = Field(description="Name of the Blue fighter.")
-    fighter_red: str = Field(description="Name of the Red fighter.")
-    match_format: AllMatchFormat = Field(description="Match format.")
-    tier: Tier = Field(description="Tier of the match.")
+    fighter_blue: SkipValidation[str] = Field(description="Name of the Blue fighter.")
+    fighter_red: SkipValidation[str] = Field(description="Name of the Red fighter.")
+    match_format: SkipValidation[AllMatchFormat] = Field(description="Match format.")
+    tier: SkipValidation[Tier] = Field(description="Tier of the match.")
 
 
 class CurrentMatchInfoResponse(CurrentMatchMatchModel):
