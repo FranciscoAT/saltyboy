@@ -1,4 +1,6 @@
 #!/bin/bash
+# Can be installed into your crontab, eg. Run daily at midnight system time:
+# 0 0 * * * /opt/saltyboy/scripts/backup_database.sh -d /home/<user>/postgres_db_backup -u postgres -c saltyboy_postgres_1 -r 10
 
 DUMP_DIR=postgres_dumps
 POSTGRES_USER=postgres
