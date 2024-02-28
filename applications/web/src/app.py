@@ -10,7 +10,6 @@ from src.biz import (
     get_current_match_info,
     get_current_match_info_with_stats,
     get_fighter_by_id,
-    get_last_match,
     get_match_by_id,
     list_fighters,
     list_matches,
@@ -145,19 +144,6 @@ def api_get_match(path: IdPath):
     if match_ := get_match_by_id(pg_pool, path.id_):
         return jsonify(match_.model_dump())
     return "Match not found", 404
-
-
-@app.get(
-    "/api/last_match/",
-    summary="Get the last played match",
-    responses={200: MatchModel},
-    tags=[match_tag],
-    strict_slashes=False,
-)
-def api_last_match():
-    if match_ := get_last_match(pg_pool):
-        return jsonify(match_.model_dump())
-    return jsonify({})
 
 
 # Current Match Info

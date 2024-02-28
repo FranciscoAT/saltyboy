@@ -7,7 +7,6 @@ from src.database import (
     db_fighter_count,
     db_get_current_match,
     db_get_fighter_by_id,
-    db_get_last_match,
     db_get_match_by_id,
     db_get_match_count,
     db_list_fighters,
@@ -81,13 +80,6 @@ def list_matches(cursor, query_args: ListMatchQuery) -> ListMatchResponse:
         count=db_get_match_count(cursor, **dumped_args),
         results=[MatchModel(**x) for x in db_list_matches(cursor, **dumped_args)],
     )
-
-
-@pg_cursor
-def get_last_match(cursor) -> MatchModel | None:
-    if match_ := db_get_last_match(cursor):
-        return MatchModel(**match_)
-    return None
 
 
 # === Current Match ===

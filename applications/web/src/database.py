@@ -146,10 +146,8 @@ def db_get_match_count(
         where_stmts.append("fighter_blue = %(fighter_blue)s")
         query_obj["fighter_blue"] = fighter_blue
     if fighter:
-        where_stmts.append(
-            "(fighter_red = %(fighter_red)s OR fighter_blue = %(fighter_blue)s)"
-        )
-        query_obj["fighter_blue"] = fighter_blue
+        where_stmts.append("(fighter_red = %(fighter)s OR fighter_blue = %(fighter)s)")
+        query_obj["fighter"] = fighter
     if winner:
         where_stmts.append("winner = %(winner)s")
         query_obj["winner"] = winner
@@ -199,6 +197,7 @@ def db_list_matches(
     page_size: int,
     fighter_red: int | None = None,
     fighter_blue: int | None = None,
+    fighter: int | None = None,
     winner: int | None = None,
     bet_red__gte: int | None = None,
     bet_red__lt: int | None = None,
@@ -222,6 +221,9 @@ def db_list_matches(
     if fighter_blue:
         where_stmts.append("fighter_blue = %(fighter_blue)s")
         query_obj["fighter_blue"] = fighter_blue
+    if fighter:
+        where_stmts.append("(fighter_red = %(fighter)s OR fighter_blue = %(fighter)s)")
+        query_obj["fighter"] = fighter
     if winner:
         where_stmts.append("winner = %(winner)s")
         query_obj["winner"] = winner
@@ -261,11 +263,6 @@ def db_list_matches(
 
     cursor.execute(construct_final_query(select_stmt, where_stmts), query_obj)
     return cursor.fetchall()
-
-
-def db_get_last_match(cursor) -> DictRow | None:
-    cursor.execute("SELECT * FROM match ORDER BY id DESC LIMIT 1")
-    return cursor.fetchone()
 
 
 # === Current Match ===
