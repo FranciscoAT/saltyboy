@@ -98,10 +98,11 @@ class TwitchBot:
                             yield return_message
                     except Exception:  # pylint: disable=broad-except
                         logger.error("Something went wrong", exc_info=True)
-                    time.sleep(5)
             except RemoteSocketDisconnect:
                 logger.info("Remote socket was likely disconnected. Reconnecting.")
                 self.connect()
+
+            time.sleep(5)
 
     @classmethod
     def parse_message(cls, message: str) -> ReturnMessages | None:
