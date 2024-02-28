@@ -117,6 +117,11 @@ class ListMatchQuery(PaginationQuery):
         description="Filter matches where the Blue fighter was a specific fighter by ID.",
         ge=1,
     )
+    fighter: int = Field(
+        default=None,
+        description="Filter matches where the Red or Blue fighter is a specific fighter by ID.",
+        ge=1,
+    )
     winner: int = Field(
         default=None,
         description="Filter matches where the winning fighter was a specific fighter by ID.",
@@ -222,6 +227,17 @@ class CurrentMatchMatchModel(BaseModel):
     fighter_red: Optional[str] = Field(description="Name of the Red fighter.")
     match_format: Optional[AllMatchFormat] = Field(description="Match format.")
     tier: Optional[Tier] = Field(description="Tier of the match.")
+    updated_at: Optional[datetime] = Field(
+        description="When the current match was updated."
+    )
+
+    @field_serializer("updated_at")
+    @classmethod
+    def serialize_datetime(cls, v: datetime | None, *args) -> str | None:
+        if v is not None:
+            return v.isoformat()
+
+        return None
 
 
 class CurrentMatchInfoResponse(CurrentMatchMatchModel):

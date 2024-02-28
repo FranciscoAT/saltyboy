@@ -7,9 +7,7 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
-PRODUCTION = os.environ.get("PRODUCTION") is not None
-
-if PRODUCTION is False:
+if os.environ.get("PRODUCTION") is None:
     # Attempt to load environment variable from root of project.
     load_dotenv(Path(Path(__file__).parent.parent.parent.parent / ".env"))
 

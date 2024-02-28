@@ -150,6 +150,7 @@ class Database:
             "fighter_blue": fighter_blue_name,
             "tier": tier,
             "match_format": match_format.value,
+            "updated_at": datetime.now(timezone.utc),
         }
         cursor.execute(
             """
@@ -158,20 +159,30 @@ class Database:
                         fighter_red,
                         fighter_blue,
                         tier,
-                        match_format
+                        match_format,
+                        updated_at
                     )
                 VALUES
                     (
                         %(fighter_red)s,
                         %(fighter_blue)s,
                         %(tier)s,
-                        %(match_format)s
+                        %(match_format)s,
+                        %(updated_at)s
                     )
                 """,
             insert_obj,
         )
         self.connection.commit()
         cursor.close()
+
+    def get_current_match(self) -> psycopg2.extras.DictRow | None:
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM current_match LIMIT 1")
+        current_match = cursor.fetchone()
+        if not current_match:
+            return None
+        return current_match  # type: ignore
 
     def _get_or_create_fighter(
         self, name: str, tier: str, best_streak: int

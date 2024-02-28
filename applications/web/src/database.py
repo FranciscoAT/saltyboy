@@ -120,6 +120,7 @@ def db_get_match_count(
     cursor,
     fighter_red: int | None = None,
     fighter_blue: int | None = None,
+    fighter: int | None = None,
     winner: int | None = None,
     bet_red__gte: int | None = None,
     bet_red__lt: int | None = None,
@@ -143,6 +144,11 @@ def db_get_match_count(
         query_obj["fighter_red"] = fighter_red
     if fighter_blue:
         where_stmts.append("fighter_blue = %(fighter_blue)s")
+        query_obj["fighter_blue"] = fighter_blue
+    if fighter:
+        where_stmts.append(
+            "(fighter_red = %(fighter_red)s OR fighter_blue = %(fighter_blue)s)"
+        )
         query_obj["fighter_blue"] = fighter_blue
     if winner:
         where_stmts.append("winner = %(winner)s")

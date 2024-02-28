@@ -20,3 +20,4 @@ For more information on how to develop or run SaltyBoy see [Setup](./docs/setup.
     you so much for your hard work and contributions to the project! <3
 - [favicon.ico](web/public/favicon.ico) was made by [Freepik](https://www.freepik.com) 
     and can be found on [Flaticon](https://www.flaticon.com)
+- My Fiance for being a wonderful tester <3
