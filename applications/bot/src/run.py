@@ -44,12 +44,10 @@ class BotProcess(Process):
         self.twitch_username = twitch_username
         self.twitch_oauth_token = twitch_oauth_token
 
-        self.database: Database
-
     def run(self) -> None:
         bot_logger.info("Bot started")
 
-        self.database = Database(
+        database = Database(
             dbname=self.postgres_db,
             user=self.postgres_user,
             password=self.postgres_password,
@@ -69,7 +67,7 @@ class BotProcess(Process):
                     message.tier,
                     message.match_format.value,
                 )
-                self.database.update_current_match(**asdict(message))
+                database.update_current_match(**asdict(message))
 
                 if message.match_format != MatchFormat.EXHIBITION:
                     current_match = Match(message)
@@ -81,7 +79,7 @@ class BotProcess(Process):
                     message.fighter_red_name,
                     message.fighter_blue_name,
                 )
-                self.database.update_current_match(
+                database.update_current_match(
                     **asdict(message), match_format=MatchFormat.EXHIBITION
                 )
                 current_match = None
@@ -98,13 +96,7 @@ class BotProcess(Process):
                 elif isinstance(message, WinMessage):
                     if current_match.update_winner(message) is True:
                         bot_logger.info("Winner: %s.", message.winner_name)
-                        self.database.record_match(current_match)
-
-    def terminate(self) -> None:
-        bot_logger.info("Closing bot process...")
-        self.database.connection.close()
-        super().terminate()
-
+                        database.record_match(current_match)
 
 def run() -> None:
     watchdog_logger.info("Running bot watchdog")
@@ -189,6 +181,7 @@ def get_current_match() -> psycopg2.extras.DictRow | None:
 
 
 def close_bot_process(bot_process: BotProcess) -> None:
+    watchdog_logger.info("Terminating bot process...")
     try:
         if bot_process.is_alive() is True:
             bot_process.terminate()
@@ -201,3 +194,4 @@ def close_bot_process(bot_process: BotProcess) -> None:
 
     # Give time for the resources to be released
     time.sleep(10)
+    watchdog_logger.info("Bot process terminated.")
