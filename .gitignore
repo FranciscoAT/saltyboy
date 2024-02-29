@@ -2,13 +2,12 @@
 .env
 
 # Logs Directory
-logs/*
-!logs/.gitkeep
+logs/
 
 # VSCode
 .vscode
 
 # Common Development directories
 .venv/
-**/node_modules/
+node_modules/
 __pycache__/
