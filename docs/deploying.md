@@ -31,6 +31,12 @@ docker-compose build
 docker-compose up -d
 ```
 
+### Database
+
+The Postgres database data will be held in a Docker volume named: `salty-pgdata` in the
+compose file. You can leverage the script database backup 
+[script](../scripts/backup_database.sh) to create database dumps.
+
 ### Expose it Externally
 
 If you want to expose the service to the external world. I would recommend you set up 
