@@ -32,11 +32,16 @@ if __name__ == "__main__":
     if arguments.logs:
         log_path = Path(arguments.logs)
         if not log_path.is_dir():
-            raise ValueError("Invalid value for log_path, not a directory!")
+            raise ValueError(
+                f"Invalid value for logs: {log_path.resolve()}, not a directory!"
+            )
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
 
     if os.environ.get("PRODUCTION") is None:
         env_file_path = Path(__file__).parent.parent.parent / ".env"
-        logging.info(
+        root_logger.info(
             "Non-prod mode. Loading environment file: %s", env_file_path.resolve()
         )
         load_dotenv(env_file_path)
@@ -44,5 +49,5 @@ if __name__ == "__main__":
     try:
         run(log_path)
     except Exception:
-        logging.error("Something went wrong.", exc_info=True)
+        root_logger.error("Something went wrong.", exc_info=True)
         raise
