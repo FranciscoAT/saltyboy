@@ -78,4 +78,4 @@ def _get_cleaned_logger(name: str | None = None) -> tuple[logging.Logger, bool]:
 
 
 def _get_log_level() -> int:
-    return logging.DEBUG if os.environ.get("DEBUG") else logging.info
+    return logging.DEBUG if os.environ.get("DEBUG") else logging.INFO
