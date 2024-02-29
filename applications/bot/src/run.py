@@ -5,8 +5,6 @@ from dataclasses import asdict
 from datetime import datetime, timedelta, timezone
 from multiprocessing import Process
 
-import psycopg2.extras
-
 from src.database import Database
 from src.irc import TwitchBot
 from src.objects import (
@@ -59,6 +57,11 @@ class BotProcess(Process):
 
         current_match: Match | None = None
         for message in irc_bot.listen():
+            if message is None:
+                bot_logger.debug("Updating heartbeat.")
+                database.update_bot_heartbeat()
+                continue
+
             if isinstance(message, OpenBetMessage):
                 bot_logger.info(
                     "New match. %s VS. %s. Tier: %s. Format: %s.",
@@ -98,59 +101,83 @@ class BotProcess(Process):
                         bot_logger.info("Winner: %s.", message.winner_name)
                         database.record_match(current_match)
 
+
 def run() -> None:
     watchdog_logger.info("Running bot watchdog")
-
-    last_heartbeat_time = datetime.now(timezone.utc)
+    bot_process = new_bot_process()
     last_restart_time = datetime.now(timezone.utc)
-    current_bot_process = new_bot_process()
-    current_match: psycopg2.extras.DictRow | None
+    last_verified_healthcheck_time = datetime.now(timezone.utc)
+    watchdog_log_attenuator = 0
+
+    database = Database(
+        dbname=os.environ["POSTGRES_DB"],
+        user=os.environ["POSTGRES_USER"],
+        password=os.environ["POSTGRES_PASSWORD"],
+        host=os.environ["POSTGRES_HOST"],
+        port=int(os.environ["POSTGRES_PORT"]),
+    )
 
     while True:
         now = datetime.now(timezone.utc)
-        current_match = get_current_match()
+        last_bot_heartbeat_time = database.get_bot_heartbeat()
         restart_bot = False
 
         # We want to trigger a restart in the following situations:
-        # 1. Bot has not recorded an ongoing match and or the updated_at time is null,
-        #    and the last successful heartbeat was over 10 minutes ago.
-        # 2. The last time a match was updated was over 10 minutes ago.
+        # 1. Bot's heartbeat is over 2 minutes ago. It should check in every minute.
+        # 2. If Bot's heartbeat is none and the last verified_healthcheck_time is over
+        #    5 minutes ago force a restart.
         # 3. The bot process is somehow not alive.
-
-        if current_match is None or current_match["updated_at"] is None:
-            if last_heartbeat_time < now - timedelta(minutes=10):
+        if last_bot_heartbeat_time is None:
+            if last_verified_healthcheck_time < now - timedelta(minutes=5):
                 watchdog_logger.warning(
-                    "Something is not right, triggering bot restart"
+                    "Bot heartbeat hasn't been set for 5 minutes. Triggering restart."
                 )
                 restart_bot = True
-        elif current_match["updated_at"].replace(tzinfo=timezone.utc) < now - timedelta(
-            minutes=10
-        ):
+        elif bot_process.is_alive() is False:
             watchdog_logger.warning(
-                "Current match has not been updated in a while bot socket "
-                "likely disconnected from remote and hanging."
+                "Bot process is somehow not alive. Triggering restart."
             )
             restart_bot = True
-        elif current_bot_process.is_alive() is False:
+        elif last_bot_heartbeat_time < now - timedelta(minutes=2):
             watchdog_logger.warning(
-                "Current Bot Process is not alive! Triggering restart"
+                "Bot process heartbeat is over two minutes old. Triggering restart."
             )
             restart_bot = True
         else:
-            watchdog_logger.info("Everything looks healthy.")
-            last_heartbeat_time = datetime.now(timezone.utc)
+            # Services are healthy.
+            last_verified_healthcheck_time = now
 
-        # Do not restart the bot if it was restarted within the past 10 minutes.
-        # Otherwise, can lead to loop upon loop of forced restarts until the
-        # bot has time to record a match.
-        if restart_bot is True and last_restart_time < now - timedelta(minutes=10):
-            close_bot_process(current_bot_process)
-            current_bot_process = new_bot_process()
-            last_heartbeat_time = datetime.now(timezone.utc)
-            last_restart_time = datetime.now(timezone.utc)
+        # Do not restart the bot if it was restarted within the past 5 minutes. To give
+        # it time to spin up and have a chance to get healthy.
+        if restart_bot is True:
+            if last_restart_time < now - timedelta(minutes=5):
+                watchdog_logger.info("Restarting bot process...")
+                close_bot_process(bot_process)
+                bot_process = new_bot_process()
+                last_restart_time = now
+                last_verified_healthcheck_time = now
+            else:
+                watchdog_logger.info(
+                    "Bot process was last restarted less than 5 minutes ago. "
+                    "Refusing to restart."
+                )
 
-        # Sleep for 5 minutes, watch dog does not need to run that often.
-        time.sleep(60 * 5)
+        # Sleep for a minute, watch dog does not need to run that often.
+        time.sleep(60)
+
+        watchdog_logger.debug(
+            "Last bot heartbeat: %s", last_bot_heartbeat_time.isoformat()
+        )
+
+        # Log watchdog still alive every 5 cycles
+        watchdog_log_attenuator += 1
+        if watchdog_log_attenuator % 5 == 0:
+            watchdog_log_attenuator = 0
+            if restart_bot is False:
+                watchdog_logger.info(
+                    "Services are healthy. Last bot heartbeat: %s",
+                    last_bot_heartbeat_time.isoformat(),
+                )
 
 
 def new_bot_process() -> BotProcess:
@@ -165,19 +192,6 @@ def new_bot_process() -> BotProcess:
     )
     bot_process.start()
     return bot_process
-
-
-def get_current_match() -> psycopg2.extras.DictRow | None:
-    database = Database(
-        dbname=os.environ["POSTGRES_DB"],
-        user=os.environ["POSTGRES_USER"],
-        password=os.environ["POSTGRES_PASSWORD"],
-        host=os.environ["POSTGRES_HOST"],
-        port=int(os.environ["POSTGRES_PORT"]),
-    )
-    current_match = database.get_current_match()
-    database.connection.close()
-    return current_match
 
 
 def close_bot_process(bot_process: BotProcess) -> None:

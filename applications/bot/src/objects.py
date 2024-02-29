@@ -13,8 +13,6 @@ class MatchFormat(Enum):
 
 
 # === Waif4u Messages ===
-
-
 @dataclass
 class OpenBetMessage:
     fighter_red_name: str

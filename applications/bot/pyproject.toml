@@ -41,5 +41,6 @@ disable = [
     "too-many-instance-attributes",
     "broad-exception-caught",
     "invalid-name",
+    "line-too-long",
 ]
 ignored-modules = ["alembic", "sqlalchemy"]

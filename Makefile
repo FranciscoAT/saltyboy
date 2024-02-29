@@ -1,6 +1,8 @@
 # === Apps ===
 run-bot: db-migrate
 	cd applications/bot && poetry run python main.py 
+run-bot-debug: db-migrate
+	cd applications/bot && poetry run python main.py --debug
 
 run-web: db-migrate
 	cd applications/web && poetry run python main.py

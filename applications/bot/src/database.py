@@ -176,13 +176,25 @@ class Database:
         self.connection.commit()
         cursor.close()
 
-    def get_current_match(self) -> psycopg2.extras.DictRow | None:
+    def update_bot_heartbeat(self) -> None:
         cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM current_match LIMIT 1")
-        current_match = cursor.fetchone()
-        if not current_match:
+        cursor.execute("DELETE FROM bot_heartbeat")
+        cursor.execute(
+            "INSERT INTO bot_heartbeat (heartbeat_time) VALUES (%(heartbeat_time)s)",
+            {"heartbeat_time": datetime.now(timezone.utc)},
+        )
+        self.connection.commit()
+        cursor.close()
+
+    def get_bot_heartbeat(self) -> None | datetime:
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM bot_heartbeat LIMIT 1")
+        bot_heartbeat_row = cursor.fetchone()
+        if not bot_heartbeat_row:
             return None
-        return current_match  # type: ignore
+        bot_heartbeat_time = bot_heartbeat_row["heartbeat_time"].replace(tzinfo=timezone.utc)  # type: ignore
+        cursor.close()
+        return bot_heartbeat_time
 
     def _get_or_create_fighter(
         self, name: str, tier: str, best_streak: int

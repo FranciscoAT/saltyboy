@@ -19,7 +19,7 @@ from src.objects import (
 logger = logging.getLogger(__name__)
 
 ReturnMessages = (
-    OpenBetMessage | LockedBetMessage | WinMessage | OpenBetExhibitionMessage
+    OpenBetMessage | LockedBetMessage | WinMessage | OpenBetExhibitionMessage | None
 )
 
 
@@ -63,7 +63,7 @@ class TwitchBot:
         logger.info("Joining channel saltybet...")
         self._send("JOIN #saltybet")
         joined = False
-        joined_start = datetime.utcnow()
+        joined_start = datetime.now(timezone.utc)
         while not joined:
             for message in self._receive(expect_disconnect=False):
                 logger.info(message)
@@ -71,15 +71,16 @@ class TwitchBot:
                     logger.info("Joined successfully!")
                     joined = True
                     break
-                if datetime.utcnow() - joined_start > timedelta(seconds=5):
+                if datetime.now(timezone.utc) - joined_start > timedelta(seconds=5):
                     raise TimeoutError(
                         "Took longer than 5 seconds to join saltybet channel."
                     )
 
     def listen(self) -> Iterator[ReturnMessages]:
         while True:
-            if self.last_read - datetime.now(timezone.utc) > timedelta(minutes=10):
-                # Force a reconnection
+            # Questionable if this is ever hit
+            if self.last_read < datetime.now(timezone.utc) - timedelta(minutes=10):
+                logger.warning("Last read was over 10 minutes ago.")
                 self.connect()
 
             try:
@@ -87,20 +88,24 @@ class TwitchBot:
                     if "PING :tmi.twitch.tv" == message:
                         logger.info("Received a PING, sending PONG.")
                         self._send("PONG :tmi.twitch.tv")
+
                     if not message.startswith(":waifu4u"):
                         continue
+
                     try:
-                        return_message = self.parse_message(
+                        if return_message := self.parse_message(
                             message.split("#saltybet :")[1]
-                        )
-                        if return_message:
+                        ):
                             logger.debug(message)
                             yield return_message
-                    except Exception:  # pylint: disable=broad-except
+                    except Exception:
                         logger.error("Something went wrong", exc_info=True)
             except RemoteSocketDisconnect:
+                # Questionable if this is ever hit
                 logger.info("Remote socket was likely disconnected. Reconnecting.")
                 self.connect()
+
+            yield None
 
             time.sleep(5)
 
@@ -180,7 +185,7 @@ class TwitchBot:
 
         logger.info("Authenticating as %s", self.username)
         authenticated = False
-        authenticated_start = datetime.utcnow()
+        authenticated_start = datetime.now(timezone.utc)
         while not authenticated:
             for message in self._receive(expect_disconnect=False):
                 logger.info(message)
@@ -188,5 +193,7 @@ class TwitchBot:
                     logger.info("Authenticated successfully!")
                     authenticated = True
                     break
-                if datetime.utcnow() - authenticated_start > timedelta(seconds=5):
+                if datetime.now(timezone.utc) - authenticated_start > timedelta(
+                    seconds=5
+                ):
                     raise TimeoutError("Took longer than 5 seconds to authenticate.")
