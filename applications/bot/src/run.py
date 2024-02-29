@@ -183,7 +183,12 @@ def run(log_path: Path | None) -> None:
         time.sleep(60)
 
         watchdog_logger.debug(
-            "Last bot heartbeat: %s", last_bot_heartbeat_time.isoformat()
+            "Last bot heartbeat: %s",
+            (
+                last_bot_heartbeat_time.isoformat()
+                if last_bot_heartbeat_time is not None
+                else None
+            ),
         )
 
         # Log watchdog still alive every 5 cycles
@@ -193,7 +198,11 @@ def run(log_path: Path | None) -> None:
             if restart_bot is False:
                 watchdog_logger.info(
                     "Services are healthy. Last bot heartbeat: %s",
-                    last_bot_heartbeat_time.isoformat(),
+                    (
+                        last_bot_heartbeat_time.isoformat()
+                        if last_bot_heartbeat_time is not None
+                        else None
+                    ),
                 )
 
 
