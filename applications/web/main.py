@@ -60,7 +60,7 @@ if __name__ == "__main__":
     arguments = arg_parser.parse_args()
 
     if arguments.debug:
-        os.environ["DEBUG"] = 1
+        os.environ["DEBUG"] = "1"
 
     _init_loggers(log_path=arguments.logs)
 

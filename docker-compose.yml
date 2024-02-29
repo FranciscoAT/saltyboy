@@ -17,7 +17,7 @@ services:
         USER_ID: $UID
         GROUP_ID: $GID
     volumes:
-      - ./logs/bot:/opt/logs
+      - $BOT_LOG_PATH:/opt/logs
     restart: always
     depends_on:
       - postgres
@@ -33,7 +33,7 @@ services:
         USER_ID: $UID
         GROUP_ID: $GID
     volumes:
-      - ./logs/web:/opt/logs
+      - $WEB_LOG_PATH:/opt/logs
     ports:
       - "5000:5000"
     restart: always
