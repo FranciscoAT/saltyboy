@@ -8,16 +8,14 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
-def _init_loggers(set_debug: bool, log_path: str | None = None) -> None:
-    log_level = logging.INFO
-    if set_debug:
-        log_level = logging.DEBUG
+def _init_loggers(log_path: str | None = None) -> None:
+    log_level = logging.DEBUG if os.environ.get("DEBUG") else logging.INFO
 
     root_logger = logging.getLogger()
     root_logger.setLevel(log_level)
 
     log_formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(name)s:%(lineno)s - %(message)s"
+        "%(asctime)s - %(levelname)s - %(name)s - [%(filename)s:%(lineno)s] - %(message)s"
     )
 
     stream_handler = logging.StreamHandler()
@@ -44,23 +42,27 @@ def _init_loggers(set_debug: bool, log_path: str | None = None) -> None:
         root_logger.addHandler(timed_rotating_fh)
         root_logger.info("Will log to a timed rotating file at: %s", log_path)
 
-    if set_debug:
-        root_logger.info("Log level set to DEBUG.")
-    else:
-        root_logger.info("Log level set to INFO.")
+    root_logger.info("Log level set to %s.", logging.getLevelName(log_level))
 
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument(
-        "-d", "--debug", action="store_true", help="Enable debug logging"
+        "-d",
+        "--debug",
+        action="store_true",
+        help="Enable debug logging. Optionally, set DEBUG=1 in the environment.",
     )
     arg_parser.add_argument(
         "-l", "--logs", help="Sets a rotating file handler at the given path"
     )
 
     arguments = arg_parser.parse_args()
-    _init_loggers(arguments.debug, log_path=arguments.logs)
+
+    if arguments.debug:
+        os.environ["DEBUG"] = 1
+
+    _init_loggers(log_path=arguments.logs)
 
     if os.environ.get("PRODUCTION") is not None:
         from paste.translogger import TransLogger

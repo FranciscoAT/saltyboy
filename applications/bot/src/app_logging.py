@@ -35,7 +35,7 @@ def run_listener(queue: Queue, log_path: Path | None) -> None:
         root_logger.addHandler(timed_rotating_fh)
         root_logger.info("Will log to a time rotating file at: %s", log_path.resolve())
 
-    root_logger.info("Log level set to: %s", log_level)
+    root_logger.info("Log level set to: %s", logging.getLevelName(log_level))
 
     while True:
         while not queue.empty():

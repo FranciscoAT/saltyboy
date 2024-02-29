@@ -12,6 +12,14 @@ run-bot-log-file-debug: db-migrate
 
 run-web: db-migrate
 	cd applications/web && poetry run python main.py
+run-web-log-file: db-migrate
+	mkdir -p logs/web
+	cd applications/web && poetry run python main.py --logs ../../logs/web/
+run-web-debug: db-migrate
+	cd applications/web && poetry run python main.py --debug
+run-web-log-file-debug: db-migrate
+	mkdir -p logs/web
+	cd applications/web && poetry run python main.py --logs ../../logs/web/ --debug
 
 run-extension:
 	cd applications/extension && npm run dev
