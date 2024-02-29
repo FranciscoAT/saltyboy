@@ -195,9 +195,9 @@ class Database:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM bot_heartbeat LIMIT 1")
         bot_heartbeat_row = cursor.fetchone()
-        if not bot_heartbeat_row:
-            return None
-        bot_heartbeat_time = bot_heartbeat_row["heartbeat_time"].replace(tzinfo=timezone.utc)  # type: ignore
+        bot_heartbeat_time: datetime | None = None
+        if bot_heartbeat_row:
+            bot_heartbeat_time = bot_heartbeat_row["heartbeat_time"].replace(tzinfo=timezone.utc)  # type: ignore
         cursor.close()
         return bot_heartbeat_time
 
