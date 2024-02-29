@@ -202,24 +202,10 @@ class ListMatchResponse(PaginationResponse):
 
 
 # === Current Match ===
-class FighterStats(BaseModel):
-    average_bet: float = Field(description="Average bet on the fighter.")
-    total_matches: int = Field(
-        description="Total matches the fighter has participated in."
-    )
-    win_rate: float = Field(
-        description="Win rate of the fighter. Value between 0 to 1."
-    )
-
-
 class ExtendedFighterModel(FighterModel):
     matches: list[MatchModel] = Field(
         description="All matches the fighter has fought in."
     )
-
-
-class ExtendedFighterModelWithStats(ExtendedFighterModel):
-    stats: FighterStats = Field(description="General fighter statistics.")
 
 
 class CurrentMatchMatchModel(BaseModel):
@@ -245,14 +231,5 @@ class CurrentMatchInfoResponse(CurrentMatchMatchModel):
         default=None, description="Detailed information about the Blue fighter."
     )
     fighter_red_info: Optional[ExtendedFighterModel] = Field(
-        default=None, description="Detailed information about the Red fighter."
-    )
-
-
-class CurrentMatchInfoResponseWithStats(CurrentMatchMatchModel):
-    fighter_blue_info: Optional[ExtendedFighterModelWithStats] = Field(
-        default=None, description="Detailed information about the Blue fighter."
-    )
-    fighter_red_info: Optional[ExtendedFighterModelWithStats] = Field(
         default=None, description="Detailed information about the Red fighter."
     )

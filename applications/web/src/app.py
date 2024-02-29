@@ -8,7 +8,6 @@ from flask_openapi3 import Info, OpenAPI, Tag
 
 from src.biz import (
     get_current_match_info,
-    get_current_match_info_with_stats,
     get_fighter_by_id,
     get_match_by_id,
     list_fighters,
@@ -16,7 +15,6 @@ from src.biz import (
 )
 from src.schemas import (
     CurrentMatchInfoResponse,
-    CurrentMatchInfoResponseWithStats,
     FighterModel,
     IdPath,
     ListFighterQuery,
@@ -147,19 +145,6 @@ def api_get_match(path: IdPath):
 
 
 # Current Match Info
-@app.get(
-    "/current-match",
-    summary="[DEPRECATED] Current Match Information",
-    tags=[current_match_tag],
-    deprecated=True,
-    responses={200: CurrentMatchInfoResponseWithStats},
-)
-def api_current_match_info_deprecated():
-    if current_match_info := get_current_match_info_with_stats(pg_pool):
-        return jsonify(current_match_info.model_dump())
-    return jsonify({})
-
-
 @app.get(
     "/api/current_match_info/",
     summary="Current Match Information",
