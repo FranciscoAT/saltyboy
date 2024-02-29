@@ -112,7 +112,7 @@ class BotProcess(Process):
 
 
 def run(log_path: Path | None) -> None:
-    queue = Queue(-1)
+    queue: Queue = Queue(-1)
     log_listener = Process(target=run_listener, args=(queue, log_path))
     log_listener.start()
     configure_process_logger(queue)
