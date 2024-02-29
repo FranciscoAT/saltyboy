@@ -1,10 +1,16 @@
-import logging
 import os
 import time
 from dataclasses import asdict
 from datetime import datetime, timedelta, timezone
-from multiprocessing import Process
+from multiprocessing import Process, Queue
+from pathlib import Path
 
+from src.app_logging import (
+    configure_process_logger,
+    get_bot_logger,
+    get_watchdog_logger,
+    run_listener,
+)
 from src.database import Database
 from src.irc import TwitchBot
 from src.objects import (
@@ -15,9 +21,6 @@ from src.objects import (
     OpenBetMessage,
     WinMessage,
 )
-
-bot_logger = logging.getLogger("bot")
-watchdog_logger = logging.getLogger("watchdog")
 
 
 class BotProcess(Process):
@@ -30,6 +33,7 @@ class BotProcess(Process):
         postgres_port: int,
         twitch_username: str,
         twitch_oauth_token: str,
+        queue: Queue,
     ) -> None:
         super().__init__(daemon=True)
 
@@ -42,7 +46,11 @@ class BotProcess(Process):
         self.twitch_username = twitch_username
         self.twitch_oauth_token = twitch_oauth_token
 
+        self.queue = queue
+
     def run(self) -> None:
+        configure_process_logger(self.queue)
+        bot_logger = get_bot_logger()
         bot_logger.info("Bot started")
 
         database = Database(
@@ -51,9 +59,10 @@ class BotProcess(Process):
             password=self.postgres_password,
             host=self.postgres_host,
             port=self.postgres_port,
+            logger=bot_logger,
         )
 
-        irc_bot = TwitchBot(self.twitch_username, self.twitch_oauth_token)
+        irc_bot = TwitchBot(self.twitch_username, self.twitch_oauth_token, bot_logger)
 
         current_match: Match | None = None
         for message in irc_bot.listen():
@@ -73,7 +82,7 @@ class BotProcess(Process):
                 database.update_current_match(**asdict(message))
 
                 if message.match_format != MatchFormat.EXHIBITION:
-                    current_match = Match(message)
+                    current_match = Match(message, bot_logger)
                 else:
                     current_match = None
             elif isinstance(message, OpenBetExhibitionMessage):
@@ -102,9 +111,16 @@ class BotProcess(Process):
                         database.record_match(current_match)
 
 
-def run() -> None:
+def run(log_path: Path | None) -> None:
+    queue = Queue(-1)
+    log_listener = Process(target=run_listener, args=(queue, log_path))
+    log_listener.start()
+    configure_process_logger(queue)
+
+    watchdog_logger = get_watchdog_logger()
+
     watchdog_logger.info("Running bot watchdog")
-    bot_process = new_bot_process()
+    bot_process = new_bot_process(queue)
     last_restart_time = datetime.now(timezone.utc)
     last_verified_healthcheck_time = datetime.now(timezone.utc)
     watchdog_log_attenuator = 0
@@ -115,6 +131,7 @@ def run() -> None:
         password=os.environ["POSTGRES_PASSWORD"],
         host=os.environ["POSTGRES_HOST"],
         port=int(os.environ["POSTGRES_PORT"]),
+        logger=watchdog_logger,
     )
 
     while True:
@@ -153,7 +170,7 @@ def run() -> None:
             if last_restart_time < now - timedelta(minutes=5):
                 watchdog_logger.info("Restarting bot process...")
                 close_bot_process(bot_process)
-                bot_process = new_bot_process()
+                bot_process = new_bot_process(queue)
                 last_restart_time = now
                 last_verified_healthcheck_time = now
             else:
@@ -180,21 +197,23 @@ def run() -> None:
                 )
 
 
-def new_bot_process() -> BotProcess:
+def new_bot_process(queue: Queue) -> BotProcess:
     bot_process = BotProcess(
-        os.environ["POSTGRES_DB"],
-        os.environ["POSTGRES_USER"],
-        os.environ["POSTGRES_PASSWORD"],
-        os.environ["POSTGRES_HOST"],
-        int(os.environ["POSTGRES_PORT"]),
-        os.environ["TWITCH_USERNAME"],
-        os.environ["TWITCH_OAUTH_TOKEN"],
+        postgres_db=os.environ["POSTGRES_DB"],
+        postgres_user=os.environ["POSTGRES_USER"],
+        postgres_password=os.environ["POSTGRES_PASSWORD"],
+        postgres_host=os.environ["POSTGRES_HOST"],
+        postgres_port=int(os.environ["POSTGRES_PORT"]),
+        twitch_username=os.environ["TWITCH_USERNAME"],
+        twitch_oauth_token=os.environ["TWITCH_OAUTH_TOKEN"],
+        queue=queue,
     )
     bot_process.start()
     return bot_process
 
 
 def close_bot_process(bot_process: BotProcess) -> None:
+    watchdog_logger = get_watchdog_logger()
     watchdog_logger.info("Terminating bot process...")
     try:
         if bot_process.is_alive() is True:

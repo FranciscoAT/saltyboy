@@ -7,15 +7,20 @@ import psycopg2.extras
 
 from src.objects import Match, MatchFormat
 
-logger = logging.getLogger(__name__)
-
 
 class Database:
     ACCEPTED_MATCH_FORMATS = [MatchFormat.MATCHMAKING, MatchFormat.TOURNAMENT]
 
     def __init__(
-        self, dbname: str, user: str, password: str, host: str, port: int
+        self,
+        dbname: str,
+        user: str,
+        password: str,
+        host: str,
+        port: int,
+        logger: logging.Logger,
     ) -> None:
+        self.logger = logger
         self.connection = psycopg2.connect(
             dbname=dbname,
             user=user,
@@ -27,7 +32,7 @@ class Database:
 
     def record_match(self, match: Match) -> None:
         if match.match_format not in self.ACCEPTED_MATCH_FORMATS:
-            logger.info(
+            self.logger.info(
                 "Ignoring match since its match_format %s is not in %s",
                 match.match_format,
                 self.ACCEPTED_MATCH_FORMATS,
@@ -35,7 +40,7 @@ class Database:
             return
 
         if match.streak_red is None or match.streak_blue is None:
-            logger.error(
+            self.logger.error(
                 "Cannot complete operation. Best streak not provided: %s", match
             )
             return
@@ -48,7 +53,7 @@ class Database:
         )
 
         if match.bet_blue is None or match.bet_red is None or match.winner is None:
-            logger.error("Blue bet, red bet or winner was not set: %s", match)
+            self.logger.error("Blue bet, red bet or winner was not set: %s", match)
             return
 
         winner: int | None = None
@@ -57,7 +62,7 @@ class Database:
         elif fighter_blue["name"] == match.winner:
             winner = fighter_blue["id"]
         else:
-            logger.error(
+            self.logger.error(
                 "Accuracy error. Winner not found in either fighter objects: %s, "
                 "fighter_red: %s, fighter_blue: %s",
                 match,
