@@ -101,9 +101,9 @@ class BotProcess(Process):
                         bot_logger.info(
                             "Bets locked. %s ($%s). %s ($%s).",
                             message.fighter_red_name,
-                            message.bet_red,
+                            f"{message.bet_red:,}",
                             message.fighter_blue_name,
-                            message.bet_blue,
+                            f"{message.bet_blue:,}",
                         )
                 elif isinstance(message, WinMessage):
                     if current_match.update_winner(message) is True:
