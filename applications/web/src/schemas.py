@@ -143,6 +143,14 @@ class ListMatchQuery(PaginationQuery):
         default=None,
         description="Filter matches where the amount bet on Blue is less than this number.",
     )
+    bet__gte: int = Field(
+        default=None,
+        description="Filter matches where the bet on Blue or Red is greater than or equal to this number.",
+    )
+    bet__lt: int = Field(
+        default=None,
+        description="Filter matches where the bet on Blue or Red is less than this number.",
+    )
     streak_red__gte: int = Field(
         default=None,
         description="Filter matches where the current winning streak on Red at time of the match is greater than or equal to this number.",
@@ -158,6 +166,14 @@ class ListMatchQuery(PaginationQuery):
     streak_blue__lt: int = Field(
         default=None,
         description="Filter matches where the current winning streak on Blue at time of the match is less than this number.",
+    )
+    streak__gte: int = Field(
+        default=None,
+        description="Filter matches where the best streak on Red or Blue is greater than or equal to this number.",
+    )
+    streak__lt: int = Field(
+        default=None,
+        description="Filter matches where the best streak on Red or Blue is less than or equal to this number.",
     )
     tier: Tier = Field(
         default=None, description="Filter matches by the tier of the match. "
