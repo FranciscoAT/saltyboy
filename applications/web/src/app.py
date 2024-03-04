@@ -105,19 +105,19 @@ def file_robots_request():
 )
 def api_list_fighters(query: ListFighterQuery):
     """
-    Lists Fighters in a paginated format. 
+    Lists Fighters in a paginated format.
 
     **Elo and Tier Elo**
 
-    SaltyBoy stores and upkeeps a self tracked version of ELO and Tier ELO. When a 
+    SaltyBoy stores and upkeeps a self tracked version of ELO and Tier ELO. When a
     fighter is first detected by SaltyBoy the ELO is set to 1500. SaltyBoy then uses
     a K value of 32 to do ELO update calculations. Tier ELO similarly is set to 1500
-    and uses the same K value of 32. However, Tier Elo is reset to 1500 when a fighter 
+    and uses the same K value of 32. However, Tier Elo is reset to 1500 when a fighter
     is  detected to have changed tiers, either up or down.
 
     **Tier and Previous Tier**
 
-    SaltyBoy keeps track of the current tier of the fighter. It is important to note 
+    SaltyBoy keeps track of the current tier of the fighter. It is important to note
     that the real tier of the fighter may not be reflected in SaltyBoy until it sees the
     fighter again. At which point the tier of the fighter is updated, and the Tier ELO
     is also reset as per the above section.
@@ -136,7 +136,7 @@ def api_get_fighter(path: IdPath):
     """
     Get a specific Fighter by ID.
 
-    **Note**: If you want to scrape the database I would recommend using the 
+    **Note**: If you want to scrape the database I would recommend using the
     `GET /api/fighter/` pagination endpoint instead.
     """
     if fighter := get_fighter_by_id(pg_pool, path.id_):
@@ -174,7 +174,7 @@ def api_get_match(path: IdPath):
     """
     Get a specific Match by ID.
 
-    **Note**: If you want to scrape the database I would recommend using the 
+    **Note**: If you want to scrape the database I would recommend using the
     `GET /api/match/` pagination endpoint instead.
     """
     if match_ := get_match_by_id(pg_pool, path.id_):
@@ -192,35 +192,35 @@ def api_get_match(path: IdPath):
 )
 def api_current_match_info():
     """
-    Returns the details of the current match from SaltyBet. 
+    Returns the details of the current match from SaltyBet.
 
-    This can be a bit of a volatile endpoint that can be hard to integrate with so you 
+    This can be a bit of a volatile endpoint that can be hard to integrate with so you
     need to be aware of the following:
 
-    - `fighter_blue` and `fighter_red` reference the **name** and not the ID of the 
-        Fighter. While these fields per the schema _can_ have `null` values in my 
+    - `fighter_blue` and `fighter_red` reference the **name** and not the ID of the
+        Fighter. While these fields per the schema _can_ have `null` values in my
         experience I've never seen this.
     - If either `fighter_blue` or `fighter_red` are in the database the respective field
         `fighter_blue_info` or `fighter_red_info` will be filled out otherwise will be
         `null`.
     - `fighter_blue_info` and `fighter_red_info` are just the standard Fighter model
         found in the `GET /api/fighter/` endpoints. However, in them will be a new field
-        `matches` which will list **all** matches in the database associated with the 
+        `matches` which will list **all** matches in the database associated with the
         `fighter_red` or `fighter_blue` Fighter of the current match.
     - `match_format` contains the format of the current match. Important to note that if
-        the match format is exhibition then it is always the case that 
+        the match format is exhibition then it is always the case that
         `fighter_blue_info` and `fighter_red_info` will have `null` values, as SaltyBoy
         does not record exhibition matches.
-    - `tier` contains the tier of the match. Note that in exhibition matches it is very 
-        probable that this value is `null`. However, in tournament or matchmaking 
+    - `tier` contains the tier of the match. Note that in exhibition matches it is very
+        probable that this value is `null`. However, in tournament or matchmaking
         matches you can be very confident that this value will not be `null`.
-    - `updated_at` should always contain the date time at which the content for this 
+    - `updated_at` should always contain the date time at which the content for this
         endpoint was updated. Note that this time should roughly correlate with the
         time where Waif4u bot announces "Bets are open..." in the Twitch chat.
-    - This endpoint is known to go out of date due to the following reasons, and that 
-        your integration should code defensively and anticipate this endpoint going out 
+    - This endpoint is known to go out of date due to the following reasons, and that
+        your integration should code defensively and anticipate this endpoint going out
         of date:
-        - The upstream bot that scrapes Twitch chat ran into an unrecoverable error. 
+        - The upstream bot that scrapes Twitch chat ran into an unrecoverable error.
             Although worth noting that this does not happen much if at all anymore.
         - Waif4U bot goes down in Twitch chat. Also an extremely rare occurrence.
     """

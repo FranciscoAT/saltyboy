@@ -1,3 +1,5 @@
+# pylint: disable=too-many-statements
+
 from typing import Any
 
 from psycopg2.extras import DictRow
