@@ -2,8 +2,6 @@ import logging
 from dataclasses import dataclass
 from enum import Enum, unique
 
-logger = logging.getLogger(__name__)
-
 
 @unique
 class MatchFormat(Enum):
@@ -13,8 +11,6 @@ class MatchFormat(Enum):
 
 
 # === Waif4u Messages ===
-
-
 @dataclass
 class OpenBetMessage:
     fighter_red_name: str
@@ -54,7 +50,7 @@ class MatchStatus(Enum):
 
 
 class Match:
-    def __init__(self, waifu_message: OpenBetMessage) -> None:
+    def __init__(self, waifu_message: OpenBetMessage, logger: logging.Logger) -> None:
         self.status = MatchStatus.OPEN
         self.tier = waifu_message.tier
         self.fighter_red_name = waifu_message.fighter_red_name
@@ -68,9 +64,11 @@ class Match:
         self.winner: str | None = None
         self.colour: str | None = None
 
+        self.logger = logger
+
     def update_locked(self, waifu_message: LockedBetMessage) -> bool:
         if self.status != MatchStatus.OPEN:
-            logger.warning(
+            self.logger.warning(
                 "Could not update current match. Attempted to update to locked and "
                 "match status is not open. Waifu message: %s. Current match: %s.",
                 waifu_message,
@@ -82,7 +80,7 @@ class Match:
             waifu_message.fighter_red_name != self.fighter_red_name
             or waifu_message.fighter_blue_name != self.fighter_blue_name
         ):
-            logger.warning(
+            self.logger.warning(
                 "Could not update current match. Data mismatch. Waifu message: %s. "
                 "Current match: %s",
                 waifu_message,
@@ -99,7 +97,7 @@ class Match:
 
     def update_winner(self, waifu_message: WinMessage) -> bool:
         if self.status != MatchStatus.LOCKED:
-            logger.warning(
+            self.logger.warning(
                 "Could not update current match. Attempted to update to locked and "
                 "match status is not open. Waifu message: %s. Current match: %s.",
                 waifu_message,
@@ -111,7 +109,7 @@ class Match:
             self.fighter_red_name,
             self.fighter_blue_name,
         ]:
-            logger.warning(
+            self.logger.warning(
                 "Could not update current match. Data mismatch. Waifu message: %s. "
                 "Current match: %s",
                 waifu_message,

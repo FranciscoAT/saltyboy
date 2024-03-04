@@ -117,6 +117,11 @@ class ListMatchQuery(PaginationQuery):
         description="Filter matches where the Blue fighter was a specific fighter by ID.",
         ge=1,
     )
+    fighter: int = Field(
+        default=None,
+        description="Filter matches where the Red or Blue fighter is a specific fighter by ID.",
+        ge=1,
+    )
     winner: int = Field(
         default=None,
         description="Filter matches where the winning fighter was a specific fighter by ID.",
@@ -138,6 +143,14 @@ class ListMatchQuery(PaginationQuery):
         default=None,
         description="Filter matches where the amount bet on Blue is less than this number.",
     )
+    bet__gte: int = Field(
+        default=None,
+        description="Filter matches where the bet on Blue or Red is greater than or equal to this number.",
+    )
+    bet__lt: int = Field(
+        default=None,
+        description="Filter matches where the bet on Blue or Red is less than this number.",
+    )
     streak_red__gte: int = Field(
         default=None,
         description="Filter matches where the current winning streak on Red at time of the match is greater than or equal to this number.",
@@ -153,6 +166,14 @@ class ListMatchQuery(PaginationQuery):
     streak_blue__lt: int = Field(
         default=None,
         description="Filter matches where the current winning streak on Blue at time of the match is less than this number.",
+    )
+    streak__gte: int = Field(
+        default=None,
+        description="Filter matches where the best streak on Red or Blue is greater than or equal to this number.",
+    )
+    streak__lt: int = Field(
+        default=None,
+        description="Filter matches where the best streak on Red or Blue is less than or equal to this number.",
     )
     tier: Tier = Field(
         default=None, description="Filter matches by the tier of the match. "
@@ -197,24 +218,10 @@ class ListMatchResponse(PaginationResponse):
 
 
 # === Current Match ===
-class FighterStats(BaseModel):
-    average_bet: float = Field(description="Average bet on the fighter.")
-    total_matches: int = Field(
-        description="Total matches the fighter has participated in."
-    )
-    win_rate: float = Field(
-        description="Win rate of the fighter. Value between 0 to 1."
-    )
-
-
 class ExtendedFighterModel(FighterModel):
     matches: list[MatchModel] = Field(
         description="All matches the fighter has fought in."
     )
-
-
-class ExtendedFighterModelWithStats(ExtendedFighterModel):
-    stats: FighterStats = Field(description="General fighter statistics.")
 
 
 class CurrentMatchMatchModel(BaseModel):
@@ -222,6 +229,17 @@ class CurrentMatchMatchModel(BaseModel):
     fighter_red: Optional[str] = Field(description="Name of the Red fighter.")
     match_format: Optional[AllMatchFormat] = Field(description="Match format.")
     tier: Optional[Tier] = Field(description="Tier of the match.")
+    updated_at: Optional[datetime] = Field(
+        description="When the current match was updated."
+    )
+
+    @field_serializer("updated_at")
+    @classmethod
+    def serialize_datetime(cls, v: datetime | None, *args) -> str | None:
+        if v is not None:
+            return v.isoformat()
+
+        return None
 
 
 class CurrentMatchInfoResponse(CurrentMatchMatchModel):
@@ -229,14 +247,5 @@ class CurrentMatchInfoResponse(CurrentMatchMatchModel):
         default=None, description="Detailed information about the Blue fighter."
     )
     fighter_red_info: Optional[ExtendedFighterModel] = Field(
-        default=None, description="Detailed information about the Red fighter."
-    )
-
-
-class CurrentMatchInfoResponseWithStats(CurrentMatchMatchModel):
-    fighter_blue_info: Optional[ExtendedFighterModelWithStats] = Field(
-        default=None, description="Detailed information about the Blue fighter."
-    )
-    fighter_red_info: Optional[ExtendedFighterModelWithStats] = Field(
         default=None, description="Detailed information about the Red fighter."
     )

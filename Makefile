@@ -1,9 +1,25 @@
 # === Apps ===
 run-bot: db-migrate
-	cd applications/bot && poetry run python main.py 
+	cd applications/bot && poetry run python main.py
+run-bot-log-file: db-migrate
+	mkdir -p logs/bot
+	cd applications/bot && poetry run python main.py --logs ../../logs/bot/
+run-bot-debug: db-migrate
+	cd applications/bot && poetry run python main.py --debug
+run-bot-log-file-debug: db-migrate
+	mkdir -p logs/bot
+	cd applications/bot && poetry run python main.py --logs ../../logs/bot/ --debug
 
 run-web: db-migrate
 	cd applications/web && poetry run python main.py
+run-web-log-file: db-migrate
+	mkdir -p logs/web
+	cd applications/web && poetry run python main.py --logs ../../logs/web/
+run-web-debug: db-migrate
+	cd applications/web && poetry run python main.py --debug
+run-web-log-file-debug: db-migrate
+	mkdir -p logs/web
+	cd applications/web && poetry run python main.py --logs ../../logs/web/ --debug
 
 run-extension:
 	cd applications/extension && npm run dev
@@ -40,7 +56,7 @@ docker-up-db:
 	docker-compose -f docker-compose.local.yml up -d postgres
 
 # === Linting ===
-lint: lint-black lint-isort lint-mypy lint-pycln lint-ruff lint-prettier;
+lint: lint-web lint-bot lint-extension;
 
 lint-web: lint-black-web lint-isort-web lint-mypy-web lint-pycln-web lint-pylint-web lint-ruff-web;
 lint-bot: lint-black-bot lint-isort-bot lint-mypy-bot lint-pycln-bot lint-pylint-bot lint-ruff-bot;
@@ -89,7 +105,6 @@ lint-pycln-web:
 
 lint-pylint-bot:
 	cd applications/bot && poetry run pylint src/ || poetry run pylint-exit --error-fail $$?
-	cd applications/bot && poetry run pylint alembic/ || poetry run pylint-exit --error-fail $$?
 	cd applications/bot && poetry run pylint main.py || poetry run pylint-exit --error-fail $$?
 lint-pylint-web:
 	cd applications/web && poetry run pylint src/ || poetry run pylint-exit --error-fail $$?
@@ -107,7 +122,7 @@ lint-prettier-extension:
 	cd applications/extension && npx prettier src/ --check
 
 # === Formatting ===
-format: format-black format-isort format-pycln format-prettier;
+format: format-web format-bot format-extension;
 
 format-web: format-black-web format-isort-web format-pycln-web;
 format-bot: format-black-bot format-isort-bot format-pycln-bot;
