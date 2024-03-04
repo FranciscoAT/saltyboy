@@ -79,7 +79,6 @@ class TwitchBot:
 
     def listen(self) -> Iterator[ReturnMessages]:
         while True:
-            # Questionable if this is ever hit
             if self.last_read < datetime.now(timezone.utc) - timedelta(minutes=10):
                 self.logger.warning("Last read was over 10 minutes ago.")
                 self.connect()
