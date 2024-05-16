@@ -40,4 +40,4 @@ echo "Using Postgres user: $POSTGRES_USER"
 echo "Using Docker container: $CONTAINER"
 
 docker exec -t "$CONTAINER" pg_dumpall -c -U "$POSTGRES_USER" | gzip > "$DUMP_PATH"
-find "$DUMP_PATH" -maxdepth 1 -name "*.sql.gz" -type f -mtime +"$RETAIN_DAYS" -delete
+find "$DUMP_DIR" -maxdepth 1 -name "*.sql.gz" -type f -mtime +"$RETAIN_DAYS" -delete
