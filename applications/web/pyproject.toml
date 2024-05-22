@@ -8,7 +8,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.11"
 Flask = "^3.0.2"
-Flask-Cors = "^4.0.0"
+Flask-Cors = "^4.0.1"
 Paste = "^3.7.1"
 flask-openapi3 = "^3.0.2"
 psycopg2 = "^2.9.9"
